@@ -1,19 +1,24 @@
 from direct.showbase.ShowBase import ShowBase
  
-class MyApp(ShowBase):
+class PandaTest(ShowBase):
  
     def __init__(self):
         ShowBase.__init__(self)
+        
+        #disable mouse
+        base.disableMouse()
+        self.load_level()
+        self.add_tasks()
+        
+
+    def load_level(self):
+        level = self.loader.loadModel("/home/tshannon/workspace/excavation/data/models/levels/leveltest.egg")
+        level.reparentTo(self.render)
+        
+    def add_tasks(self):
+        pass
  
-        # Load the environment model.
-        self.environ = self.loader.loadModel("/home/tshannon/workspace/excavation/data/models/levels/leveltest.egg")
-        # Reparent the model to render.
-        self.environ.reparentTo(self.render)
-        # Apply scale and position transforms on the model.
-        self.environ.setScale(0.25, 0.25, 0.25)
-        self.environ.setPos(-8, 42, 0)
  
- 
-app = MyApp()
+app = PandaTest()
 app.run()
 
