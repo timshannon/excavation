@@ -1,6 +1,6 @@
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import WindowProperties
-import os, sys
+import os, sys, copy
  
 class PandaTest(ShowBase):
  
@@ -9,8 +9,8 @@ class PandaTest(ShowBase):
         
         self.RUNNINGDIR = os.path.abspath(sys.path[0])
         self.MODELPATH = "../data/models/"
-        self.MOUSESENSITIVITY = 0.05
-        self.INVERTY = True
+        self.MOUSESENSITIVITY = 0.1
+        self.INVERTMOUSE = True
         
                
         #disable mouse and hide cursor
@@ -29,7 +29,7 @@ class PandaTest(ShowBase):
 
     def add_keys(self):
         self.accept("escape", sys.exit, [0])
-        
+        self.accept("w", self.)        
         
         
     def load_level(self):
@@ -46,13 +46,17 @@ class PandaTest(ShowBase):
         #Reset pointer position
         if base.win.movePointer(0, 300, 300):
             #get amount cursor moved
-            x = x - 300 
-            y = y - 300 
+            x = (x - 300) * -1 
+            y = (y - 300)
+            
+            if not self.INVERTMOUSE:
+                y = y * -1
+            
             
             quat = base.camera.getQuat()
-            upQ = base.camera.getQuat()
-            rightQ = base.camera.getQuat() 
-            forwardQ = base.camera.getQuat()
+            upQ = copy.copy(quat)
+            rightQ = copy.copy(quat)
+            #forwardQ = copy.copy(quat)
             up = quat.getUp()
             right = quat.getRight()
             forward = quat.getForward()
@@ -60,11 +64,10 @@ class PandaTest(ShowBase):
             right.normalize()
             forward.normalize()
                        
-            upQ.setFromAxisAngle((x * self.MOUSESENSITIVITY * -1), up)
+            upQ.setFromAxisAngle(x * self.MOUSESENSITIVITY, up)
             rightQ.setFromAxisAngle(y * self.MOUSESENSITIVITY, right)
             #forwardQ.setFromAxisAngle(45, right)
-            
-            
+                        
             
             base.camera.setQuat(quat.multiply(upQ.multiply(rightQ))) 
             
