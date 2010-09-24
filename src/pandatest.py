@@ -1,9 +1,14 @@
 from direct.showbase.ShowBase import ShowBase
+import os, sys
  
 class PandaTest(ShowBase):
  
     def __init__(self):
         ShowBase.__init__(self)
+        
+        self.RUNNINGDIR = os.path.abspath(sys.path[0])
+        self.MODELPATH = "../data/models/"
+        
         
         #disable mouse
         base.disableMouse()
@@ -12,12 +17,21 @@ class PandaTest(ShowBase):
         
 
     def load_level(self):
-        level = self.loader.loadModel("/home/tshannon/workspace/excavation/data/models/levels/leveltest.egg")
+        level = self.loader.loadModel(os.path.join(self.RUNNINGDIR, self.MODELPATH + "levels/leveltest.egg"))
         level.reparentTo(self.render)
         
     def add_tasks(self):
-        pass
- 
+        taskMgr.add(self.player_move, 'player_move') 
+        
+        
+        
+    def player_move(self, task):
+        """ handles player movement"""
+        
+        
+        
+        return task.cont
+        
  
 app = PandaTest()
 app.run()
