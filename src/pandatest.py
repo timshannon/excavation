@@ -9,9 +9,10 @@ class PandaTest(ShowBase):
         
         self.RUNNINGDIR = os.path.abspath(sys.path[0])
         self.MODELPATH = "../data/models/"
+        self.MOUSESENSITIVITY = 0.05
+        self.INVERTY = True
         
-        
-        
+               
         #disable mouse and hide cursor
         base.disableMouse()
         props = WindowProperties()
@@ -24,10 +25,11 @@ class PandaTest(ShowBase):
         
         taskMgr.add(self.update_player, 'update_player') 
         
+      
 
     def add_keys(self):
         self.accept("escape", sys.exit, [0])
-        self.accept("w", self.move)
+        
         
         
     def load_level(self):
@@ -37,15 +39,38 @@ class PandaTest(ShowBase):
                 
     def update_player(self, task):
         """ handles player movement"""
-        quat = base.camera.getQuat()
+        pointer = base.win.getPointer(0)
+        x = pointer.getX()
+        y = pointer.getY()
         
-        #multiply directrion quats with current camera quat
-                
+        #Reset pointer position
+        if base.win.movePointer(0, 300, 300):
+            #get amount cursor moved
+            x = x - 300 
+            y = y - 300 
+            
+            quat = base.camera.getQuat()
+            upQ = base.camera.getQuat()
+            rightQ = base.camera.getQuat() 
+            forwardQ = base.camera.getQuat()
+            up = quat.getUp()
+            right = quat.getRight()
+            forward = quat.getForward()
+            up.normalize()
+            right.normalize()
+            forward.normalize()
+                       
+            upQ.setFromAxisAngle((x * self.MOUSESENSITIVITY * -1), up)
+            rightQ.setFromAxisAngle(y * self.MOUSESENSITIVITY, right)
+            #forwardQ.setFromAxisAngle(45, right)
+            
+            
+            
+            base.camera.setQuat(quat.multiply(upQ.multiply(rightQ))) 
+            
         
         return task.cont
     
-    def move(self):
-        print "test"
         
  
 app = PandaTest()
