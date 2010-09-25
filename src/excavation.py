@@ -27,17 +27,18 @@ class Excavation(ShowBase):
     
     RUNNINGDIR = os.path.abspath(sys.path[0])
     MODELPATH = "../data/models/"
-    MOUSESENSITIVITY = 0.2
+    MOUSESENSITIVITY = 0.4
     INVERTMOUSE = True
     CAMERAFOV = 90
-    MAXSPEED = 0.25
-    ACCELERATION = 0.01
+    MAXSPEED = 0.5
+    ACCELERATION = 2.5
 
     def __init__(self):
         ShowBase.__init__(self)
         
         self.direction = {"x":0, "y":0, "z":0}
         self.speed = {"x":0, "y":0, "z":0}
+        self.lastTask = 0
         
         #disable mouse and hide cursor
         base.disableMouse()
@@ -76,7 +77,9 @@ class Excavation(ShowBase):
     def load_level(self):
         level = self.loader.loadModel(os.path.join(self.RUNNINGDIR, self.MODELPATH + "levels/leveltest.egg"))
         level.reparentTo(self.render)
-               
+        
+        
+        
                 
     def update_player(self, task):
         """ handles player movement"""
@@ -114,17 +117,20 @@ class Excavation(ShowBase):
         newQuat = quat.multiply(upQ.multiply(rightQ))
         base.camera.setQuat(newQuat)
         
+        elapsed = task.time - self.lastTask
         #Move player
+        #TODO: Set movement base on time passed
         for k in self.direction.keys():
             if self.direction[k] <> 0:
-                self.speed[k] = self.speed[k] + (self.ACCELERATION * self.direction[k])
+                self.speed[k] = self.speed[k] + (self.ACCELERATION * self.direction[k] * elapsed)
             else:
+                #decelerate
                 if self.speed[k] > 0:
-                    self.speed[k] = self.speed[k] - self.ACCELERATION
+                    self.speed[k] = self.speed[k] - (self.ACCELERATION * elapsed)
                     if self.speed[k] < 0:
                         self.speed[k] = 0
                 else:
-                    self.speed[k] = self.speed[k] + self.ACCELERATION
+                    self.speed[k] = self.speed[k] + (self.ACCELERATION * elapsed)
                     if self.speed[k] > 0:
                         self.speed[k] = 0
                 
@@ -136,12 +142,12 @@ class Excavation(ShowBase):
             
         
             
-        base.camera.setPos(base.camera, 
-                           self.speed["x"], 
-                           self.speed["y"], 
-                           self.speed["z"])
-                        
+        base.camera.setFluidPos(base.camera, 
+                               self.speed["x"], 
+                               self.speed["y"], 
+                               self.speed["z"])
         
+        self.lastTask = task.time
         return task.cont
     
     def move(self, dir, value):
