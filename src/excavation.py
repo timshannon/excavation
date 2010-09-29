@@ -49,6 +49,9 @@ class Excavation(ShowBase):
         #normal FPS camera FOV
         base.camLens.setFov(self.CAMERAFOV)
         
+        #setup player collider
+        #cPlayer = CollisionSphere(0, 0, 0, 1)
+        #cPlayerNode = base.camera.attachNewNode(CollisionNode("cpnode"))
         
         self.load_level()
         self.add_keys()
@@ -119,7 +122,6 @@ class Excavation(ShowBase):
         
         elapsed = task.time - self.lastTask
         #Move player
-        #TODO: Set movement base on time passed
         for k in self.direction.keys():
             if self.direction[k] <> 0:
                 self.speed[k] = self.speed[k] + (self.ACCELERATION * self.direction[k] * elapsed)
