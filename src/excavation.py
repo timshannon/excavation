@@ -27,7 +27,7 @@ class Excavation(ShowBase):
     
     RUNNINGDIR = os.path.abspath(sys.path[0])
     MODELPATH = "../data/models/"
-    MOUSESENSITIVITY = 0.4
+    MOUSESENSITIVITY = 0.2
     INVERTMOUSE = True
     CAMERAFOV = 90
     MAXSPEED = 0.5
