@@ -28,6 +28,7 @@ class World():
     
     def __init__(self):
         self.tree = Node("render")
+        self.keyValues = {}  #dictionary for world level values, ambient light level, skybox, name, level description, level load hints, etc
         
         
     def write(self, fileName):
@@ -74,6 +75,18 @@ class Node():
         else:
             siblings = self.parent.children[:]
             siblings.remove(self)
+    
+    def set_pos(self, x, y, z):
+        """Sets position of the node"""
+        self.x = x
+        self.y = y
+        self.z = z
+            
+    def set_hpr(self, h, p, r):
+        """Sets heading, pitch and rotation"""
+        self.h = h
+        self.p = p
+        self.r = r
             
 class Entity(Node):
     keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
@@ -82,10 +95,45 @@ class Entity(Node):
 class Model(Node):
     model = ""
     collision = ""
+    scale = 1
     
 class Light(Node):
-    color = {red:1,green:1,blue:1,alpha:1}
+    color = {"red":1,"green":1,"blue":1,"alpha":1}
+    specColor = {"red":1,"green":1,"blue":1,"alpha":1}
+    
+    def set_color(self, **colors):
+        for k in colors.keys():
+            if k in self.color.keys():
+                self.color[k] = color[k]
+                
+    def set_spec_color(self, **colors):
+        for k in colors.keys():
+            if k in self.specColor.keys():
+                self.specColor[k] = color[k]
     
 class PointLight(Light):
     attenuation = {constant:0,linear:0,quadratic:0}
+    
+    def set_attenuation(self, **attenuation):
+        for k in attenuation.keys():
+            if k in self.attenuation.keys():
+                self.attenuation[k] = attenuation[k]
+    
+class DirectionalLight(Light):
+    direction = {"x":0,"y":0,"z":0}
+    
+    def set_direction(self, **direction):
+        for k in direction.keys():
+            if k in self.direction.keys():
+                self.direction[k] = direction[k]
+                
+class SpotLight(Light):
+    attenuation = {constant:0,linear:0,quadratic:0}
+    exponent = 0.0
+    
+    def set_attenuation(self, **attenuation):
+        for k in attenuation.keys():
+            if k in self.attenuation.keys():
+                self.attenuation[k] = attenuation[k]
+        
     
