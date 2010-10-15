@@ -21,7 +21,9 @@
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import WindowProperties
-import os, sys, copy
+import os
+import sys
+import copy
  
 class Excavation(ShowBase):
     
