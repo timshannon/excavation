@@ -22,22 +22,28 @@ import json
 import StringIO
 import ex_tag
 
+__all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
-class World(): 
-    #Defines the structure of a world for saving to a JSON file for loading
+class Scene(): 
+    #Defines the structure of a scene for saving to a JSON file for loading
     
     def __init__(self):
         self.tree = Node("render")
-        self.keyValues = {}  #dictionary for world level values, ambient light level, skybox, name, level description, level load hints, etc
+        self.keyValues = {}  #dictionary for scene level values, ambient light level, skybox, name, level description, level load hints, etc
         
         
     def write(self, fileName):
         file = open(fileName, "w")
-        json.dump(self.tree, file)
+        json.dump(self.tree, file, default=self.__to_json__, check_circular=True)
         file.close()
         
-     
+    def __to_json__(self, object):
+        if "__to_json__" in dir(object):
+            return object.__to_json__()
+        else:
+            return {object.__class__.__name__:object.__dict__}
         
+       
 class Node():
     def __init__(self, 
                  name, 
@@ -87,6 +93,11 @@ class Node():
         self.h = h
         self.p = p
         self.r = r
+        
+    def __to_json__(self):
+        #clear recursive parent object before writing to file
+        self.parent = None
+        return self.__dict__
             
 class Entity(Node):
     keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
@@ -95,7 +106,7 @@ class Entity(Node):
 class Model(Node):
     model = ""
     collision = ""
-    scale = 1
+    scale = 1.0
     
 class Light(Node):
     color = {"red":1,"green":1,"blue":1,"alpha":1}
@@ -112,7 +123,7 @@ class Light(Node):
                 self.specColor[k] = color[k]
     
 class PointLight(Light):
-    attenuation = {constant:0,linear:0,quadratic:0}
+    attenuation = {"constant":0,"linear":0,"quadratic":0}
     
     def set_attenuation(self, **attenuation):
         for k in attenuation.keys():
@@ -127,8 +138,8 @@ class DirectionalLight(Light):
             if k in self.direction.keys():
                 self.direction[k] = direction[k]
                 
-class SpotLight(Light):
-    attenuation = {constant:0,linear:0,quadratic:0}
+class Spotlight(Light):
+    attenuation = {"constant":0,"linear":0,"quadratic":0}
     exponent = 0.0
     
     def set_attenuation(self, **attenuation):

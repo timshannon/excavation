@@ -111,3 +111,6 @@ class TagGroup:
         """ adds the list of tags to the existing tag dict"""
         for t in tags:
             self.add_tag(t.lstrip().rstrip(), value)
+
+    def __to_json__(self):
+        return self.tags
