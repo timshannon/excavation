@@ -114,3 +114,8 @@ class TagGroup:
 
     def __to_json__(self):
         return self.tags
+    
+    def __from_json__(self, object):
+        value = object["__value__"]
+               
+        return TagGroup(value)

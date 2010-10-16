@@ -20,7 +20,7 @@
 
 import json
 import StringIO
-import ex_tag
+from ex_tag import TagGroup
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
@@ -32,21 +32,39 @@ class Scene():
         self.keyValues = {}  #dictionary for scene level values, ambient light level, skybox, name, level description, level load hints, etc
         
         
-    def write(self, fileName):
+    def write(self, fileName, indent=0):
         file = open(fileName, "w")
-        json.dump(self.tree, file, default=self.__to_json__, check_circular=True)
+        json.dump(self.tree, file, default=self.__to_json__, check_circular=True, indent=indent)
         file.close()
+        
+    def read(self, fileName):
+        file = open(fileName)
+        json.load(file, object_hook=self.__from_json__)
         
     def __to_json__(self, object):
         if "__to_json__" in dir(object):
-            return object.__to_json__()
+            return {"__type__":object.__class__.__name__,"__value__":object.__to_json__()}
         else:
-            return {object.__class__.__name__:object.__dict__}
+            return {"__type__":object.__class__.__name__,"__value__":object.__dict__}
+    
+    def __from_json__(self, object):
+        if object.has_key("__type__"):
+            cls = globals()[object["__type__"]]
+            pyObject = cls()
+            if "__from_json__" in dir(pyObject):
+                return pyObject.__from_json__(object)
+            else:
+                value = object["__value__"]
+                for k in pyObject.__dict__.keys():
+                    pyObject[k] = value[k]
+                return pyObject
+        else:
+            return object
         
-       
+                W
 class Node():
     def __init__(self, 
-                 name, 
+                 name="unnamed", 
                  parent=None, 
                  x=-1, 
                  y=-1,
@@ -55,7 +73,7 @@ class Node():
                  p=-1,
                  r=-1):
         self.name = name
-        self.tags = ex_tag.TagGroup()
+        self.tags = TagGroup()
         self.x = x
         self.y = y
         self.z = z
@@ -98,6 +116,21 @@ class Node():
         #clear recursive parent object before writing to file
         self.parent = None
         return self.__dict__
+    
+    def __from_json__(self, object):
+        value = object["__value__"]
+        jNode = Node(value["name"], 
+                     None, 
+                     value["x"], 
+                     value["y"],
+                     value["z"], 
+                     value["h"], 
+                     value["p"], 
+                     value["r"])
+#        for child in value["children"]:
+#            jNode.add_child(jNode.__from_json__(child))
+            
+        return jNode
             
 class Entity(Node):
     keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
