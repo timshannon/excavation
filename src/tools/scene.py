@@ -18,7 +18,7 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import json
+import cPickle
 import StringIO
 from ex_tag import TagGroup
 
@@ -27,44 +27,31 @@ __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "Direc
 class Scene(): 
     #Defines the structure of a scene for saving to a JSON file for loading
     
-    def __init__(self):
-        self.tree = Node("render")
-        self.keyValues = {}  #dictionary for scene level values, ambient light level, skybox, name, level description, level load hints, etc
+    def __init__(self, fileName=""):
+        if fileName == "":
+            self.tree = Node("render")
+            self.keyValues = {}  #dictionary for scene level values, ambient light level, skybox, name, level description, level load hints, etc
+        else:
+            self.read(fileName)
+            
         
-        
-    def write(self, fileName, indent=0):
-        file = open(fileName, "w")
-        json.dump(self.tree, file, default=self.__to_json__, check_circular=True, indent=indent)
+    def write(self, fileName):
+        file = open(fileName, "wb")
+        cPickle.dump(self, file)
         file.close()
         
     def read(self, fileName):
-        file = open(fileName)
-        json.load(file, object_hook=self.__from_json__)
+        file = open(fileName, "rb")
+        scene = cPickle.load(file)
+        file.close()
         
-    def __to_json__(self, object):
-        if "__to_json__" in dir(object):
-            return {"__type__":object.__class__.__name__,"__value__":object.__to_json__()}
-        else:
-            return {"__type__":object.__class__.__name__,"__value__":object.__dict__}
+        self.keyValues = scene.keyValues
+        self.tree = scene.tree
     
-    def __from_json__(self, object):
-        if object.has_key("__type__"):
-            cls = globals()[object["__type__"]]
-            pyObject = cls()
-            if "__from_json__" in dir(pyObject):
-                return pyObject.__from_json__(object)
-            else:
-                value = object["__value__"]
-                for k in pyObject.__dict__.keys():
-                    pyObject[k] = value[k]
-                return pyObject
-        else:
-            return object
         
-                W
 class Node():
     def __init__(self, 
-                 name="unnamed", 
+                 name, 
                  parent=None, 
                  x=-1, 
                  y=-1,
@@ -111,27 +98,7 @@ class Node():
         self.h = h
         self.p = p
         self.r = r
-        
-    def __to_json__(self):
-        #clear recursive parent object before writing to file
-        self.parent = None
-        return self.__dict__
-    
-    def __from_json__(self, object):
-        value = object["__value__"]
-        jNode = Node(value["name"], 
-                     None, 
-                     value["x"], 
-                     value["y"],
-                     value["z"], 
-                     value["h"], 
-                     value["p"], 
-                     value["r"])
-#        for child in value["children"]:
-#            jNode.add_child(jNode.__from_json__(child))
-            
-        return jNode
-            
+                    
 class Entity(Node):
     keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
     type = ""       #type of entity used to identify to python file to use
