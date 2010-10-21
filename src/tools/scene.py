@@ -106,7 +106,23 @@ class Entity(Node):
 class Model(Node):
     model = ""
     collision = ""
-    scale = 1.0
+    scaleX = 1.0
+    scaleY = 1.0
+    scaleZ = 1.0
+    
+    def set_scale(self, **scale):
+        if "x" in scale:
+            self.scaleX = scale["x"]
+        
+        if "y" in scale:
+            self.scaley = scale["y"]
+            
+        if "z" in scale:
+            self.scaleZ = scale["z"]
+        
+        
+            
+            
     
 class Light(Node):
     color = {"red":1,"green":1,"blue":1,"alpha":1}

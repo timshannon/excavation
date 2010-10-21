@@ -29,23 +29,21 @@ import copy
  
 class Excavation(ShowBase):
     RUNNINGDIR = os.path.abspath(sys.path[0])
-    MODELPATH = "../data/models/"
-    SCENEPATH = "../data/scenes/"    
+    MODELPATH = os.path.join(RUNNINGDIR, "../data/models/")
+    SCENEPATH = os.path.join(RUNNINGDIR, "../data/scenes/")    
     def __init__(self):
         ShowBase.__init__(self)
-       
+        
         #load config file
         #set panda core settings
         #load keyconfig file
             #set keys
             
-        print sys.argv
-       
+               
         if "-scene" in sys.argv:
-            sceneFile = os.path.join(self.RUNNINGDIR, self.SCENEPATH + sys.argv[sys.argv.index("-scene") + 1])
+            sceneFile = os.path.join(self.SCENEPATH, sys.argv[sys.argv.index("-scene") + 1])
             
-            self.sceneD = self.load_scene(sceneFile)
-            
+            self.load_scene(sceneFile)
             
             
             
@@ -54,6 +52,32 @@ class Excavation(ShowBase):
         """Loads the models, entities, lights, etc from the scene file.
             returns a dictionary of all objects loaded keyed by type"""
         scene = Scene(fileName)
+                
+        def load_node(node, parentNode):
+                """recursively loads the nodes in the tree"""
+                nodeP = None
+                if type(node).__name__ == "Model":
+                    nodeP = self.loader.loadModel(os.path.joing(self.MODELPATH, node.model))
+                    nodeP.reparentTo(parentNode)
+                    nodeP.setPosHprScale(node.x,
+                                         node.y,
+                                         node.z,
+                                         node.h,
+                                         node.p,
+                                         node.r,
+                                         node.scaleX,
+                                         node.scaleY,
+                                         node.scaleZ)
+                elif type(node).__name__ == "Node":
+                    nodeP = parentNode.attachNewNode(node.name)
+                
+                
+                for c in node.children:
+                    load_node(c, nodeP)
+                    
+                    
+        load_node(scene.tree, self.render)
+            
         
         
         
