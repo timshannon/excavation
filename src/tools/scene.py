@@ -115,7 +115,7 @@ class Light(Node):
     def set_color(self, **colors):
         for k in colors.keys():
             if k in self.color.keys():
-                self.color[k] = color[k]
+                self.color[k] = colors[k]
                 
     def set_spec_color(self, **colors):
         for k in colors.keys():
