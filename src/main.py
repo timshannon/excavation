@@ -49,8 +49,7 @@ class Excavation(ShowBase):
             
        
     def load_scene(self, fileName):
-        """Loads the models, entities, lights, etc from the scene file.
-            returns a dictionary of all objects loaded keyed by type"""
+        """Loads the models, entities, lights, etc from the scene file."""
         scene = Scene(fileName)
                 
         def load_node(node, parentNode):
@@ -70,6 +69,12 @@ class Excavation(ShowBase):
                                          node.scaleZ)
                 elif type(node).__name__ == "Node":
                     nodeP = parentNode.attachNewNode(node.name)
+                elif type(node).__name__ == "PointLight":
+                    light = PointLight(node.name)
+                    light.setAttenuation()
+                    light.setSpecularColor()
+                    light.setPoint()
+                    nodeP = parentNode.
                 
                 
                 for c in node.children:
