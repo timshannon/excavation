@@ -148,6 +148,7 @@ class PointLight(Light):
     
 class DirectionalLight(Light):
     direction = {"x":0,"y":0,"z":0}
+    castShadows = False
     
     def set_direction(self, **direction):
         for k in direction.keys():
@@ -157,6 +158,7 @@ class DirectionalLight(Light):
 class Spotlight(Light):
     attenuation = {"constant":0,"linear":0,"quadratic":0}
     exponent = 0.0
+    castShadows = False
     
     def set_attenuation(self, **attenuation):
         for k in attenuation.keys():
