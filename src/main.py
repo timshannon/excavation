@@ -115,6 +115,33 @@ class Excavation(ShowBase):
                                 node.r)
                 #For now each light will light everything under it's parent
                 parentNode.setLight(nodeP)
+            elif type(node).__name__ == "DirectionalLight":
+                dLight = DirectionalLight(node.name)
+                
+                dLight.setColor(VBase4(node.color["red"], 
+                                      node.color["green"], 
+                                      node.color["blue"], 
+                                      node.color["alpha"]))
+                dLight.setSpecularColorColor(VBase4(node.color["red"], 
+                                                    node.specColor["green"], 
+                                                    node.specColor["blue"],
+                                                    node.specColor["alpha"]))
+                dLight.setDirection(Point3(node.direction["x"], 
+                                           node.direction["y"],
+                                           node.direction["z"]))
+                                
+                nodeP = parentNode.attachNewNode(dLight)
+                nodeP.setPosHpr(node.x,
+                                node.y,
+                                node.z,
+                                node.h,
+                                node.p,
+                                node.r)
+                #For now each light will light everything under it's parent
+                parentNode.setLight(nodeP)
+            elif type(node).__name__ == "Entity":
+                #lookup entity class and instantiate it
+                pass
             
             
             for c in node.children:
