@@ -1,38 +1,67 @@
-import wx 
-import time 
+#Copyright (c) 2009-2010 Tim Shannon
+#
+#Permission is hereby granted, free of charge, to any person obtaining a copy
+#of this software and associated documentation files (the "Software"), to deal
+#in the Software without restriction, including without limitation the rights
+#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#copies of the Software, and to permit persons to whom the Software is
+#furnished to do so, subject to the following conditions:
+#
+#The above copyright notice and this permission notice shall be included in
+#all copies or substantial portions of the Software.
+#
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+#THE SOFTWARE.
 
-import direct 
-from pandac.PandaModules import * 
-loadPrcFileData('startup', 'window-type none') 
-from direct.directbase.DirectStart import * 
-from direct.showbase import DirectObject 
 
-class App(wx.PySimpleApp, DirectObject.DirectObject): 
-    def __init__(self): 
-        wx.PySimpleApp.__init__(self) 
+from direct.showbase.ShowBase import ShowBase
+from panda3d.core import WindowProperties
+from panda3d.core import ConfigVariableString
+from tools.scene import *
+import wx
+import os
+import sys
+import copy
 
-        #Create a new event loop (to overide default wxEventLoop) 
+class ExEd(wx.Frame, ShowBase): 
+    def __init__(self, parent, title): 
+        wx.Frame.__init__(self, parent, title=title, size=(800, 600))
+        ShowBase.__init__(self)
+        self.CreateStatusBar()
+        
+        
+        #file menu
+        fileMenu = wx.Menu()
+        fileMenu.Append(wx.ID_ABOUT, "&About", " About ExEd")
+        fileMenu.Append(wx.ID_EXIT, "E&xit", " Exit ExEd")
+        
+        menuBar = wx.MenuBar()
+        menuBar.Append(fileMenu, "&File")
+        self.SetMenuBar(menuBar)
+        
+        
+        #override  wxEventLoop)
         self.evtloop = wx.EventLoop() 
         self.old = wx.EventLoop.GetActive() 
         wx.EventLoop.SetActive(self.evtloop) 
-        taskMgr.add(self.wx, "Custom wx Event Loop") 
+        taskMgr.add(self.wx, "Custom wx Event Loop")
+        
+        
+        self.Show(True) 
 
-    # wxWindows calls this method to initialize the application 
+    # wxWindows call to initialize the application 
     def OnInit(self): 
-        self.SetAppName('My wx app') 
-        self.SetClassName('MyAppClass') 
-
-        self.parent = wx.MDIParentFrame(None, -1, 'My wx app') 
-        self.child = wx.MDIChildFrame(self.parent, -1, 'Panda window') 
-
-        self.parent.SetClientSize((600, 400)) 
-        self.parent.Show(True) 
-        self.child.SetClientSize((400, 300)) 
-        self.child.Show(True) 
+        self.SetAppName("ExEd") 
+        self.SetClassName("ExEd") 
 
         base.windowType = 'onscreen' 
         props = WindowProperties.getDefault() 
-        props.setParentWindow(self.parent.GetHandle()) 
+        props.setParentWindow(self.GetHandle())
         base.openDefaultWindow(props = props) 
 
         base.setFrameRateMeter(True) 
@@ -49,5 +78,6 @@ class App(wx.PySimpleApp, DirectObject.DirectObject):
     def close(self): 
         wx.EventLoop.SetActive(self.old) 
 
-app = App() 
-run() 
+wxApp = wx.App(False)
+exed = ExEd(None, "ExEd - Scene Editor for Excavation") 
+exed.run() 

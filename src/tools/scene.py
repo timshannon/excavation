@@ -20,7 +20,7 @@
 
 import cPickle
 import StringIO
-from ex_tag import TagGroup
+from exTag import TagGroup
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
@@ -37,6 +37,7 @@ class Scene():
         
     def write(self, fileName):
         file = open(fileName, "wb")
+        #TODO: Replace pickle with xml file format
         cPickle.dump(self, file)
         file.close()
         
