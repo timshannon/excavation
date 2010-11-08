@@ -29,54 +29,54 @@ class TagGroup:
             self.tags = tags
         else:
             self.tags = {}
-            self.add_tags(tags)
+            self.addTags(tags)
         
-    def add_tags(self, tags):
+    def addTags(self, tags):
         """Adds the passed in tags to the tag dictionary for the grid
             The tags can be in a comma delimited string, a list or a dictionary"""
         if type(tags) is type(str()):
             if tags.__contains__(","):
                 lstTags = tags.split(",")
                  
-                self.__add_tags_list__(lstTags)
+                self.__addTagsList__(lstTags)
                     
             else:
-                self.add_tag(tags)
+                self.addTag(tags)
         elif type(tags) is type(list()) or \
              type(tags) is type(tuple()):
-            self.__add_tags_list__(tags)
+            self.__addTagsList__(tags)
             
         elif type(tags) is type(dict()):
-            self.__add_tags_dict__(tags)
+            self.__addTagsDict__(tags)
             
         elif type(tags) is type(self):  #if a taggroup is passed in
-            self.__add_tags_dict__(tags.tags)
+            self.__addTagsDict__(tags.tags)
             
-    def remove_tags(self, tags):
+    def removeTags(self, tags):
         """ removes the passed in tags from the tag group"""
         if type(tags) is type(str()):
             if tags.__contains__(","):
                 lstTags = tags.split(",")
                  
-                self.__add_tags_list__(lstTags, -1)
+                self.__addTagsList__(lstTags, -1)
                     
             else:
-                self.remove_tag(tags)
+                self.removeTag(tags)
         elif type(tags) is type(list()) or \
              type(tags) is type(tuple()):
-            self.__add_tags_list__(tags, -1)
+            self.__addTagsList__(tags, -1)
             
         elif type(tags) is type(dict()):
-            self.__add_tags_dict__(tags, -1)
+            self.__addTagsDict__(tags, -1)
             
         elif type(tags) is type(self):  #if a taggroup is passed in
-            self.__add_tags_dict__(tags.tags, -1)
+            self.__addTagsDict__(tags.tags, -1)
    
-    def remove_tag(self, tag):
+    def removeTag(self, tag):
         """Removes one tag from the tag group"""
-        self.add_tag(tag, -1)
+        self.addTag(tag, -1)
         
-    def add_tag(self, tag, value=1):
+    def addTag(self, tag, value=1):
         """Adds a single tag to the tag group"""
         if self.tags.has_key(tag):
             self.tags[tag] = self.tags[tag] + value
@@ -102,20 +102,12 @@ class TagGroup:
         else:
             return False
             
-    def __add_tags_dict__(self, tags, value=1):
+    def __addTagsDict__(self, tags, value=1):
         """ Adds the tags in the dictionary to the existing tag dict"""
         for k, v in tags.items():
-            self.add_tag(k, (v * value))
+            self.addTag(k, (v * value))
     
-    def __add_tags_list__(self, tags, value=1):
+    def __addTagsList__(self, tags, value=1):
         """ adds the list of tags to the existing tag dict"""
         for t in tags:
-            self.add_tag(t.lstrip().rstrip(), value)
-
-    def __to_json__(self):
-        return self.tags
-    
-    def __from_json__(self, object):
-        value = object["__value__"]
-               
-        return TagGroup(value)
+            self.addTag(t.lstrip().rstrip(), value)

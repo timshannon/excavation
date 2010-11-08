@@ -71,29 +71,29 @@ class Node():
         self.children = []
         
         if self.parent <> None:
-            self.parent.add_child(self)
+            self.parent.addChild(self)
             
             
-    def add_child(self, child):
+    def addChild(self, child):
         if child not in self.children:
             self.children.append(child)
             if child.parent == None:
                 child.parent = self
                 
-    def get_siblings(self):
+    def getSiblings(self):
         if self.parent == None:
             return None
         else:
             siblings = self.parent.children[:]
             siblings.remove(self)
     
-    def set_pos(self, x, y, z):
+    def setPos(self, x, y, z):
         """Sets position of the node"""
         self.x = x
         self.y = y
         self.z = z
             
-    def set_hpr(self, h, p, r):
+    def setHpr(self, h, p, r):
         """Sets heading, pitch and rotation"""
         self.h = h
         self.p = p
@@ -110,7 +110,7 @@ class Model(Node):
     scaleY = 1.0
     scaleZ = 1.0
     
-    def set_scale(self, **scale):
+    def setScale(self, **scale):
         if "x" in scale:
             self.scaleX = scale["x"]
         
@@ -128,12 +128,12 @@ class Light(Node):
     color = {"red":1,"green":1,"blue":1,"alpha":1}
     specColor = {"red":1,"green":1,"blue":1,"alpha":1}
     
-    def set_color(self, **colors):
+    def setColor(self, **colors):
         for k in colors.keys():
             if k in self.color.keys():
                 self.color[k] = colors[k]
                 
-    def set_spec_color(self, **colors):
+    def setSpecColor(self, **colors):
         for k in colors.keys():
             if k in self.specColor.keys():
                 self.specColor[k] = color[k]
@@ -141,7 +141,7 @@ class Light(Node):
 class PointLight(Light):
     attenuation = {"constant":0,"linear":0,"quadratic":0}
     
-    def set_attenuation(self, **attenuation):
+    def setAttenuation(self, **attenuation):
         for k in attenuation.keys():
             if k in self.attenuation.keys():
                 self.attenuation[k] = attenuation[k]
@@ -150,7 +150,7 @@ class DirectionalLight(Light):
     direction = {"x":0,"y":0,"z":0}
     castShadows = False
     
-    def set_direction(self, **direction):
+    def setDirection(self, **direction):
         for k in direction.keys():
             if k in self.direction.keys():
                 self.direction[k] = direction[k]
@@ -160,7 +160,7 @@ class Spotlight(Light):
     exponent = 0.0
     castShadows = False
     
-    def set_attenuation(self, **attenuation):
+    def setAttenuation(self, **attenuation):
         for k in attenuation.keys():
             if k in self.attenuation.keys():
                 self.attenuation[k] = attenuation[k]
