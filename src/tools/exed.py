@@ -43,7 +43,7 @@ class PandaFrame(wx.Frame, ShowBase):
 
         base.setFrameRateMeter(True)
         
-         #override  wxEventLoop
+        #override  wxEventLoop
         self.evtloop = wx.EventLoop() 
         self.oldLoop = wx.EventLoop.GetActive() 
         wx.EventLoop.SetActive(self.evtloop) 
@@ -54,23 +54,29 @@ class PandaFrame(wx.Frame, ShowBase):
                 
         #file menu
         fileMenu = wx.Menu()
-        fileMenu.Append(wx.ID_ABOUT, "&About", " About ExEd")
-        fileMenu.Append(wx.ID_EXIT, "E&xit", " Exit ExEd")
+        menuExit = fileMenu.Append(wx.ID_EXIT, "E&xit", " Exit ExEd")
         
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
         
+        self.Bind(wx.EVT_MENU, self.onExit, menuExit)
         
-
+      
+        
+    def onExit(self, e):
+        self.Close(True)
+        
+    def close(self):
+        print 'test'
+        wx.EventLoop.SetActive(self.oldLoop)
+      
     def wx(self, task): 
         while self.evtloop.Pending(): 
             self.evtloop.Dispatch() 
          
         return task.cont 
-    
-    def close(self): 
-        wx.EventLoop.SetActive(self.oldLoop) 
+     
 
 class ExEd(wx.App):
     """Excavation Scene Editor"""
