@@ -26,15 +26,32 @@ from tools.scene import *
 import wx
 import os
 import sys
-import copy
 
-class ExEd(wx.Frame, ShowBase): 
-    def __init__(self, parent, title): 
-        wx.Frame.__init__(self, parent, title=title, size=(800, 600))
+class PandaFrame(wx.Frame, ShowBase): 
+    
+    def __init__(self, wxApp, title): 
+        wx.Frame.__init__(self, None, title=title, size=(800, 600))
         ShowBase.__init__(self)
-        self.CreateStatusBar()
         
+        self.Show(True) 
+                
+        base.windowType = 'onscreen' 
+        props = WindowProperties.getDefault() 
+        print str(self.GetHandle())
+        props.setParentWindow(self.GetHandle())
+        base.openDefaultWindow(props = props) 
+
+        base.setFrameRateMeter(True)
         
+         #override  wxEventLoop
+        self.evtloop = wx.EventLoop() 
+        self.oldLoop = wx.EventLoop.GetActive() 
+        wx.EventLoop.SetActive(self.evtloop) 
+        taskMgr.add(self.wx, "Custom wx Event Loop") 
+        
+                
+        #self.CreateStatusBar()
+                
         #file menu
         fileMenu = wx.Menu()
         fileMenu.Append(wx.ID_ABOUT, "&About", " About ExEd")
@@ -45,39 +62,28 @@ class ExEd(wx.Frame, ShowBase):
         self.SetMenuBar(menuBar)
         
         
-        #override  wxEventLoop)
-        self.evtloop = wx.EventLoop() 
-        self.old = wx.EventLoop.GetActive() 
-        wx.EventLoop.SetActive(self.evtloop) 
-        taskMgr.add(self.wx, "Custom wx Event Loop")
-        
-        
-        self.Show(True) 
-
-    # wxWindows call to initialize the application 
-    def OnInit(self): 
-        self.SetAppName("ExEd") 
-        self.SetClassName("ExEd") 
-
-        base.windowType = 'onscreen' 
-        props = WindowProperties.getDefault() 
-        props.setParentWindow(self.GetHandle())
-        base.openDefaultWindow(props = props) 
-
-        base.setFrameRateMeter(True) 
-        
-        return True 
 
     def wx(self, task): 
         while self.evtloop.Pending(): 
             self.evtloop.Dispatch() 
-        #time.sleep(0.01) 
-        self.ProcessIdle() 
+         
         return task.cont 
-
+    
     def close(self): 
-        wx.EventLoop.SetActive(self.old) 
+        wx.EventLoop.SetActive(self.oldLoop) 
 
-wxApp = wx.App(False)
-exed = ExEd(None, "ExEd - Scene Editor for Excavation") 
-exed.run() 
+class ExEd(wx.App):
+    """Excavation Scene Editor"""
+        # wxWindows call to initialize the application 
+    def OnInit(self): 
+        self.SetAppName("ExEd") 
+        self.SetClassName("ExEd") 
+        
+        pFrame = PandaFrame(None, "ExEd")
+        pFrame.run()
+                        
+        return True 
+
+    
+exed = ExEd(0)
+exed.MainLoop() 
