@@ -18,7 +18,6 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import WindowProperties
 from panda3d.core import ConfigVariableString
@@ -32,6 +31,8 @@ class PandaFrame(wx.Frame, ShowBase):
     def __init__(self, wxApp, title): 
         wx.Frame.__init__(self, None, title=title, size=(800, 600))
         ShowBase.__init__(self)
+        
+        self.wxApp = wxApp
         
         self.Show(True) 
                 
@@ -50,7 +51,7 @@ class PandaFrame(wx.Frame, ShowBase):
         taskMgr.add(self.wx, "Custom wx Event Loop") 
         
                 
-        #self.CreateStatusBar()
+        self.CreateStatusBar()
                 
         #file menu
         fileMenu = wx.Menu()
@@ -68,14 +69,13 @@ class PandaFrame(wx.Frame, ShowBase):
         self.Close(True)
         
     def close(self):
-        print 'test'
         wx.EventLoop.SetActive(self.oldLoop)
       
     def wx(self, task): 
-        while self.evtloop.Pending(): 
-            self.evtloop.Dispatch() 
-         
-        return task.cont 
+        while self.evtloop.Pending():
+            self.evtloop.Dispatch()
+        self.wxApp.ProcessIdle()
+        if task != None: return task.cont
      
 
 class ExEd(wx.App):
@@ -85,11 +85,10 @@ class ExEd(wx.App):
         self.SetAppName("ExEd") 
         self.SetClassName("ExEd") 
         
-        pFrame = PandaFrame(None, "ExEd")
+        pFrame = PandaFrame(self, "ExEd")
         pFrame.run()
                         
         return True 
 
     
-exed = ExEd(0)
-exed.MainLoop() 
+exed = ExEd()

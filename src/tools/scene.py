@@ -20,7 +20,6 @@
 
 import cPickle
 import StringIO
-from exTag import TagGroup
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
@@ -61,7 +60,6 @@ class Node():
                  p=-1,
                  r=-1):
         self.name = name
-        self.tags = TagGroup()
         self.x = x
         self.y = y
         self.z = z
@@ -137,7 +135,7 @@ class Light(Node):
     def setSpecColor(self, **colors):
         for k in colors.keys():
             if k in self.specColor.keys():
-                self.specColor[k] = color[k]
+                self.specColor[k] = colors[k]
     
 class PointLight(Light):
     attenuation = {"constant":0,"linear":0,"quadratic":0}

@@ -57,7 +57,7 @@ class Excavation(ShowBase):
             nodeP = None
             
             if type(node).__name__ == "Model":
-                nodeP = self.loader.loadModel(os.path.joing(self.MODELPATH, node.model))
+                nodeP = self.loader.loadModel(os.path.join(self.MODELPATH, node.model))
                 nodeP.reparentTo(parentNode)
                 nodeP.setPosHprScale(node.x,
                                      node.y,
