@@ -30,6 +30,7 @@ from direct.showbase import DirectObject
 class PandaPanel(wx.Panel): 
     def __init__(self, *args, **kwargs): 
         wx.Panel.__init__(self, *args, **kwargs) 
+    
     def initialize(self): 
         assert self.GetHandle() != 0 
         wp = WindowProperties() 
@@ -38,6 +39,7 @@ class PandaPanel(wx.Panel):
         wp.setParentWindow(self.GetHandle()) 
         base.openDefaultWindow(props = wp, gsg = None) 
         self.Bind(wx.EVT_SIZE, self.OnResize) 
+    
     def OnResize(self, event): 
         frame_size = event.GetSize() 
         wp = WindowProperties() 
@@ -53,8 +55,12 @@ class PandaFrame(wx.Frame):
         self.pandapanel.initialize()
         
         self.CreateStatusBar()
-
-
+        
+        
+    def undo(self):
+        #TODO: Undo / Redo stack will be a command history
+        #    each command will have an opposite
+        pass
                 
 class ExEd(wx.App, DirectObject.DirectObject): 
     def __init__(self): 
@@ -64,14 +70,17 @@ class ExEd(wx.App, DirectObject.DirectObject):
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
         
         self.wxStep()    
+    
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
         self.oldLoop = wx.EventLoop.GetActive() 
         wx.EventLoop.SetActive(self.evtLoop) 
         taskMgr.add(self.wxStep, "evtLoopTask") 
+    
     def onDestroy(self, event=None): 
         self.wxStep() 
         wx.EventLoop.SetActive(self.oldLoop) 
+    
     def quit(self, event=None): 
         self.onDestroy(event) 
         try: 
@@ -79,6 +88,7 @@ class ExEd(wx.App, DirectObject.DirectObject):
         except NameError: 
             sys.exit() 
         base.userExit() 
+    
     def wxStep(self, task=None): 
         while self.evtLoop.Pending(): 
             self.evtLoop.Dispatch() 
