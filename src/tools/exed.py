@@ -18,77 +18,72 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-from direct.showbase.ShowBase import ShowBase
-from panda3d.core import WindowProperties
-from panda3d.core import ConfigVariableString
-from tools.scene import *
-import wx
-import os
-import sys
+import sys 
+import wx 
 
-class PandaFrame(wx.Frame, ShowBase): 
-    
-    def __init__(self, wxApp, title): 
-        wx.Frame.__init__(self, None, title=title, size=(800, 600))
-        ShowBase.__init__(self)
-        
-        self.wxApp = wxApp
-        
-        self.Show(True) 
-                
-        base.windowType = 'onscreen' 
-        props = WindowProperties.getDefault() 
-        print str(self.GetHandle())
-        props.setParentWindow(self.GetHandle())
-        base.openDefaultWindow(props = props) 
+import direct 
+from pandac.PandaModules import * 
+loadPrcFileData('startup', 'window-type none') 
+from direct.directbase.DirectStart import * 
+from direct.showbase import DirectObject 
 
-        base.setFrameRateMeter(True)
+class PandaPanel(wx.Panel): 
+    def __init__(self, *args, **kwargs): 
+        wx.Panel.__init__(self, *args, **kwargs) 
+    def initialize(self): 
+        assert self.GetHandle() != 0 
+        wp = WindowProperties() 
+        wp.setOrigin(0,0) 
+        wp.setSize(self.ClientSize.GetWidth(), self.ClientSize.GetHeight()) 
+        wp.setParentWindow(self.GetHandle()) 
+        base.openDefaultWindow(props = wp, gsg = None) 
+        self.Bind(wx.EVT_SIZE, self.OnResize) 
+    def OnResize(self, event): 
+        frame_size = event.GetSize() 
+        wp = WindowProperties() 
+        wp.setOrigin(0,0) 
+        wp.setSize(frame_size.GetWidth(), frame_size.GetHeight()) 
+        base.win.requestProperties(wp) 
+
+class PandaFrame(wx.Frame): 
+    def __init__(self, *args, **kwargs): 
+        wx.Frame.__init__(self, *args, **kwargs) 
+        self.Show()
+        self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
+        self.pandapanel.initialize()
         
-        #override  wxEventLoop
-        self.evtloop = wx.EventLoop() 
-        self.oldLoop = wx.EventLoop.GetActive() 
-        wx.EventLoop.SetActive(self.evtloop) 
-        taskMgr.add(self.wx, "Custom wx Event Loop") 
-        
-                
         self.CreateStatusBar()
+
+
                 
-        #file menu
-        fileMenu = wx.Menu()
-        menuExit = fileMenu.Append(wx.ID_EXIT, "E&xit", " Exit ExEd")
+class ExEd(wx.App, DirectObject.DirectObject): 
+    def __init__(self): 
+        wx.App.__init__(self) 
+        self.replaceEventLoop() 
+        self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd') 
+        self.frame.Bind(wx.EVT_CLOSE, self.quit) 
         
-        menuBar = wx.MenuBar()
-        menuBar.Append(fileMenu, "&File")
-        self.SetMenuBar(menuBar)
-        
-        self.Bind(wx.EVT_MENU, self.onExit, menuExit)
-        
-      
-        
-    def onExit(self, e):
-        self.Close(True)
-        
-    def close(self):
-        wx.EventLoop.SetActive(self.oldLoop)
-      
-    def wx(self, task): 
-        while self.evtloop.Pending():
-            self.evtloop.Dispatch()
-        self.wxApp.ProcessIdle()
-        if task != None: return task.cont
-     
+        self.wxStep()    
+    def replaceEventLoop(self): 
+        self.evtLoop = wx.EventLoop() 
+        self.oldLoop = wx.EventLoop.GetActive() 
+        wx.EventLoop.SetActive(self.evtLoop) 
+        taskMgr.add(self.wxStep, "evtLoopTask") 
+    def onDestroy(self, event=None): 
+        self.wxStep() 
+        wx.EventLoop.SetActive(self.oldLoop) 
+    def quit(self, event=None): 
+        self.onDestroy(event) 
+        try: 
+            base 
+        except NameError: 
+            sys.exit() 
+        base.userExit() 
+    def wxStep(self, task=None): 
+        while self.evtLoop.Pending(): 
+            self.evtLoop.Dispatch() 
+        self.ProcessIdle() 
+        if task != None: return task.cont 
 
-class ExEd(wx.App):
-    """Excavation Scene Editor"""
-        # wxWindows call to initialize the application 
-    def OnInit(self): 
-        self.SetAppName("ExEd") 
-        self.SetClassName("ExEd") 
-        
-        pFrame = PandaFrame(self, "ExEd")
-        pFrame.run()
-                        
-        return True 
-
-    
-exed = ExEd()
+app = ExEd() 
+run() 
