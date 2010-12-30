@@ -14,19 +14,33 @@ class ActionManager():
         
     def executeAction(self, name, **params):
         """Executes the given Action"""
-        self.lstUndo.append(ActionItem(self.actions[name], params))
+        actionItem = ActionItem(self.actions[name], params)
+        self.lstUndo.append(actionItem)
+        self.lstRedo = []
         
-        method = self.actions[name]
-        method(params)
+        while len(self.lstUndo) > self.MAXUNDO:
+            self.lstUndo.delete(0)
+        
+        actionItem.execute()
+        
         
     def undo(self):
         """Reverses the previously executed action"""
-        pass
+        if len(self.lstUndo) > 0:
+            actionItem = self.lstUndo.pop()
+            self.lstRedo.append(actionItem)
+            
+            actionItem.undo()
+            
         
     def redo(self):
         """Reverses the previously undone action if one exists"""
-        pass
-        
+        if len(self.lstRedo) > 0:
+            actionItem = self.lstRedo.pop()
+            self.lstUndo.append(actionItem)
+            
+            actionItem.execute()
+            
 class Action():
     params = {}
     
@@ -39,3 +53,13 @@ class ActionItem():
     def __init__(self, action, **params):
         self.action = action
         self.params = params
+    
+    def execute(self):
+        method = self.action.method
+        method(self.params)
+    
+    def undo(self):
+        method = self.action.undoMethod
+        method(self.params)
+        
+        
