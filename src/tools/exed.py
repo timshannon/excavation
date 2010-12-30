@@ -23,9 +23,11 @@ import wx
 
 import direct 
 from pandac.PandaModules import * 
+from tools.actionManager import ActionManager
 loadPrcFileData('startup', 'window-type none') 
 from direct.directbase.DirectStart import * 
-from direct.showbase import DirectObject 
+from direct.showbase import DirectObject
+from tools import actionManager 
 
 class PandaPanel(wx.Panel): 
     def __init__(self, *args, **kwargs): 
@@ -47,29 +49,38 @@ class PandaPanel(wx.Panel):
         wp.setSize(frame_size.GetWidth(), frame_size.GetHeight()) 
         base.win.requestProperties(wp) 
 
-class PandaFrame(wx.Frame): 
+class PandaFrame(wx.Frame):
+    """wx object for handling wx events and actions"""
+    actionManager = None
+    
     def __init__(self, *args, **kwargs): 
         wx.Frame.__init__(self, *args, **kwargs) 
         self.Show()
         self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
-        
+                
         self.CreateStatusBar()
         
         
     def undo(self):
-        #TODO: Undo / Redo stack will be a command history
-        #    each command will have an opposite
         pass
                 
-class ExEd(wx.App, DirectObject.DirectObject): 
+class ExEd(wx.App, DirectObject.DirectObject):
+    """Panda object for handling all panda related tasks and events""" 
     def __init__(self): 
         wx.App.__init__(self) 
-        self.replaceEventLoop() 
+        self.replaceEventLoop()
         self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd') 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
+        self.frame.actionManager = ActionManager()
+        
+        self.registerActions()
         
         self.wxStep()    
+    
+    
+    def registerActions(self):
+        pass
     
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
