@@ -38,9 +38,9 @@ class PandaPanel(wx.Panel):
         wp.setSize(self.ClientSize.GetWidth(), self.ClientSize.GetHeight()) 
         wp.setParentWindow(self.GetHandle()) 
         base.openDefaultWindow(props = wp, gsg = None) 
-        self.Bind(wx.EVT_SIZE, self.OnResize) 
+        self.Bind(wx.EVT_SIZE, self.onResize) 
     
-    def OnResize(self, event): 
+    def onResize(self, event): 
         frame_size = event.GetSize() 
         wp = WindowProperties() 
         wp.setOrigin(0,0) 

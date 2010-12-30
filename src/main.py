@@ -48,15 +48,15 @@ class Excavation(ShowBase):
             
             
        
-    def load_scene(self, fileName):
+    def loadScene(self, fileName):
         """Loads the models, entities, lights, etc from the scene file."""
         scene = Scene(fileName)
         
         #TODO:  Show Loading Screen maybe on a different camera
-        self.load_node(scene.tree, self.render)
+        self.loadNode(scene.tree, self.render)
         #TODO: Remove loading screen / camera
         
-    def load_node(self, node, parentNode):
+    def loadNode(self, node, parentNode):
         """recursively loads the nodes in the tree"""
         nodeP = None
         
@@ -149,7 +149,7 @@ class Excavation(ShowBase):
         
         
         for c in node.children:
-            self.load_node(c, nodeP)
+            self.loadNode(c, nodeP)
             
         
         
