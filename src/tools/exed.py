@@ -53,17 +53,115 @@ class PandaFrame(wx.Frame):
     """wx object for handling wx events and actions"""
     actionManager = None
     
+    ID_RECENTFILES = wx.NewId()
+    ID_ADDMODEL = wx.NewId()
+    ID_ADDENTITY = wx.NewId()
+    ID_ADDPOINTLIGHT = wx.NewId()
+    ID_ADDSPOTLIGHT = wx.NewId()
+    ID_ADDDIRECTIONALLIGHT = wx.NewId()
+    
+    ID_RUNEXCAVATION = wx.NewId()
+    ID_RUNDISCOURSE = wx.NewId()
+    
+    
     def __init__(self, *args, **kwargs): 
         wx.Frame.__init__(self, *args, **kwargs) 
         self.Show()
         self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
+        
+        self.recentFiles = []   #load from config file with other items?
                 
         self.CreateStatusBar()
+        self.createMenus()
+        
+    def createMenus(self):
+        def buildMenu(menu, valueList):
+            for id, label, hintText, handle in valueList:
+                if id == wx.ID_SEPARATOR:
+                    menu.AppendSeparator()
+                elif id == self.ID_RECENTFILES:
+                    idFiles = []
+                    for f in self.recentFiles:
+                        id = wx.NewId()
+                        idFiles.append((id, f))
+                        mItem = menu.Append(id, f, 'Open recent file', self.openScene)
+                    self.recentFiles = idFiles
+                else:
+                    mItem = menu.Append(id, label, hintText)
+                    self.Bind(wx.EVT_MENU, handle, mItem)
+        
+        mFile = wx.Menu()
+        fileList = [(wx.ID_NEW, '&New', 'Create a new scene', self.newScene), \
+                    (wx.ID_OPEN, '&Open', 'Open an existing scene', self.openScene), \
+                    (wx.ID_SAVE, '&Save', 'Save the current scene', self.saveScene), \
+                    (wx.ID_SAVEAS, 'Save As', 'Save the current scene as a new file', self.saveSceneAs), \
+                    (wx.ID_SEPARATOR, None, None), \
+                    (self.ID_RECENTFILES, None, None), \
+                    (wx.ID_SEPARATOR, None, None), \
+                    (wx.ID_EXIT, 'Exit', 'Exit ExEd', self.exit)]
+        buildMenu(mFile, fileList)
+        
+        mEdit = wx.Menu()
+        editList = [(wx.ID_UNDO, 'Undo', self.undo), \
+                    (wx.ID_SEPARATOR, None, None), \
+                    (wx.ID_REDO, 'Redo', self.redo), \
+                    (wx.ID_CUT, 'Cut', self.cut), \
+                    (wx.ID_COPY, '&Copy', self.copy), \
+                    (wx.ID_PASTE, 'Paste', self.paste), \
+                    (wx.ID_SEPARATOR, None, None), \
+                    (wx.ID_DELETE, 'Delete', self.delete)]
+        buildMenu(mEdit, editList)
+        
+        mAdd = wx.Menu()
+        addList = [(self.ID_ADDMODEL, 'Add Model', self.addItem), \
+                   (self.ID_ADDENTITY, 'Add Entity', self.addItem), \
+                   (wx.ID_SEPARATOR, None, None), \
+                   (self.ID_ADDPOINTLIGHT, 'Add Point Light', self.addItem), \
+                   (self.ID_ADDSPOTLIGHT, 'Add Spot Light', self.addItem), \
+                   (self.ID_ADDDIRECTIONALLIGHT, 'Add Directional Light', self.addItem)]
+        buildMenu(mAdd, addList)
+        
+        mRun = wx.Menu()
+        runList = [(self.ID_RUNEXCAVATION, 'Run Excavation', self.runExternal), \
+                   (self.ID_RUNDISCOURSE, 'Run Discourse', self.runExternal)]
+        buildMenu(mRun, runList)
         
         
-    def undo(self):
+        
+    def newScene(self,event):
         pass
+    def openScene(self, event):
+        pass
+    def saveScene(self, event):
+        pass
+    def saveSceneAs(self, event):
+        pass
+    def exit(self, event):
+        self.Close()
+        
+        
+    def undo(self, event):
+        pass
+    def redo(self, event):
+        pass
+    def cut(self, event):
+        pass
+    def copy(self, event):
+        pass
+    def paste(self, event):
+        pass
+    def delete(self, event):
+        pass
+    
+    def addItem(self, event):
+        """Adds an item, determined by the event's sender id"""
+        pass
+    
+    def runExternal(self, event):
+        """Runs an external application"""
+        pass
+    
                 
 class ExEd(wx.App, DirectObject.DirectObject):
     """Panda object for handling all panda related tasks and events""" 
