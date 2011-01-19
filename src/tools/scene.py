@@ -36,7 +36,7 @@ class Scene():
         
     def write(self, fileName):
         file = open(fileName, "wb")
-        #TODO: Replace pickle with xml file format
+        #TODO: Replace pickle with xml or yaml file format
         cPickle.dump(self, file)
         file.close()
         
@@ -85,6 +85,7 @@ class Node():
         else:
             siblings = self.parent.children[:]
             siblings.remove(self)
+            return siblings
     
     def setPos(self, x, y, z):
         """Sets position of the node"""
