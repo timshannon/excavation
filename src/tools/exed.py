@@ -19,11 +19,13 @@
 #THE SOFTWARE.
 
 import sys 
-import wx 
+import wx
+import random   #temp
 
 import direct 
 from pandac.PandaModules import * 
 from tools.actionManager import ActionManager
+from wxPython._core import wxBoxSizer
 loadPrcFileData('startup', 'window-type none') 
 from direct.directbase.DirectStart import * 
 from direct.showbase import DirectObject
@@ -74,6 +76,20 @@ class PandaFrame(wx.Frame):
                 
         self.CreateStatusBar()
         self.createMenus()
+        vSizer = wx.BoxSizer(wx.VERTICAL)
+        hSizer = wx.BoxSizer(wx.HORIZONTAL)
+                
+        self.sceneTree = SceneTree(self, style=wx.SIMPLE_BORDER)
+        self.propList = PropList(self, style=wx.SIMPLE_BORDER)
+        
+        vSizer.Add(self.sceneTree, 1, wx.EXPAND)
+        vSizer.Add(self.propList, 1, wx.EXPAND)  
+        hSizer.Add(self.pandapanel, 4, wx.EXPAND)
+        hSizer.Add(vSizer, 1, wx.EXPAND)
+              
+        self.SetSizer(hSizer)
+        self.SetAutoLayout(1)
+        hSizer.Fit(self)
         
     def createMenus(self):
         def buildMenu(menu, valueList):
@@ -91,43 +107,49 @@ class PandaFrame(wx.Frame):
                     mItem = menu.Append(id, label, hintText)
                     self.Bind(wx.EVT_MENU, handle, mItem)
         
+        menuBar = wx.MenuBar()
+        
         mFile = wx.Menu()
         fileList = [(wx.ID_NEW, '&New', 'Create a new scene', self.newScene), \
                     (wx.ID_OPEN, '&Open', 'Open an existing scene', self.openScene), \
                     (wx.ID_SAVE, '&Save', 'Save the current scene', self.saveScene), \
                     (wx.ID_SAVEAS, 'Save As', 'Save the current scene as a new file', self.saveSceneAs), \
-                    (wx.ID_SEPARATOR, None, None), \
-                    (self.ID_RECENTFILES, None, None), \
-                    (wx.ID_SEPARATOR, None, None), \
+                    (wx.ID_SEPARATOR, None, None, None), \
+                    (self.ID_RECENTFILES, None, None, None), \
+                    (wx.ID_SEPARATOR, None, None, None), \
                     (wx.ID_EXIT, 'Exit', 'Exit ExEd', self.exit)]
         buildMenu(mFile, fileList)
+        menuBar.Append(mFile, '&File')
         
         mEdit = wx.Menu()
-        editList = [(wx.ID_UNDO, 'Undo', self.undo), \
-                    (wx.ID_SEPARATOR, None, None), \
-                    (wx.ID_REDO, 'Redo', self.redo), \
-                    (wx.ID_CUT, 'Cut', self.cut), \
-                    (wx.ID_COPY, '&Copy', self.copy), \
-                    (wx.ID_PASTE, 'Paste', self.paste), \
-                    (wx.ID_SEPARATOR, None, None), \
-                    (wx.ID_DELETE, 'Delete', self.delete)]
+        editList = [(wx.ID_UNDO, 'Undo', 'Undo the previous action', self.undo), \
+                    (wx.ID_SEPARATOR, None, None, None), \
+                    (wx.ID_REDO, 'Redo', 'Redo the previous undone action', self.redo), \
+                    (wx.ID_CUT, 'Cut', 'Cut the selected item', self.cut), \
+                    (wx.ID_COPY, '&Copy', 'Copy the selected item', self.copy), \
+                    (wx.ID_PASTE, 'Paste', 'Paste the contents of the clipboard', self.paste), \
+                    (wx.ID_SEPARATOR, None, None, None), \
+                    (wx.ID_DELETE, 'Delete', 'Delete the selected item', self.delete)]
         buildMenu(mEdit, editList)
+        menuBar.Append(mEdit, '&Edit')
         
         mAdd = wx.Menu()
-        addList = [(self.ID_ADDMODEL, 'Add Model', self.addItem), \
-                   (self.ID_ADDENTITY, 'Add Entity', self.addItem), \
-                   (wx.ID_SEPARATOR, None, None), \
-                   (self.ID_ADDPOINTLIGHT, 'Add Point Light', self.addItem), \
-                   (self.ID_ADDSPOTLIGHT, 'Add Spot Light', self.addItem), \
-                   (self.ID_ADDDIRECTIONALLIGHT, 'Add Directional Light', self.addItem)]
+        addList = [(self.ID_ADDMODEL, 'Add Model', 'Add model to scene', self.addItem), \
+                   (self.ID_ADDENTITY, 'Add Entity', 'Add entity to scene', self.addItem), \
+                   (wx.ID_SEPARATOR, None, None, None), \
+                   (self.ID_ADDPOINTLIGHT, 'Add Point Light', 'Add point light to scene', self.addItem), \
+                   (self.ID_ADDSPOTLIGHT, 'Add Spot Light', 'Add spot light to scene', self.addItem), \
+                   (self.ID_ADDDIRECTIONALLIGHT, 'Add Directional Light', 'Add directional light to scene', self.addItem)]
         buildMenu(mAdd, addList)
+        menuBar.Append(mAdd, '&Add')
         
         mRun = wx.Menu()
-        runList = [(self.ID_RUNEXCAVATION, 'Run Excavation', self.runExternal), \
-                   (self.ID_RUNDISCOURSE, 'Run Discourse', self.runExternal)]
+        runList = [(self.ID_RUNEXCAVATION, 'Run Excavation', 'Run Excavation', self.runExternal), \
+                   (self.ID_RUNDISCOURSE, 'Run Discourse', 'Run Discourse', self.runExternal)]
         buildMenu(mRun, runList)
+        menuBar.Append(mRun, '&Run')
         
-        
+        self.SetMenuBar(menuBar)
         
     def newScene(self,event):
         pass
@@ -162,13 +184,53 @@ class PandaFrame(wx.Frame):
         """Runs an external application"""
         pass
     
+class PropList(wx.ListCtrl):
+    def __init__(self, *args, **kwargs):
+        super(PropList, self).__init__(*args, **kwargs)
+        self.InsertColumn(0, "Property", wx.LIST_FORMAT_LEFT, 40)
+        self.InsertColumn(1, "Value", wx.LIST_FORMAT_RIGHT, 50)
+        
+        
+        
+
+class SceneTree(wx.TreeCtrl):
+
+    def __init__(self, *args, **kwargs):
+        super(SceneTree, self).__init__(*args, **kwargs)
+        self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpandItem)
+        self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapseItem)
+        self.__collapsing = False
+        root = self.AddRoot('root')
+        self.SetItemHasChildren(root)
+
+    def OnExpandItem(self, event):
+        # Add a random number of children and randomly decide which 
+        # children have children of their own.
+        nrChildren = random.randint(1, 6)
+        for childIndex in range(nrChildren):
+            child = self.AppendItem(event.GetItem(), 'child %d'%childIndex)
+            self.SetItemHasChildren(child, random.choice([True, False]))
+
+    def OnCollapseItem(self, event):
+        # Be prepared, self.CollapseAndReset below may cause
+        # another wx.EVT_TREE_ITEM_COLLAPSING event being triggered.
+        if self.__collapsing:
+            event.Veto()
+        else:
+            self.__collapsing = True
+            item = event.GetItem()
+            self.CollapseAndReset(item)
+            self.SetItemHasChildren(item)
+            self.__collapsing = False
+        
+        
                 
 class ExEd(wx.App, DirectObject.DirectObject):
     """Panda object for handling all panda related tasks and events""" 
     def __init__(self): 
         wx.App.__init__(self) 
         self.replaceEventLoop()
-        self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd') 
+        self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd', size=(800,600)) 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
         self.frame.actionManager = ActionManager()
         
@@ -178,6 +240,8 @@ class ExEd(wx.App, DirectObject.DirectObject):
     
     
     def registerActions(self):
+        '''Register all of the actions to the editor functions so
+            they can be used with the action manager'''
         pass
     
     def replaceEventLoop(self): 
