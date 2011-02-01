@@ -26,10 +26,11 @@ import direct
 from pandac.PandaModules import * 
 from tools.actionManager import ActionManager
 from wxPython._core import wxBoxSizer
+from tools.scene import Scene
 loadPrcFileData('startup', 'window-type none') 
 from direct.directbase.DirectStart import * 
 from direct.showbase import DirectObject
-from tools import actionManager 
+from tools import actionManager , scene
 
 class PandaPanel(wx.Panel): 
     def __init__(self, *args, **kwargs): 
@@ -55,15 +56,17 @@ class PandaFrame(wx.Frame):
     """wx object for handling wx events and actions"""
     actionManager = None
     
+    #Menu ID's
     ID_RECENTFILES = wx.NewId()
     ID_ADDMODEL = wx.NewId()
     ID_ADDENTITY = wx.NewId()
     ID_ADDPOINTLIGHT = wx.NewId()
     ID_ADDSPOTLIGHT = wx.NewId()
     ID_ADDDIRECTIONALLIGHT = wx.NewId()
-    
     ID_RUNEXCAVATION = wx.NewId()
     ID_RUNDISCOURSE = wx.NewId()
+    
+    scene = None
     
     
     def __init__(self, *args, **kwargs): 
@@ -152,9 +155,19 @@ class PandaFrame(wx.Frame):
         self.SetMenuBar(menuBar)
         
     def newScene(self,event):
-        pass
+        self.scene = Scene()
+        self.resetScene()
+        
+    def resetScene(self):
+        self.actionManager.reset()
+        self.propList.ClearAll()
+        self.sceneTree.clear()
+        base.render.getChildren().detach()
+        
+
     def openScene(self, event):
         pass
+    
     def saveScene(self, event):
         pass
     def saveSceneAs(self, event):
@@ -190,7 +203,8 @@ class PropList(wx.ListCtrl):
         self.InsertColumn(0, "Property", wx.LIST_FORMAT_LEFT, 40)
         self.InsertColumn(1, "Value", wx.LIST_FORMAT_RIGHT, 50)
         
-        
+    def clear(self):
+        pass
         
 
 class SceneTree(wx.TreeCtrl):
@@ -223,7 +237,8 @@ class SceneTree(wx.TreeCtrl):
             self.SetItemHasChildren(item)
             self.__collapsing = False
         
-        
+    def clear(self):
+        pass
                 
 class ExEd(wx.App, DirectObject.DirectObject):
     """Panda object for handling all panda related tasks and events""" 
