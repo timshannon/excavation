@@ -65,8 +65,7 @@ class PandaFrame(wx.Frame):
     ID_ADDDIRECTIONALLIGHT = wx.NewId()
     ID_RUNEXCAVATION = wx.NewId()
     ID_RUNDISCOURSE = wx.NewId()
-    
-    scene = None
+    ID_SCENEPROP = wx.NewId()
     
     
     def __init__(self, *args, **kwargs): 
@@ -82,7 +81,7 @@ class PandaFrame(wx.Frame):
         vSizer = wx.BoxSizer(wx.VERTICAL)
         hSizer = wx.BoxSizer(wx.HORIZONTAL)
                 
-        self.sceneTree = SceneTree(self, style=wx.SIMPLE_BORDER)
+        self.sceneTree = SceneTree(self)
         self.propList = PropList(self, style=wx.SIMPLE_BORDER)
         
         vSizer.Add(self.sceneTree, 1, wx.EXPAND)
@@ -132,7 +131,9 @@ class PandaFrame(wx.Frame):
                     (wx.ID_COPY, '&Copy', 'Copy the selected item', self.copy), \
                     (wx.ID_PASTE, 'Paste', 'Paste the contents of the clipboard', self.paste), \
                     (wx.ID_SEPARATOR, None, None, None), \
-                    (wx.ID_DELETE, 'Delete', 'Delete the selected item', self.delete)]
+                    (wx.ID_DELETE, 'Delete', 'Delete the selected item', self.delete), \
+                    (wx.ID_SEPARATOR, None, None, None), \
+                    (self.ID_SCENEPROP, 'Scene Properties', 'Edit the scene''s properties', self.sceneProperties)]
         buildMenu(mEdit, editList)
         menuBar.Append(mEdit, '&Edit')
         
@@ -155,14 +156,13 @@ class PandaFrame(wx.Frame):
         self.SetMenuBar(menuBar)
         
     def newScene(self,event):
-        self.scene = Scene()
         self.resetScene()
         
     def resetScene(self):
         self.actionManager.reset()
         self.propList.ClearAll()
         self.sceneTree.clear()
-        base.render.getChildren().detach()
+        
         
 
     def openScene(self, event):
@@ -187,6 +187,8 @@ class PandaFrame(wx.Frame):
     def paste(self, event):
         pass
     def delete(self, event):
+        pass
+    def sceneProperties(self, event):
         pass
     
     def addItem(self, event):
@@ -241,7 +243,9 @@ class SceneTree(wx.TreeCtrl):
         pass
                 
 class ExEd(wx.App, DirectObject.DirectObject):
-    """Panda object for handling all panda related tasks and events""" 
+    """Panda object for handling all panda related tasks and events"""
+    
+         
     def __init__(self): 
         wx.App.__init__(self) 
         self.replaceEventLoop()
@@ -250,6 +254,7 @@ class ExEd(wx.App, DirectObject.DirectObject):
         self.frame.actionManager = ActionManager()
         
         self.registerActions()
+        self.scene = Scene()
         
         self.wxStep()    
     
