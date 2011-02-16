@@ -21,6 +21,7 @@
 import sys
 import os 
 import wx
+import cPickle
 
 from tools.actionManager import Action, ActionManager
 from tools.scene import Scene
@@ -65,8 +66,8 @@ class PandaFrame(wx.Frame):
     ID_RUNDISCOURSE = wx.NewId()
     ID_SCENEPROP = wx.NewId()
     
+    SETTINGSFILE = "settings.exed"
     RUNNINGDIR = os.path.abspath(sys.path[0]) 
-    SAVEDIR = '../data/scenes/'
     
     
     def __init__(self, *args, **kwargs): 
@@ -74,10 +75,11 @@ class PandaFrame(wx.Frame):
         self.Show()
         self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
-        
+        self.settings = {}
+        self.saveDir = '../../data/scenes/'
         self.recentFiles = []   
-        self.SAVEDIR = os.path.join(self.RUNNINGDIR, self.SAVEDIR)        
-                
+        
+        self.loadSettings()
         self.CreateStatusBar()
         self.createMenus()
         vSizer = wx.BoxSizer(wx.VERTICAL)
@@ -95,6 +97,27 @@ class PandaFrame(wx.Frame):
         self.SetAutoLayout(1)
         hSizer.Fit(self)
         
+        
+    def loadSettings(self):
+        if not os.access(self.SETTINGSFILE, os.F_OK):
+            self.saveSettings()
+        
+        file = open(self.SETTINGSFILE, "rb")
+        self.settings = cPickle.load(file)
+        file.close()
+        
+        self.recentFiles = self.settings["recentFiles"]
+        self.saveDir = self.settings["saveDir"]
+        
+        
+    def saveSettings(self):
+        self.settings["recentFiles"] = self.recentFiles
+        self.settings["saveDir"] = self.saveDir
+        
+        file = open(self.SETTINGSFILE, "wb")
+        cPickle.dump(self.settings, file)
+        file.close()
+    
     def createMenus(self):
         def buildMenu(menu, valueList):
             for id, label, hintText, handle in valueList:
