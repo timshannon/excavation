@@ -56,7 +56,7 @@ class Action():
     
 class ActionItem():
     
-    def __init__(self, action, **params):
+    def __init__(self, action, params):
         self.action = action
         self.params = params
         self.canUndo = not(action.undoMethod is None)
