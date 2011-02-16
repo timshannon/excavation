@@ -22,15 +22,19 @@ import sys
 import wx
 import random   #temp
 
-import direct 
-from pandac.PandaModules import * 
+#import direct 
+#from pandac.PandaModules import * 
 from tools.actionManager import ActionManager
-from wxPython._core import wxBoxSizer
+from wx._core import BoxSizer
 from tools.scene import Scene
-loadPrcFileData('startup', 'window-type none') 
-from direct.directbase.DirectStart import * 
-from direct.showbase import DirectObject
-from tools import actionManager , scene
+ 
+#from direct.directbase.DirectStart import * 
+#from direct.showbase import DirectObject
+from panda3d.core import loadPrcFileData, WindowProperties
+from direct.showbase.ShowBase import ShowBase
+
+
+loadPrcFileData('startup', 'window-type none')
 
 class PandaPanel(wx.Panel): 
     def __init__(self, *args, **kwargs): 
@@ -242,12 +246,13 @@ class SceneTree(wx.TreeCtrl):
     def clear(self):
         pass
                 
-class ExEd(wx.App, DirectObject.DirectObject):
+class ExEd(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
     
          
     def __init__(self): 
-        wx.App.__init__(self) 
+        wx.App.__init__(self)
+        ShowBase.__init__(self) 
         self.replaceEventLoop()
         self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd', size=(800,600)) 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
