@@ -68,6 +68,7 @@ class Node():
         self.r = r
         self.parent = parent
         self.children = []
+        self.layer = 0
         
         if self.parent <> None:
             self.parent.addChild(self)

@@ -18,18 +18,12 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import sys 
+import sys
+import os 
 import wx
-import random   #temp
 
-#import direct 
-#from pandac.PandaModules import * 
-from tools.actionManager import ActionManager
-from wx._core import BoxSizer
+from tools.actionManager import Action, ActionManager
 from tools.scene import Scene
- 
-#from direct.directbase.DirectStart import * 
-#from direct.showbase import DirectObject
 from panda3d.core import loadPrcFileData, WindowProperties
 from direct.showbase.ShowBase import ShowBase
 
@@ -71,6 +65,9 @@ class PandaFrame(wx.Frame):
     ID_RUNDISCOURSE = wx.NewId()
     ID_SCENEPROP = wx.NewId()
     
+    RUNNINGDIR = os.path.abspath(sys.path[0]) 
+    SAVEDIR = '../data/scenes/'
+    
     
     def __init__(self, *args, **kwargs): 
         wx.Frame.__init__(self, *args, **kwargs) 
@@ -78,7 +75,8 @@ class PandaFrame(wx.Frame):
         self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
         
-        self.recentFiles = []   #load from config file with other items?
+        self.recentFiles = []   
+        self.SAVEDIR = os.path.join(self.RUNNINGDIR, self.SAVEDIR)        
                 
         self.CreateStatusBar()
         self.createMenus()
@@ -129,12 +127,11 @@ class PandaFrame(wx.Frame):
         
         mEdit = wx.Menu()
         editList = [(wx.ID_UNDO, 'Undo', 'Undo the previous action', self.undo), \
-                    (wx.ID_SEPARATOR, None, None, None), \
                     (wx.ID_REDO, 'Redo', 'Redo the previous undone action', self.redo), \
+                    (wx.ID_SEPARATOR, None, None, None), \
                     (wx.ID_CUT, 'Cut', 'Cut the selected item', self.cut), \
                     (wx.ID_COPY, '&Copy', 'Copy the selected item', self.copy), \
                     (wx.ID_PASTE, 'Paste', 'Paste the contents of the clipboard', self.paste), \
-                    (wx.ID_SEPARATOR, None, None, None), \
                     (wx.ID_DELETE, 'Delete', 'Delete the selected item', self.delete), \
                     (wx.ID_SEPARATOR, None, None, None), \
                     (self.ID_SCENEPROP, 'Scene Properties', 'Edit the scene''s properties', self.sceneProperties)]
@@ -170,7 +167,16 @@ class PandaFrame(wx.Frame):
         
 
     def openScene(self, event):
-        pass
+        dlg = wx.FileDialog(self, 
+                            message='Open a Scene',
+                            defaultDir=self.SAVEDIR,
+                            defaultFile='Scene File (*.scene)|*.scene',
+                            style=wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.actionManager.executeAction('openScene', 
+                                             filename=os.path.join(dlg.GetDirectory(), 
+                                                                   dlg.GetFilename()
+                                                                   ))
     
     def saveScene(self, event):
         pass
@@ -217,34 +223,22 @@ class SceneTree(wx.TreeCtrl):
 
     def __init__(self, *args, **kwargs):
         super(SceneTree, self).__init__(*args, **kwargs)
-        self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpandItem)
-        self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapseItem)
         self.__collapsing = False
-        root = self.AddRoot('root')
-        self.SetItemHasChildren(root)
-
-    def OnExpandItem(self, event):
-        # Add a random number of children and randomly decide which 
-        # children have children of their own.
-        nrChildren = random.randint(1, 6)
-        for childIndex in range(nrChildren):
-            child = self.AppendItem(event.GetItem(), 'child %d'%childIndex)
-            self.SetItemHasChildren(child, random.choice([True, False]))
-
-    def OnCollapseItem(self, event):
-        # Be prepared, self.CollapseAndReset below may cause
-        # another wx.EVT_TREE_ITEM_COLLAPSING event being triggered.
-        if self.__collapsing:
-            event.Veto()
-        else:
-            self.__collapsing = True
-            item = event.GetItem()
-            self.CollapseAndReset(item)
-            self.SetItemHasChildren(item)
-            self.__collapsing = False
+        self.root = self.AddRoot('render')
+        
+    def loadScene(self, scene):
+        self.clear()
+        def addChildren(parent, children):
+            for c in children:
+                newParent = self.AppendItem(parent, c.name)
+                addChildren(newParent, c.children)
+            
+        addChildren(self.root, scene.tree.children)
         
     def clear(self):
-        pass
+        self.DeleteAllItems()
+        self.root = self.AddRoot('render')
+        
                 
 class ExEd(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
@@ -256,7 +250,11 @@ class ExEd(wx.App, ShowBase):
         self.replaceEventLoop()
         self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd', size=(800,600)) 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
-        self.frame.actionManager = ActionManager()
+        
+        self.actionManager = ActionManager()
+        self.frame.actionManager = self.actionManager
+        self.sceneTree = self.frame.sceneTree
+        self.propList = self.frame.propList
         
         self.registerActions()
         self.scene = Scene()
@@ -267,7 +265,13 @@ class ExEd(wx.App, ShowBase):
     def registerActions(self):
         '''Register all of the actions to the editor functions so
             they can be used with the action manager'''
-        pass
+        self.actionManager.registerAction('openScene', Action(self.openScene))
+        
+    
+    def openScene(self, parms):
+        self.scene.read(parms['filename'])
+        self.sceneTree.loadScene(self.scene)
+        
     
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
