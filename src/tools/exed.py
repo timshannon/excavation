@@ -75,11 +75,13 @@ class PandaFrame(wx.Frame):
         self.Show()
         self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
+        
+        #settings
         self.settings = {}
         self.saveDir = '../../data/scenes/'
         self.recentFiles = []   
-        
         self.loadSettings()
+        
         self.CreateStatusBar()
         self.createMenus()
         vSizer = wx.BoxSizer(wx.VERTICAL)
@@ -180,29 +182,24 @@ class PandaFrame(wx.Frame):
         self.SetMenuBar(menuBar)
         
     def newScene(self,event):
-        self.resetScene()
-        
-    def resetScene(self):
-        self.actionManager.reset()
-        self.propList.ClearAll()
-        self.sceneTree.clear()
-        
+        self.actionManager.execute('newScene')
         
 
     def openScene(self, event):
         dlg = wx.FileDialog(self, 
                             message='Open a Scene',
-                            defaultDir=self.SAVEDIR,
+                            defaultDir=self.saveDir,
                             defaultFile='Scene File (*.scene)|*.scene',
                             style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
-            self.actionManager.executeAction('openScene', 
+            self.actionManager.execute('openScene', 
                                              filename=os.path.join(dlg.GetDirectory(), 
                                                                    dlg.GetFilename()
                                                                    ))
     
     def saveScene(self, event):
         pass
+    
     def saveSceneAs(self, event):
         pass
     def exit(self, event):
@@ -289,13 +286,24 @@ class ExEd(wx.App, ShowBase):
         '''Register all of the actions to the editor functions so
             they can be used with the action manager'''
         self.actionManager.registerAction('openScene', Action(self.openScene))
+        self.actionManager.registerAction('newScene', Action(self.newScene))
+        self.actionManager.registerAction('saveScene', Action(self.saveScene))
         
     
     def openScene(self, parms):
         self.scene.read(parms['filename'])
+        self.scene.loadScene(self.render)
         self.sceneTree.loadScene(self.scene)
+        self.actionManager.reset()
         
-    
+    def newScene(self, parms):
+        self.scene = Scene()
+        self.sceneTree.loadScene(self.scene)
+        self.actionManager.reset()
+        
+    def saveScene(self, parms):
+        self.scene.write(parms['fileName'])
+        
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
         self.oldLoop = wx.EventLoop.GetActive() 

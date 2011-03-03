@@ -19,12 +19,13 @@
 #THE SOFTWARE.
 
 import cPickle
-import StringIO
+import os
+from utility.GlobalDef import GlobalDef
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
 class Scene(): 
-    #Defines the structure of a scene for saving to a JSON file for loading
+    #Defines the structure of a scene for saving to a file for loading
     
     def __init__(self, fileName=""):
         if fileName == "":
@@ -47,6 +48,104 @@ class Scene():
         
         self.keyValues = scene.keyValues
         self.tree = scene.tree
+        
+    def loadScene(self, render):
+        self.loadNode(self.tree, render)
+        
+    def loadNode(self, node, parentNode):
+        """recursively loads the nodes in the tree"""
+        nodeP = None
+        
+        if type(node).__name__ == "Model":
+            nodeP = self.loader.loadModel(os.path.join(GlobalDef.MODELPATH, node.model))
+            nodeP.reparentTo(parentNode)
+            nodeP.setPosHprScale(node.x,
+                                 node.y,
+                                 node.z,
+                                 node.h,
+                                 node.p,
+                                 node.r,
+                                 node.scaleX,
+                                 node.scaleY,
+                                 node.scaleZ)
+        elif type(node).__name__ == "Node":
+            nodeP = parentNode.attachNewNode(node.name)
+        elif type(node).__name__ == "PointLight":
+            light = PointLight(node.name)
+            
+            light.setColor(VBase4(node.color["red"], 
+                                  node.color["green"], 
+                                  node.color["blue"], 
+                                  node.color["alpha"]))
+            light.setSpecularColorColor(VBase4(node.color["red"], 
+                                               node.specColor["green"], 
+                                               node.specColor["blue"],
+                                               node.specColor["alpha"]))
+            light.setAttenuation(Point3(node.attenuation["constant"],
+                                        node.attenuation["linear"],
+                                        node.attenuation["quadratic"]))
+            
+            nodeP = parentNode.attachNewNode(light)
+            nodeP.setPos(node.x,
+                         node.y,
+                         node.z)
+            #For now each light will light everything under it's parent
+            parentNode.setLight(nodeP)
+        elif type(node).__name__ == "Spotlight":
+            sLight = Spotlight(node.name)
+            
+            sLight.setColor(VBase4(node.color["red"], 
+                                  node.color["green"], 
+                                  node.color["blue"], 
+                                  node.color["alpha"]))
+            sLight.setSpecularColorColor(VBase4(node.color["red"], 
+                                                node.specColor["green"], 
+                                                node.specColor["blue"],
+                                                node.specColor["alpha"]))
+            sLight.setAttenuation(Point3(node.attenuation["constant"],
+                                         node.attenuation["linear"],
+                                         node.attenuation["quadratic"]))
+                            
+            nodeP = parentNode.attachNewNode(sLight)
+            nodeP.setPosHpr(node.x,
+                            node.y,
+                            node.z,
+                            node.h,
+                            node.p,
+                            node.r)
+            #For now each light will light everything under it's parent
+            parentNode.setLight(nodeP)
+        elif type(node).__name__ == "DirectionalLight":
+            dLight = DirectionalLight(node.name)
+            
+            dLight.setColor(VBase4(node.color["red"], 
+                                  node.color["green"], 
+                                  node.color["blue"], 
+                                  node.color["alpha"]))
+            dLight.setSpecularColorColor(VBase4(node.color["red"], 
+                                                node.specColor["green"], 
+                                                node.specColor["blue"],
+                                                node.specColor["alpha"]))
+            dLight.setDirection(Point3(node.direction["x"], 
+                                       node.direction["y"],
+                                       node.direction["z"]))
+                            
+            nodeP = parentNode.attachNewNode(dLight)
+            nodeP.setPosHpr(node.x,
+                            node.y,
+                            node.z,
+                            node.h,
+                            node.p,
+                            node.r)
+            #For now each light will light everything under it's parent
+            parentNode.setLight(nodeP)
+        elif type(node).__name__ == "Entity":
+            #lookup entity class and instantiate it
+            pass
+        
+        
+        for c in node.children:
+            self.loadNode(c, nodeP)
     
         
 class Node():

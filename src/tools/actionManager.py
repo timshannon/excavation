@@ -12,7 +12,7 @@ class ActionManager():
         else:
             self.actions[name] = action
         
-    def executeAction(self, name, **params):
+    def execute(self, name, **params):
         """Executes the given Action"""
         actionItem = ActionItem(self.actions[name], params)
         if actionItem.canUndo:
