@@ -20,7 +20,7 @@
 
 import cPickle
 import os
-from utility.GlobalDef import GlobalDef
+from utility.globalDef import GlobalDef
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 

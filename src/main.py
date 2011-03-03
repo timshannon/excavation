@@ -23,7 +23,7 @@ from direct.showbase.ShowBase import ShowBase
 from panda3d.core import WindowProperties
 from panda3d.core import ConfigVariableString
 from tools.scene import Scene
-from utility.GlobalDef import GlobalDef
+from utility.globalDef import GlobalDef
 import os
 import sys
 import copy
