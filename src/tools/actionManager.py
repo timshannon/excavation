@@ -43,7 +43,7 @@ class ActionManager():
             actionItem.execute()
             
     def reset(self):
-        '''Clears the undo and redo queues, but presers the registered actions'''
+        '''Clears the undo and redo queues, but preserves the registered actions'''
         self.lstUndo = []
         self.lstRedo = []
             
