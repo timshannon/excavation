@@ -25,6 +25,7 @@ import cPickle
 
 from tools.actionManager import Action, ActionManager
 from tools.scene import Scene
+from utility.globalDef import GlobalDef
 from panda3d.core import loadPrcFileData, WindowProperties
 from direct.showbase.ShowBase import ShowBase
 
@@ -67,7 +68,8 @@ class PandaFrame(wx.Frame):
     ID_SCENEPROP = wx.NewId()
     
     SETTINGSFILE = "settings.exed"
-    RUNNINGDIR = os.path.abspath(sys.path[0]) 
+    
+    filename = '' 
     
     
     def __init__(self, *args, **kwargs): 
@@ -183,6 +185,7 @@ class PandaFrame(wx.Frame):
         
     def newScene(self,event):
         self.actionManager.execute('newScene')
+        self.filename = ''
         
 
     def openScene(self, event):
@@ -192,16 +195,29 @@ class PandaFrame(wx.Frame):
                             defaultFile='Scene File (*.scene)|*.scene',
                             style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
+            self.filename = os.path.join(dlg.GetDirectory(), 
+                                           dlg.GetFilename())
             self.actionManager.execute('openScene', 
-                                             filename=os.path.join(dlg.GetDirectory(), 
-                                                                   dlg.GetFilename()
-                                                                   ))
+                                         filename=self.filename)
     
     def saveScene(self, event):
-        pass
+        if self.filename <> '':
+            self.actionManager.execute('saveScene', filename=self.filename)
+        else:
+            self.saveSceneAs(None)
+            
     
     def saveSceneAs(self, event):
-        pass
+        dlg = wx.FileDialog(self, 
+                            message='Save a Scene',
+                            defaultDir=self.saveDir,
+                            defaultFile='.scene',
+                            style=wx.FD_SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.filename = os.path.join(dlg.GetDirectory(),dlg.GetFilename())
+            self.actionManager.execute('saveScene', 
+                                         filename=self.filename)
+    
     def exit(self, event):
         self.Close()
         
@@ -223,7 +239,9 @@ class PandaFrame(wx.Frame):
     
     def addItem(self, event):
         """Adds an item, determined by the event's sender id"""
-        pass
+        
+        if event.id == self.ID_ADDMODEL:
+            self.actionManager.execute('addModel')
     
     def runExternal(self, event):
         """Runs an external application"""
@@ -302,7 +320,7 @@ class ExEd(wx.App, ShowBase):
         self.actionManager.reset()
         
     def saveScene(self, parms):
-        self.scene.write(parms['fileName'])
+        self.scene.write(parms['filename'])
         
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
