@@ -58,16 +58,8 @@ class PandaFrame(wx.Frame):
     
     #Menu ID's
     ID_RECENTFILES = wx.NewId()
-    ID_ADDMODEL = wx.NewId()
-    ID_ADDENTITY = wx.NewId()
-    ID_ADDPOINTLIGHT = wx.NewId()
-    ID_ADDSPOTLIGHT = wx.NewId()
-    ID_ADDDIRECTIONALLIGHT = wx.NewId()
-    ID_RUNEXCAVATION = wx.NewId()
-    ID_RUNDISCOURSE = wx.NewId()
-    ID_SCENEPROP = wx.NewId()
-        
-    SETTINGSFILE = "settings.exed"
+            
+    SETTINGSFILE = "settings.collide"
     
     filename = '' 
     
@@ -80,7 +72,7 @@ class PandaFrame(wx.Frame):
         
         #settings
         self.settings = {}
-        self.saveDir = GlobalDef.SCENEPATH
+        self.saveDir = GlobalDef.MODELPATH
         self.recentFiles = []   
         self.loadSettings()
         
@@ -88,12 +80,8 @@ class PandaFrame(wx.Frame):
         self.createMenus()
         vSizer = wx.BoxSizer(wx.VERTICAL)
         hSizer = wx.BoxSizer(wx.HORIZONTAL)
-                
-        self.sceneTree = SceneTree(self)
-        self.propList = PropList(self, style=wx.SIMPLE_BORDER)
         
-        vSizer.Add(self.sceneTree, 1, wx.EXPAND)
-        vSizer.Add(self.propList, 1, wx.EXPAND)  
+        #vSizer.Add(text box for editing definition)        
         hSizer.Add(self.pandapanel, 4, wx.EXPAND)
         hSizer.Add(vSizer, 1, wx.EXPAND)
               
@@ -141,10 +129,10 @@ class PandaFrame(wx.Frame):
         menuBar = wx.MenuBar()
         
         mFile = wx.Menu()
-        fileList = [(wx.ID_NEW, '&New', 'Create a new scene', self.newScene), \
-                    (wx.ID_OPEN, '&Open', 'Open an existing scene', self.openScene), \
-                    (wx.ID_SAVE, '&Save', 'Save the current scene', self.saveScene), \
-                    (wx.ID_SAVEAS, 'Save As', 'Save the current scene as a new file', self.saveSceneAs), \
+        fileList = [(wx.ID_NEW, '&New', 'Create a new collision', self.new), \
+                    (wx.ID_OPEN, '&Open', 'Open an existing collision', self.open), \
+                    (wx.ID_SAVE, '&Save', 'Save the current collision', self.save), \
+                    (wx.ID_SAVEAS, 'Save As', 'Save the current collision as a new file', self.saveAs), \
                     (wx.ID_SEPARATOR, None, None, None), \
                     (self.ID_RECENTFILES, None, None, None), \
                     (wx.ID_SEPARATOR, None, None, None), \
@@ -152,146 +140,59 @@ class PandaFrame(wx.Frame):
         buildMenu(mFile, fileList)
         menuBar.Append(mFile, '&File')
         
-        mEdit = wx.Menu()
-        editList = [(wx.ID_UNDO, 'Undo', 'Undo the previous action', self.undo), \
-                    (wx.ID_REDO, 'Redo', 'Redo the previous undone action', self.redo), \
-                    (wx.ID_SEPARATOR, None, None, None), \
-                    (wx.ID_CUT, 'Cut', 'Cut the selected item', self.cut), \
-                    (wx.ID_COPY, '&Copy', 'Copy the selected item', self.copy), \
-                    (wx.ID_PASTE, 'Paste', 'Paste the contents of the clipboard', self.paste), \
-                    (wx.ID_DELETE, 'Delete', 'Delete the selected item', self.delete), \
-                    (wx.ID_SEPARATOR, None, None, None), \
-                    (self.ID_SCENEPROP, 'Scene Properties', 'Edit the scene''s properties', self.sceneProperties)]
-        buildMenu(mEdit, editList)
-        menuBar.Append(mEdit, '&Edit')
-        
-        mAdd = wx.Menu()
-        addList = [(self.ID_ADDMODEL, 'Add Model', 'Add model to scene', self.addItem), \
-                   (self.ID_ADDENTITY, 'Add Entity', 'Add entity to scene', self.addItem), \
-                   (wx.ID_SEPARATOR, None, None, None), \
-                   (self.ID_ADDPOINTLIGHT, 'Add Point Light', 'Add point light to scene', self.addItem), \
-                   (self.ID_ADDSPOTLIGHT, 'Add Spot Light', 'Add spot light to scene', self.addItem), \
-                   (self.ID_ADDDIRECTIONALLIGHT, 'Add Directional Light', 'Add directional light to scene', self.addItem)]
-        buildMenu(mAdd, addList)
-        menuBar.Append(mAdd, '&Add')
-        
-        mRun = wx.Menu()
-        runList = [(self.ID_RUNEXCAVATION, 'Run Excavation', 'Run Excavation', self.runExternal), \
-                   (self.ID_RUNDISCOURSE, 'Run Discourse', 'Run Discourse', self.runExternal)]
-        buildMenu(mRun, runList)
-        menuBar.Append(mRun, '&Run')
-        
         self.SetMenuBar(menuBar)
         
-    def newScene(self,event):
-        self.actionManager.execute('newScene')
+    def new(self,event):
+        self.actionManager.execute('newn')
         self.filename = ''
 
-    def openScene(self, event):
+    def open(self, event):
         dlg = wx.FileDialog(self, 
-                            message='Open a Scene',
+                            message='Open a Collision',
                             defaultDir=self.saveDir,
-                            defaultFile='Scene File (*.scene)|*.scene',
+                            defaultFile='Collision File (*.collision)|*.collision',
                             style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = os.path.join(dlg.GetDirectory(), 
                                            dlg.GetFilename())
-            self.actionManager.execute('openScene', 
+            self.actionManager.execute('openn', 
                                          filename=self.filename)
     
-    def saveScene(self, event):
+    def save(self, event):
         if self.filename <> '':
-            self.actionManager.execute('saveScene', filename=self.filename)
+            self.actionManager.execute('save', filename=self.filename)
         else:
             self.saveSceneAs(None)
             
     
-    def saveSceneAs(self, event):
+    def saveAs(self, event):
         dlg = wx.FileDialog(self, 
-                            message='Save a Scene',
+                            message='Save a Collision',
                             defaultDir=self.saveDir,
-                            defaultFile='.scene',
+                            defaultFile='.collision',
                             style=wx.FD_SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = os.path.join(dlg.GetDirectory(),dlg.GetFilename())
-            self.actionManager.execute('saveScene', 
+            self.actionManager.execute('save', 
                                          filename=self.filename)
     
     def exit(self, event):
         self.Close()
         
-        
-    def undo(self, event):
-        pass
-    def redo(self, event):
-        pass
-    def cut(self, event):
-        pass
-    def copy(self, event):
-        pass
-    def paste(self, event):
-        pass
-    def delete(self, event):
-        pass
-    def sceneProperties(self, event):
-        pass
-    
-    def addItem(self, event):
-        """Adds an item, determined by the event's sender id"""
-        
-        if event.id == self.ID_ADDMODEL:
-            self.actionManager.execute('addModel')
-    
-    def runExternal(self, event):
-        """Runs an external application"""
-        pass
-    
-class PropList(wx.ListCtrl):
-    def __init__(self, *args, **kwargs):
-        super(PropList, self).__init__(*args, **kwargs)
-        self.InsertColumn(0, "Property", wx.LIST_FORMAT_LEFT, 40)
-        self.InsertColumn(1, "Value", wx.LIST_FORMAT_RIGHT, 50)
-        
-    def clear(self):
-        pass
-        
-
-class SceneTree(wx.TreeCtrl):
-
-    def __init__(self, *args, **kwargs):
-        super(SceneTree, self).__init__(*args, **kwargs)
-        self.__collapsing = False
-        self.root = self.AddRoot('render')
-        
-    def loadScene(self, scene):
-        self.clear()
-        def addChildren(parent, children):
-            for c in children:
-                newParent = self.AppendItem(parent, c.name)
-                addChildren(newParent, c.children)
-            
-        addChildren(self.root, scene.tree.children)
-        
-    def clear(self):
-        self.DeleteAllItems()
-        self.root = self.AddRoot('render')
-        
+      
                 
-class ExEd(wx.App, ShowBase):
+class Collide(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
-    
-         
+             
     def __init__(self): 
         wx.App.__init__(self)
         ShowBase.__init__(self) 
         self.replaceEventLoop()
-        self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd', size=(800,600)) 
+        self.frame = PandaFrame(None, wx.ID_ANY, 'Collide', size=(800,600)) 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
         
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
-        self.sceneTree = self.frame.sceneTree
-        self.propList = self.frame.propList
         
         self.registerActions()
         self.scene = Scene()
@@ -302,24 +203,19 @@ class ExEd(wx.App, ShowBase):
     def registerActions(self):
         '''Register all of the actions to the editor functions so
             they can be used with the action manager'''
-        self.actionManager.registerAction('openScene', Action(self.openScene))
-        self.actionManager.registerAction('newScene', Action(self.newScene))
-        self.actionManager.registerAction('saveScene', Action(self.saveScene))
+        self.actionManager.registerAction('open', Action(self.open))
+        self.actionManager.registerAction('new', Action(self.new))
+        self.actionManager.registerAction('save', Action(self.save))
         
     
-    def openScene(self, parms):
-        self.scene.read(parms['filename'])
-        self.scene.loadScene(self.render)
-        self.sceneTree.loadScene(self.scene)
+    def open(self, parms):
         self.actionManager.reset()
         
-    def newScene(self, parms):
-        self.scene = Scene()
-        self.sceneTree.loadScene(self.scene)
+    def new(self, parms):
         self.actionManager.reset()
         
-    def saveScene(self, parms):
-        self.scene.write(parms['filename'])
+    def save(self, parms):
+        pass
         
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
@@ -345,5 +241,5 @@ class ExEd(wx.App, ShowBase):
         self.ProcessIdle() 
         if task != None: return task.cont 
 
-app = ExEd() 
+app = Collide() 
 run() 
