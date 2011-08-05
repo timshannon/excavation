@@ -41,7 +41,7 @@ class Scene():
         cPickle.dump(self, file)
         file.close()
         
-    def read(self, fileName):
+    def load(self, fileName):
         file = open(fileName, "rb")
         scene = cPickle.load(file)
         file.close()
