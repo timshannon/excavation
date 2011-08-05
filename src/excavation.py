@@ -29,11 +29,11 @@ class Excavation(ShowBase):
     
     RUNNINGDIR = os.path.abspath(sys.path[0])
     MODELPATH = "../data/models/"
-    MOUSESENSITIVITY = 0.2
+    MOUSESENSITIVITY = 0.1
     INVERTMOUSE = True
     CAMERAFOV = 90
-    MAXSPEED = 0.5
-    ACCELERATION = 2.5
+    MAXSPEED = 0.05
+    ACCELERATION = .25
 
     def __init__(self):
         ShowBase.__init__(self)
@@ -47,6 +47,7 @@ class Excavation(ShowBase):
         props = WindowProperties()
         props.setCursorHidden(True)
         base.win.requestProperties(props)
+        base.setFrameRateMeter(True)
         
         #normal FPS camera FOV
         base.camLens.setFov(self.CAMERAFOV)
@@ -57,6 +58,7 @@ class Excavation(ShowBase):
         
         self.load_level()
         self.add_keys()
+        #base.useDrive()
         
         taskMgr.add(self.update_player, 'update_player') 
         
@@ -76,6 +78,7 @@ class Excavation(ShowBase):
         self.accept("e-up", self.move, ["z", 0])
         self.accept("space", self.move, ["z", -1])
         self.accept("space-up", self.move, ["z", 0])
+        
                     
         
         
@@ -151,7 +154,7 @@ class Excavation(ShowBase):
                                self.speed["y"], 
                                self.speed["z"])
         
-        self.lastTask = task.time
+        #self.lastTask = task.time
         return task.cont
     
     def move(self, dir, value):
@@ -160,6 +163,10 @@ class Excavation(ShowBase):
         
        
           
+import direct.directbase.DirectStart 
+from pandac.PandaModules import * 
+
+ConfigVariableBool("fullscreen",0).setValue(1)
  
 app = Excavation()
 app.run()

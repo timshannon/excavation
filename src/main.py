@@ -26,7 +26,7 @@ from tools.scene import Scene
 from utility.globalDef import GlobalDef
 import os
 import sys
-import copy
+
  
 class Excavation(ShowBase):
     def __init__(self):

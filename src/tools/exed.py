@@ -308,7 +308,7 @@ class ExEd(wx.App, ShowBase):
         
     
     def openScene(self, parms):
-        self.scene.read(parms['filename'])
+        self.scene.load(parms['filename'])
         self.scene.loadScene(self.render)
         self.sceneTree.loadScene(self.scene)
         self.actionManager.reset()
