@@ -28,9 +28,9 @@ import json
 import os
 from utility.globalDef import GlobalDef
 
-__all__ = ['Collision', 'Shape', 'Sphere']
+__all__ = ['Collision', 'Sphere', 'Plane', 'Box', 'Cylinder', 'Capsule', 'Cone', 'ConvexHull', 'TriangleMesh']
 
-'''*******
+'''
     Collisions will be defined in a separate file from the model.
     When a model file is specified for loading, the scene loader will
     automatically check for a .collision file of the same name as the model
@@ -40,8 +40,21 @@ __all__ = ['Collision', 'Shape', 'Sphere']
 '''
 
 class Collision():
-    '''Main collision class for reading writing and loading collision files'''
+    '''
+        Main collision class for reading writing and loading collision files
+        Also defines the relative position to it's parent model, and it's mass.
+        if there are no shapes defined, then it will default to Triangle Mesh shape with
+        every geom in the egg file being automatically added.
+    '''
+    
     shapes = []
+    relX = 0
+    relY = 0
+    relZ = 0
+    relH = 0
+    relP = 0
+    relR = 0
+    mass = 0.0
     
     def __init__(self,
                  file=''):
@@ -53,76 +66,132 @@ class Collision():
     
     def write(self, file):
         file = open(file, 'wb')
-        json.dump(self.shapes, file, sort_keys=True, indent=4)
+        jObject = []
         
+        for s in self.shapes:
+            jObject.append(s.toJson())
+        
+        json.dump(jObject, file, sort_keys=True, indent=4)
+                
     
-class Shape():
-    '''Collision shape base class
-        Position is based relative to it's model's origin
-        The collision shape will be loaded first, then the model
-    '''
+
+class Sphere():
+    radius = 0
     
     def __init__(self,
-                 relX=0,
-                 relY=0,
-                 relZ=0,
-                 relH=0,
-                 relP=0,
-                 relR=0,
-                 mass=0):
-        self.relX = relX
-        self.relY = relY
-        self.relZ = relZ
-        self.relH = relH
-        self.relP = relP
-        self.relR = relR
-
-
-class Sphere(Shape):
-    radius = 0
+                 radius):
+        self.radius = radius
     
     def setRadius(self, radius):
         self.radius = radius
         
-class Plain(Shape):
+    def toJson(self):
+        return {'type':'Sphere', 
+                'radius':0}
+    
+        
+class Plane():
     normal = Vec3(0,0,1)
     distance = 0
     
+    def __init__(self,
+                 normal,
+                 distance):
     
-class Box(Shape):
+        self.normal = normal
+        self.distance = distance
+                 
+                 
+    def toJson(self):
+        return {'type':'Plane',
+                'normal':[self.normal.getX(), self.normal.getY(), self.normal.getZ()], 
+                'distance':self.distance}
+    
+class Box():
     x = 0
     y = 0
     z = 0
-    
-    def setShape(self,
+        
+    def __init__(self,
                  x,
                  y,
                  z):
         self.x = x
         self.y = y
         self.z = z
+    def toJson(self):
+        return {'type':'Box',
+                'x':self.x,
+                'y':self.y,
+                'z':self.z}
         
-class Cylinder(Shape):
+class Cylinder():
     radius = 0
     height = 0
     axis = 0    #bullet enum
     
-class Capsule(Shape):
+    def __init__(self,
+                 radius,
+                 height,
+                 axis):
+        self.radius = radius
+        self.height = height
+        self.axis = axis
+        
+    def toJson(self):
+        return {'type':'Cylinder',
+                'radius':self.radius,
+                'height':self.height,
+                'axis':self.axis}
+    
+    
+class Capsule():
     radius = 0
     height = 0
     
-class Cone(Shape):
+    def __init__(self,
+                 radius,
+                 height):
+        self.height = height
+        self.radius = radius
+        
+    def toJson(self):
+        return {'type':'Capsule',
+                'radius':self.radius,
+                'height':self.height}
+    
+class Cone():
     radius = 0
     height = 0
     
-class ConvexHull(Shape):
+    def __init__(self,
+                 radius,
+                 height):
+        self.radius = radius
+        self.height = height
+        
+    def toJson(self):
+        return {'type':'Cone',
+                'radius':self.radius,
+                'height': self.height}
+        
+    
+class ConvexHull():
     points = []
     
+    def __init__(self,
+                 points):
+        self.points = points
+        
     def addPoint(self, point3):
         self.points.append(point3)
+        
+    def toJson(self):
+        points = []
+        
+        for p in self.points:
+            points.append([p.getX(),p.getY(),p.getZ()])
+        
+        return {'type':'ConvexHull',
+                'points':points}
     
-class TriangleMesh(Shape):
-    '''Should be used for static level structure only.
-        Will auto add geoms for the specified egg
-    '''
-    geoms = []
