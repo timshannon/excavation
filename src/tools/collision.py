@@ -74,6 +74,7 @@ class Collision():
         self.mass = jObject['mass']
         
         shapes = jObject['shapes']
+        self.shapes = []
         
         for s in shapes:
             for k,v in s.items():
@@ -99,22 +100,25 @@ class Collision():
                 elif k == 'ConvexHull':
                     self.shapes.append(ConvexHull(v['points']))
         
-        
     def write(self, file):
         fileObj = open(file, 'wb')
+        json.dump(self.toJson(),fileObj, indent=4)
+        
+    def toJson(self):
+        
         jObject = []
         
         for s in self.shapes:
             jObject.append({s.__class__.__name__:s.toJson()})
         
-        json.dump({'relX':self.relX,
+        return {'relX':self.relX,
                    'relY':self.relY,
                    'relZ':self.relZ,
                    'relH':self.relH,
                    'relP':self.relP,
                    'relR':self.relR,
                    'mass':self.mass,
-                   'shapes':jObject}, fileObj, indent=4)
+                   'shapes':jObject}
                 
     
 

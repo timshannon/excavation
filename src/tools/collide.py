@@ -58,6 +58,10 @@ class PandaFrame(wx.Frame):
     
     #Menu ID's
     ID_RECENTFILES = wx.NewId()
+    ID_ADDSPHERE = wx.NewId()
+    ID_ADDPLANE = wx.NewId()
+    ID_ADDBOX = wx.NewId()
+
             
     SETTINGSFILE = "settings.collide"
     
@@ -67,8 +71,12 @@ class PandaFrame(wx.Frame):
     def __init__(self, *args, **kwargs): 
         wx.Frame.__init__(self, *args, **kwargs) 
         self.Show()
-        self.pandapanel = PandaPanel(self, wx.ID_ANY, size=self.ClientSize) 
+        split = wx.SplitterWindow(self, -1)
+        
+        self.pandapanel = PandaPanel(split, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
+        self.jEditor = JsonEditor(split)
+        split.SetSashGravity(1.0)
         
         #settings
         self.settings = {}
@@ -78,16 +86,21 @@ class PandaFrame(wx.Frame):
         
         self.CreateStatusBar()
         self.createMenus()
-        vSizer = wx.BoxSizer(wx.VERTICAL)
-        hSizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        #vSizer.Add(text box for editing definition)        
-        hSizer.Add(self.pandapanel, 4, wx.EXPAND)
-        hSizer.Add(vSizer, 1, wx.EXPAND)
+        split.SplitVertically(self.pandapanel, self.jEditor, 800)
+        
+        
+        #vSizer = wx.BoxSizer(wx.VERTICAL)
+        #hSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        #vSizer.Add(text box for editing definition)
+        #vSizer.Add(self.jEditor, 1, wx.EXPAND)        
+        #hSizer.Add(self.pandapanel, 4, wx.EXPAND)
+        #hSizer.Add(vSizer, 2, wx.EXPAND)
               
-        self.SetSizer(hSizer)
-        self.SetAutoLayout(1)
-        hSizer.Fit(self)
+        #self.SetSizer(hSizer)
+        #self.SetAutoLayout(True)
+        #hSizer.Fit(self)
         
         
     def loadSettings(self):
@@ -140,12 +153,26 @@ class PandaFrame(wx.Frame):
         buildMenu(mFile, fileList)
         menuBar.Append(mFile, '&File')
         
+        mAdd = wx.Menu()
+        addList = [(self.ID_ADDSPHERE, 'Sphere', 'Add a sphere', self.add), \
+                    (self.ID_ADDPLANE, 'Plane', 'Add a plane', self.add)
+                    ]
+        buildMenu(mAdd, addList)
+        menuBar.Append(mAdd, '&Add')
+        
         self.SetMenuBar(menuBar)
         
     def new(self,event):
-        self.actionManager.execute('newn')
+        self.actionManager.execute('new')
         self.filename = ''
-
+    
+    def add(self, event):
+        """Adds an item, determined by the event's sender id"""
+        
+        if event.id == self.ID_ADDMODEL:
+            self.actionManager.execute('addModel')
+    
+    
     def open(self, event):
         dlg = wx.FileDialog(self, 
                             message='Open a Collision',
@@ -155,7 +182,7 @@ class PandaFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = os.path.join(dlg.GetDirectory(), 
                                            dlg.GetFilename())
-            self.actionManager.execute('openn', 
+            self.actionManager.execute('open', 
                                          filename=self.filename)
     
     def save(self, event):
@@ -180,6 +207,10 @@ class PandaFrame(wx.Frame):
         self.Close()
         
       
+class JsonEditor(wx.TextCtrl):
+    def __init__(self, *args, **kwargs):
+        kwargs['style'] = wx.TE_MULTILINE
+        super(JsonEditor, self).__init__(*args, **kwargs)
                 
 class Collide(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
@@ -188,7 +219,7 @@ class Collide(wx.App, ShowBase):
         wx.App.__init__(self)
         ShowBase.__init__(self) 
         self.replaceEventLoop()
-        self.frame = PandaFrame(None, wx.ID_ANY, 'Collide', size=(800,600)) 
+        self.frame = PandaFrame(None, wx.ID_ANY, 'Collide', size=(1200,768)) 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
         
         self.actionManager = ActionManager()
