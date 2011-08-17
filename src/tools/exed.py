@@ -66,6 +66,7 @@ class PandaFrame(wx.Frame):
     ID_RUNEXCAVATION = wx.NewId()
     ID_RUNDISCOURSE = wx.NewId()
     ID_SCENEPROP = wx.NewId()
+    ID_RUNCOLLIDE = wx.NewId()
         
     SETTINGSFILE = "settings.exed"
     
@@ -177,6 +178,7 @@ class PandaFrame(wx.Frame):
         
         mRun = wx.Menu()
         runList = [(self.ID_RUNEXCAVATION, 'Run Excavation', 'Run Excavation', self.runExternal), \
+                   (self.ID_RUNCOLLIDE, 'Run Collide', 'Run Collide', self.runExternal), \
                    (self.ID_RUNDISCOURSE, 'Run Discourse', 'Run Discourse', self.runExternal)]
         buildMenu(mRun, runList)
         menuBar.Append(mRun, '&Run')
@@ -260,7 +262,7 @@ class SceneTree(wx.TreeCtrl):
 
     def __init__(self, *args, **kwargs):
         super(SceneTree, self).__init__(*args, **kwargs)
-        self.__collapsing = False
+        #self.__collapsing = False
         self.root = self.AddRoot('render')
         
     def loadScene(self, scene):
@@ -285,7 +287,7 @@ class ExEd(wx.App, ShowBase):
         wx.App.__init__(self)
         ShowBase.__init__(self) 
         self.replaceEventLoop()
-        self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd', size=(800,600)) 
+        self.frame = PandaFrame(None, wx.ID_ANY, 'ExEd', size=(1024,768)) 
         self.frame.Bind(wx.EVT_CLOSE, self.quit) 
         
         self.actionManager = ActionManager()
