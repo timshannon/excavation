@@ -22,6 +22,7 @@ import sys
 import os 
 import wx
 import cPickle
+import time
 
 from tools.actionManager import Action, ActionManager
 from tools.scene import Scene
@@ -61,6 +62,7 @@ class PandaFrame(wx.Frame):
     ID_ADDSPHERE = wx.NewId()
     ID_ADDPLANE = wx.NewId()
     ID_ADDBOX = wx.NewId()
+    ID_LOADMODEL = wx.NewId()
 
             
     SETTINGSFILE = "settings.collide"
@@ -89,19 +91,7 @@ class PandaFrame(wx.Frame):
         
         split.SplitVertically(self.pandapanel, self.jEditor, 800)
         
-        
-        #vSizer = wx.BoxSizer(wx.VERTICAL)
-        #hSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        #vSizer.Add(text box for editing definition)
-        #vSizer.Add(self.jEditor, 1, wx.EXPAND)        
-        #hSizer.Add(self.pandapanel, 4, wx.EXPAND)
-        #hSizer.Add(vSizer, 2, wx.EXPAND)
-              
-        #self.SetSizer(hSizer)
-        #self.SetAutoLayout(True)
-        #hSizer.Fit(self)
-        
+       
         
     def loadSettings(self):
         if not os.access(self.SETTINGSFILE, os.F_OK):
@@ -144,6 +134,7 @@ class PandaFrame(wx.Frame):
         mFile = wx.Menu()
         fileList = [(wx.ID_NEW, '&New', 'Create a new collision', self.new), \
                     (wx.ID_OPEN, '&Open', 'Open an existing collision', self.open), \
+                    (wx.ID_OPEN, '&Load Model', 'Load a model', self.loadModel), \
                     (wx.ID_SAVE, '&Save', 'Save the current collision', self.save), \
                     (wx.ID_SAVEAS, 'Save As', 'Save the current collision as a new file', self.saveAs), \
                     (wx.ID_SEPARATOR, None, None, None), \
@@ -172,6 +163,12 @@ class PandaFrame(wx.Frame):
         if event.id == self.ID_ADDMODEL:
             self.actionManager.execute('addModel')
     
+    def loadModel(self, event):
+        '''Loads a model for viewing with the collision file, or for pulling
+            vertexes from
+        '''
+        pass
+        
     
     def open(self, event):
         dlg = wx.FileDialog(self, 
@@ -211,7 +208,8 @@ class JsonEditor(wx.TextCtrl):
     def __init__(self, *args, **kwargs):
         kwargs['style'] = wx.TE_MULTILINE
         super(JsonEditor, self).__init__(*args, **kwargs)
-                
+        
+                    
 class Collide(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
              
@@ -224,6 +222,7 @@ class Collide(wx.App, ShowBase):
         
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
+        self.jEditor = self.frame.jEditor
         
         self.registerActions()
         self.scene = Scene()
@@ -240,10 +239,15 @@ class Collide(wx.App, ShowBase):
         
     
     def open(self, parms):
-        self.actionManager.reset()
+        self.new(parms)
         
     def new(self, parms):
         self.actionManager.reset()
+        self.jEditor.Clear()
+        
+        for node in render.getChildren():
+            node.removeNode()
+            
         
     def save(self, parms):
         pass
@@ -270,6 +274,7 @@ class Collide(wx.App, ShowBase):
         while self.evtLoop.Pending(): 
             self.evtLoop.Dispatch() 
         self.ProcessIdle() 
+        time.sleep(0.01)
         if task != None: return task.cont 
 
 app = Collide() 

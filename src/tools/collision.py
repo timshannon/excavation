@@ -48,12 +48,6 @@ class Collision():
     '''
     
     shapes = []
-    relX = 0
-    relY = 0
-    relZ = 0
-    relH = 0
-    relP = 0
-    relR = 0
     mass = 0.0
     
     def __init__(self,
@@ -65,12 +59,6 @@ class Collision():
         fileObj = open(file, 'rb')
         jObject = json.load(fileObj)
         
-        self.relX = jObject['relX']
-        self.relY = jObject['relY']
-        self.relZ = jObject['relZ']
-        self.relH = jObject['relH']
-        self.relP = jObject['relP']
-        self.relR = jObject['relR']
         self.mass = jObject['mass']
         
         shapes = jObject['shapes']
@@ -99,10 +87,17 @@ class Collision():
                                             v['height']))
                 elif k == 'ConvexHull':
                     self.shapes.append(ConvexHull(v['points']))
+                
+                self.shapes[-1].relX = v['relX']
+                self.shapes[-1].relY = v['relY']
+                self.shapes[-1].relZ = v['relZ']
+                self.shapes[-1].relH = v['relH']
+                self.shapes[-1].relP = v['relP']
+                self.shapes[-1].relR = v['relR']
         
     def write(self, file):
         fileObj = open(file, 'wb')
-        json.dump(self.toJson(),fileObj, indent=4)
+        json.dump(self.toJson(),fileObj, indent=4, sort_keys=True)
         
     def toJson(self):
         
@@ -111,18 +106,27 @@ class Collision():
         for s in self.shapes:
             jObject.append({s.__class__.__name__:s.toJson()})
         
+        return {'mass':self.mass,
+                'shapes':jObject}
+
+class Shape(object):
+    relX = 0
+    relY = 0
+    relZ = 0
+    relH = 0
+    relP = 0
+    relR = 0                
+    
+    def toJson(self):
         return {'relX':self.relX,
                    'relY':self.relY,
                    'relZ':self.relZ,
                    'relH':self.relH,
                    'relP':self.relP,
-                   'relR':self.relR,
-                   'mass':self.mass,
-                   'shapes':jObject}
-                
+                   'relR':self.relR}
     
 
-class Sphere():
+class Sphere(Shape):
     radius = 0
     
     def __init__(self,
@@ -133,10 +137,13 @@ class Sphere():
         self.radius = radius
         
     def toJson(self):
-        return {'radius':0}
+        dict = super(Sphere, self).toJson()
+        dict['radius'] = self.radius
+        
+        return dict
     
         
-class Plane():
+class Plane(Shape):
     normal = Vec3(0,0,1)
     distance = 0
     
@@ -149,10 +156,12 @@ class Plane():
                  
                  
     def toJson(self):
-        return {'normal':[self.normal.getX(), self.normal.getY(), self.normal.getZ()], 
-                'distance':self.distance}
+        dict = super(Plane, self).toJson()
+        dict['normal'] = [self.normal.getX(), self.normal.getY(), self.normal.getZ()]
+        dict['distance'] = self.distance
+        return dict
     
-class Box():
+class Box(Shape):
     x = 0
     y = 0
     z = 0
@@ -164,12 +173,16 @@ class Box():
         self.x = x
         self.y = y
         self.z = z
-    def toJson(self):
-        return {'x':self.x,
-                'y':self.y,
-                'z':self.z}
         
-class Cylinder():
+    def toJson(self):
+        dict = super(Box, self).toJson()
+        dict['x'] = self.x
+        dict['y'] = self.y
+        dict['z'] = self.z
+        
+        return dict 
+        
+class Cylinder(Shape):
     radius = 0
     height = 0
     axis = 0    #bullet enum
@@ -183,12 +196,15 @@ class Cylinder():
         self.axis = axis
         
     def toJson(self):
-        return {'radius':self.radius,
-                'height':self.height,
-                'axis':self.axis}
+        dict = super(Cylinder, self).toJson()
+        dict['radius'] = self.radius
+        dict['height'] = self.height
+        dict['axis'] = self.axis
+        
+        return dict
     
     
-class Capsule():
+class Capsule(Shape):
     radius = 0
     height = 0
     
@@ -199,10 +215,13 @@ class Capsule():
         self.radius = radius
         
     def toJson(self):
-        return {'radius':self.radius,
-                'height':self.height}
+        dict = super(Capsule, self).toJson()
+        dict['radius'] = self.radius
+        dict['height'] = self.height
+        
+        return dict 
     
-class Cone():
+class Cone(Shape):
     radius = 0
     height = 0
     
@@ -213,11 +232,14 @@ class Cone():
         self.height = height
         
     def toJson(self):
-        return {'radius':self.radius,
-                'height': self.height}
+        dict = super(Cone, self).toJson()
+        dict['radius'] = self.radius
+        dict['height'] = self.height
+        
+        return dict 
         
     
-class ConvexHull():
+class ConvexHull(Shape):
     points = []
     
     def __init__(self,
@@ -234,5 +256,8 @@ class ConvexHull():
         for p in self.points:
             points.append([p.getX(),p.getY(),p.getZ()])
         
-        return {'points':points}
-    
+        dict = super(ConvexHull, self).toJson()
+        dict['points'] = points
+
+        return dict
+
