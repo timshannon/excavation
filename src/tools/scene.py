@@ -142,12 +142,12 @@ class Scene():
         elif type(node).__name__ == "Entity":
             #lookup entity class and instantiate it
             pass
-        
-        
+
+
         for c in node.children:
             self.loadNode(c, nodeP)
-    
-        
+
+
 class Node():
     def __init__(self, 
                  name, 
@@ -201,7 +201,7 @@ class Node():
                     
 class Entity(Node):
     keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
-    type = ""       #type of entity used to identify to python file to use
+    type = ""       #type of entity used to identify to python file to use?
     
 class Model(Node):
     model = ""
