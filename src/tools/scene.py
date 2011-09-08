@@ -20,21 +20,21 @@
 
 import cPickle
 import os
+import json
 from utility.globalDef import GlobalDef
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
 class Scene(): 
     #Defines the structure of a scene for saving to a file for loading
-    
+
     def __init__(self, fileName=""):
         if fileName == "":
             self.tree = Node("render")
             self.keyValues = {}  #dictionary for scene level values, ambient light level, skybox, name, level description, level load hints, etc
         else:
             self.read(fileName)
-            
-        
+    
     def write(self, fileName):
         file = open(fileName, "wb")
         #TODO: Replace pickle with xml or yaml file format
@@ -48,7 +48,9 @@ class Scene():
         
         self.keyValues = scene.keyValues
         self.tree = scene.tree
-        
+       
+    def toJson(self):
+        pass
     def loadScene(self, render):
         self.loadNode(self.tree, render)
         
@@ -148,7 +150,7 @@ class Scene():
             self.loadNode(c, nodeP)
 
 
-class Node():
+class Node(object):
     def __init__(self, 
                  name, 
                  parent=None, 
@@ -198,17 +200,53 @@ class Node():
         self.h = h
         self.p = p
         self.r = r
+
+    def toJson(self):
+        return {'name':self.name,
+                'x':self.x,
+                'y':self.y,
+                'z':self.z,
+                'h':self.h,
+                'p':self.p,
+                'r':self.r,
+                'layer':self.layer}
+
                     
 class Entity(Node):
     keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
     type = ""       #type of entity used to identify to python file to use?
+
+    def __init__(self,
+                 keyValues,
+                 type):
+        self.keyValues = keyValues
+        self.type = type
+
+    def toJson(self):
+        dict = super(Entity, self).toJson()
+        dict['keyValues'] = self.keyValues
+        dict['type'] = self.type
+
+        return dict
     
 class Model(Node):
     model = ""
-    collision = ""
+    collision = ""  
     scaleX = 1.0
     scaleY = 1.0
     scaleZ = 1.0
+
+    def __init__(self,
+                 model,
+                 collision,
+                 scaleX,
+                 scaleY,
+                 scaleZ):
+        self.model = model
+        self.collision = collision
+        self.scaleX = scaleX
+        self.scaleY = scaleY
+        self.scaleZ = scaleZ
     
     def setScale(self, **scale):
         if "x" in scale:
@@ -219,15 +257,28 @@ class Model(Node):
             
         if "z" in scale:
             self.scaleZ = scale["z"]
-        
-        
-            
-            
+
+    def toJson(self):
+        dict = super(Model, self).toJson()
+        dict['model'] = self.model
+        dict['collision'] = self.collision
+        dict['scaleX'] = self.scaleX
+        dict['scaleY'] = self.scaleY
+        dict['scaleZ'] = self.scaleZ
+
+        return dict
+                  
     
 class Light(Node):
     color = {"red":1,"green":1,"blue":1,"alpha":1}
     specColor = {"red":1,"green":1,"blue":1,"alpha":1}
     
+    def __init__(self,
+                 color,
+                 specColor):
+        self.color = color
+        self.specColor = specColor
+
     def setColor(self, **colors):
         for k in colors.keys():
             if k in self.color.keys():
@@ -237,32 +288,77 @@ class Light(Node):
         for k in colors.keys():
             if k in self.specColor.keys():
                 self.specColor[k] = colors[k]
-    
+
+    def toJson(self):
+        dict = super(Light, self).toJson()
+        dict['color'] = self.color
+        dict['specColor'] = self.specColor
+
+        return dict
+
 class PointLight(Light):
     attenuation = {"constant":0,"linear":0,"quadratic":0}
-    
+   
+    def __init__(self,
+                 attenuation):
+        self.attenuation = attenuation
+
     def setAttenuation(self, **attenuation):
         for k in attenuation.keys():
             if k in self.attenuation.keys():
                 self.attenuation[k] = attenuation[k]
+
+    def toJson(self):
+        dict = super(PointLight, self).toJson()
+        dict['attenuation'] = self.attenuation
+
+        return dict
     
 class DirectionalLight(Light):
     direction = {"x":0,"y":0,"z":0}
     castShadows = False
-    
+   
+    def __init__(self,
+                 direction,
+                 castShadows):
+        self.direction = direction
+        self.castShadows = castShadows
+        
     def setDirection(self, **direction):
         for k in direction.keys():
             if k in self.direction.keys():
                 self.direction[k] = direction[k]
-                
+
+    def toJson(self):
+        dict = super(DirectionalLight, self).toJson()
+        dict['direction'] = self.direction
+        dict['castShadows'] = self.castShadows
+        
+        return dict
+
 class Spotlight(Light):
     attenuation = {"constant":0,"linear":0,"quadratic":0}
     exponent = 0.0
     castShadows = False
-    
+   
+    def __init_(self,
+                attenuation,
+                exponent,
+                castShadows):
+        self.attenuation = attenuation
+        self.exponent = exponent
+        self.castShadows = castShadows
+        
     def setAttenuation(self, **attenuation):
         for k in attenuation.keys():
             if k in self.attenuation.keys():
                 self.attenuation[k] = attenuation[k]
-        
     
+    def toJson(self):
+        dict = super(Spotlight,self).toJson()
+        dict['attenuation'] = self.attenuation
+        dict['exponent'] = self.exponent
+        dict['castShadows'] = self.castShadows
+        
+        return dict
+     
