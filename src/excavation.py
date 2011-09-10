@@ -83,8 +83,12 @@ class Excavation(ShowBase):
         
         
     def load_level(self):
-        level = self.loader.loadModel(os.path.join(self.RUNNINGDIR, self.MODELPATH + "levels/leveltest.egg"))
+        level2 = self.loader.loadModel(os.path.join(self.RUNNINGDIR, self.MODELPATH + "test/box.egg"))
+        level = self.loader.loadModel('/usr/share/panda3d/models/panda.egg.pz')
         level.reparentTo(self.render)
+        level2.reparentTo(self.render)
+        
+        level2.setPos(10,10,10)
         
         
         
