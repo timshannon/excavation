@@ -22,6 +22,7 @@ import sys
 import os 
 import wx
 import cPickle
+import time
 
 from tools.actionManager import Action, ActionManager
 from tools.scene import Scene
@@ -68,7 +69,7 @@ class PandaFrame(wx.Frame):
     ID_SCENEPROP = wx.NewId()
     ID_RUNCOLLIDE = wx.NewId()
         
-    SETTINGSFILE = "settings.exed"
+    SETTINGSFILE = ".exed"
     
     filename = '' 
     
@@ -345,6 +346,7 @@ class ExEd(wx.App, ShowBase):
         while self.evtLoop.Pending(): 
             self.evtLoop.Dispatch() 
         self.ProcessIdle() 
+        time.sleep(0.01)
         if task != None: return task.cont 
 
 app = ExEd() 

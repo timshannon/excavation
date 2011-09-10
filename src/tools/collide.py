@@ -25,7 +25,7 @@ import cPickle
 import time
 
 from tools.actionManager import Action, ActionManager
-from tools.scene import Scene
+from tools.collision import Collision
 from utility.globalDef import GlobalDef
 from panda3d.core import loadPrcFileData, WindowProperties
 from direct.showbase.ShowBase import ShowBase
@@ -65,7 +65,7 @@ class PandaFrame(wx.Frame):
     ID_LOADMODEL = wx.NewId()
 
             
-    SETTINGSFILE = "settings.collide"
+    SETTINGSFILE = ".collide"
     
     filename = '' 
     
@@ -134,7 +134,7 @@ class PandaFrame(wx.Frame):
         mFile = wx.Menu()
         fileList = [(wx.ID_NEW, '&New', 'Create a new collision', self.new), \
                     (wx.ID_OPEN, '&Open', 'Open an existing collision', self.open), \
-                    (wx.ID_OPEN, '&Load Model', 'Load a model', self.loadModel), \
+                    (self.ID_LOADMODEL, '&Load Model', 'Load a model', self.loadModel), \
                     (wx.ID_SAVE, '&Save', 'Save the current collision', self.save), \
                     (wx.ID_SAVEAS, 'Save As', 'Save the current collision as a new file', self.saveAs), \
                     (wx.ID_SEPARATOR, None, None, None), \
@@ -167,7 +167,17 @@ class PandaFrame(wx.Frame):
         '''Loads a model for viewing with the collision file, or for pulling
             vertexes from
         '''
-        pass
+        dlg = wx.FileDialog(self, 
+                            message='Load a model',
+                            defaultDir=self.saveDir,
+                            defaultFile='"Egg files (*.egg)|*.egg"',
+                            style=wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            model = os.path.join(dlg.GetDirectory(), 
+                                 dlg.GetFilename())
+            self.actionManager.execute('loadModel', 
+                                         model=model)
+        
         
     
     def open(self, event):
@@ -205,9 +215,14 @@ class PandaFrame(wx.Frame):
         
       
 class JsonEditor(wx.TextCtrl):
+    collision = ''
     def __init__(self, *args, **kwargs):
         kwargs['style'] = wx.TE_MULTILINE
         super(JsonEditor, self).__init__(*args, **kwargs)
+        
+    def UpdateJson(self):
+        self.Clear()
+        self.AppendText(self.collision.toJson())
         
                     
 class Collide(wx.App, ShowBase):
@@ -223,9 +238,11 @@ class Collide(wx.App, ShowBase):
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
         self.jEditor = self.frame.jEditor
+        self.modelNode = None
         
         self.registerActions()
-        self.scene = Scene()
+        self.collision = Collision()
+        self.jEditor.collision = self.collision
         
         self.wxStep()    
     
@@ -236,6 +253,7 @@ class Collide(wx.App, ShowBase):
         self.actionManager.registerAction('open', Action(self.open))
         self.actionManager.registerAction('new', Action(self.new))
         self.actionManager.registerAction('save', Action(self.save))
+        self.actionManager.registerAction('loadModel', Action(self.loadModel))
         
     
     def open(self, parms):
@@ -243,11 +261,20 @@ class Collide(wx.App, ShowBase):
         
     def new(self, parms):
         self.actionManager.reset()
-        self.jEditor.Clear()
-        
+        self.collision = Collision()
+        self.jEditor.UpdateJson()
+        self.modelNode = None
         for node in render.getChildren():
             node.removeNode()
             
+        
+    def loadModel(self, parms):
+        if self.modelNode:
+            self.modelNode.removeNode()
+        
+        self.modelNode = self.loader.loadModel(parms['model'])
+        self.modelNode.reparentTo(self.render)
+        
         
     def save(self, parms):
         pass
