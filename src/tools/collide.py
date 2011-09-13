@@ -26,6 +26,7 @@ import time
 
 from tools.actionManager import Action, ActionManager
 from tools.collision import Collision
+from tools.viewController import FreeViewController, RotateViewController 
 from utility.globalDef import GlobalDef
 from panda3d.core import loadPrcFileData, WindowProperties
 from direct.showbase.ShowBase import ShowBase
@@ -244,6 +245,18 @@ class Collide(wx.App, ShowBase):
         self.collision = Collision()
         self.jEditor.collision = self.collision
         
+        #viewControllers
+        FreeViewController(base, 
+                            'w', 
+                            's', 
+                            'a', 
+                            'd', 
+                            'e', 
+                            'space', 
+                            0.1, 
+                            .05,
+                            .25)
+
         self.wxStep()    
     
     
