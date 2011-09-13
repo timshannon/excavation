@@ -11,15 +11,10 @@ class FreeViewController():
     
     def __init__(self,
                  base,
-                 kMoveForward,
-                 kMoveBackward,
-                 kMoveLeft,
-                 kMoveRight,
-                 kMoveUp,
-                 kMoveDown,
                  mouseSensitivity,
                  maxSpeed,
-                 acceleration):
+                 acceleration,
+                 **keys):
         
         if mouseSensitivity > 0:
             self.MOUSESENSITIVITY = mouseSensitivity
@@ -28,41 +23,45 @@ class FreeViewController():
         if acceleration > 0:
             self.ACCELERATION = acceleration
         
+        self.vcActive = False
         self.base = base
         base.camLens.setFov(self.CAMERAFOV)
+        
+        #don't use built in mouse controller
+        base.disableMouse()
         
         self.direction = {"x":0, "y":0, "z":0}
         self.speed = {"x":0, "y":0, "z":0}
         self.lastTask = 0
 
         #Add keys
-        base.accept(kMoveForward, self.move, ["y", 1])
-        base.accept(kMoveForward + '-up', self.move, ["y", 0])
-        base.accept(kMoveBackward, self.move, ["y", -1])
-        base.accept(kMoveBackward + "-up", self.move, ["y", 0])
-        base.accept(kMoveLeft, self.move, ["x", -1])
-        base.accept(kMoveLeft + "-up", self.move, ["x", 0])
-        base.accept(kMoveRight, self.move, ["x", 1])
-        base.accept(kMoveRight + "-up", self.move, ["x", 0])
-        base.accept(kMoveUp, self.move, ["z", 1])
-        base.accept(kMoveUp + "-up", self.move, ["z", 0])
-        base.accept(kMoveDown, self.move, ["z", -1])
-        base.accept(kMoveDown + "-up", self.move, ["z", 0])
+        base.accept(keys['forward'], self.move, ["y", 1])
+        base.accept(keys['forward'] + '-up', self.move, ["y", 0])
+        base.accept(keys['backward'], self.move, ["y", -1])
+        base.accept(keys['backward'] + "-up", self.move, ["y", 0])
+        base.accept(keys['left'], self.move, ["x", -1])
+        base.accept(keys['left'] + "-up", self.move, ["x", 0])
+        base.accept(keys['right'], self.move, ["x", 1])
+        base.accept(keys['right'] + "-up", self.move, ["x", 0])
+        base.accept(keys['up'], self.move, ["z", 1])
+        base.accept(keys['up'] + "-up", self.move, ["z", 0])
+        base.accept(keys['down'], self.move, ["z", -1])
+        base.accept(keys['down'] + "-up", self.move, ["z", 0])
+        
+        base.accept(keys['activate'], self.setControllerActiveState, [True])
+        base.accept(keys['activate'] + '-up', self.setControllerActiveState, [False])
         
         self.base.taskMgr.add(self.updateCamera, 'updateCamera') 
         
     def updateCamera(self, task):
         """ handles player movement"""
-
+        if not self.vcActive:
+            return task.cont
         
-        if self.base.mouseWatcherNode.hasMouse():
-            x = self.base.mouseWatcherNode.getMouseX()
-            y = self.base.mouseWatcherNode.getMouseY()
-        else:
-            pointer = self.base.win.getPointer(0)
-            x = pointer.getX()
-            y = pointer.getY()
-            
+        pointer = self.base.win.getPointer(0)
+        x = pointer.getX()
+        y = pointer.getY()
+        
         #Reset pointer position
         self.base.win.movePointer(0, 300, 300)
         #get amount cursor moved
@@ -130,12 +129,14 @@ class FreeViewController():
         self.direction[dir] = value
         
     
-    def activateController(self):
+    def setControllerActiveState(self, active):
         #disable mouse and hide cursor
-        self.base.disableMouse()
+        self.vcActive = active
+        
         props = WindowProperties()
-        props.setCursorHidden(True)
+        props.setCursorHidden(active)
         self.base.win.requestProperties(props)
+        
     
 class RotateViewController():
     

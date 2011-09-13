@@ -247,15 +247,16 @@ class Collide(wx.App, ShowBase):
         
         #viewControllers
         FreeViewController(base, 
-                            'w', 
-                            's', 
-                            'a', 
-                            'd', 
-                            'e', 
-                            'space', 
                             0.1, 
                             .05,
-                            .25)
+                            .25,
+                            activate='mouse3',
+                            forward='w', 
+                            backward='s', 
+                            left='a', 
+                            right='d', 
+                            up='e', 
+                            down='space')
 
         self.wxStep()    
     
