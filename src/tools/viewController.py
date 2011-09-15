@@ -25,31 +25,36 @@ class FreeViewController():
         
         self.vcActive = False
         self.base = base
-        base.camLens.setFov(self.CAMERAFOV)
+        self.base.camLens.setFov(self.CAMERAFOV)
+        
+        pointer = self.base.win.getPointer(0)
+        self.mouseX = pointer.getX()
+        self.mouseY = pointer.getY()
+
         
         #don't use built in mouse controller
-        base.disableMouse()
+        self.base.disableMouse()
         
         self.direction = {"x":0, "y":0, "z":0}
         self.speed = {"x":0, "y":0, "z":0}
         self.lastTask = 0
 
         #Add keys
-        base.accept(keys['forward'], self.move, ["y", 1])
-        base.accept(keys['forward'] + '-up', self.move, ["y", 0])
-        base.accept(keys['backward'], self.move, ["y", -1])
-        base.accept(keys['backward'] + "-up", self.move, ["y", 0])
-        base.accept(keys['left'], self.move, ["x", -1])
-        base.accept(keys['left'] + "-up", self.move, ["x", 0])
-        base.accept(keys['right'], self.move, ["x", 1])
-        base.accept(keys['right'] + "-up", self.move, ["x", 0])
-        base.accept(keys['up'], self.move, ["z", 1])
-        base.accept(keys['up'] + "-up", self.move, ["z", 0])
-        base.accept(keys['down'], self.move, ["z", -1])
-        base.accept(keys['down'] + "-up", self.move, ["z", 0])
+        self.base.accept(keys['forward'], self.move, ["y", 1])
+        self.base.accept(keys['forward'] + '-up', self.move, ["y", 0])
+        self.base.accept(keys['backward'], self.move, ["y", -1])
+        self.base.accept(keys['backward'] + "-up", self.move, ["y", 0])
+        self.base.accept(keys['left'], self.move, ["x", -1])
+        self.base.accept(keys['left'] + "-up", self.move, ["x", 0])
+        self.base.accept(keys['right'], self.move, ["x", 1])
+        self.base.accept(keys['right'] + "-up", self.move, ["x", 0])
+        self.base.accept(keys['up'], self.move, ["z", 1])
+        self.base.accept(keys['up'] + "-up", self.move, ["z", 0])
+        self.base.accept(keys['down'], self.move, ["z", -1])
+        self.base.accept(keys['down'] + "-up", self.move, ["z", 0])
         
-        base.accept(keys['activate'], self.setControllerActiveState, [True])
-        base.accept(keys['activate'] + '-up', self.setControllerActiveState, [False])
+        self.base.accept(keys['activate'], self.setControllerActiveState, [True])
+        self.base.accept(keys['activate'] + '-up', self.setControllerActiveState, [False])
         
         self.base.taskMgr.add(self.updateCamera, 'updateCamera') 
         
@@ -58,29 +63,32 @@ class FreeViewController():
         if not self.vcActive:
             return task.cont
         
-        pointer = self.base.win.getPointer(0)
-        x = pointer.getX()
-        y = pointer.getY()
+        
+        if not self.base.mouseWatcherNode.hasMouse():
+            return task.cont
+        
+        x = self.base.mouseWatcherNode.getMouseX()
+        y = self.base.mouseWatcherNode.getMouseY()
         
         #Reset pointer position
-        self.base.win.movePointer(0, 300, 300)
+        self.base.win.movePointer(0, self.mouseX, self.mouseY)
         #get amount cursor moved
-        x = (x - 300) * -1 
-        y = (y - 300)
+        x = (x - self.mouseX) * -1 
+        y = (y - self.mouseY)
         
         if not self.INVERTMOUSE:
             y = y * -1
         
         
-        quat = self.base.camera.getQuat()
-        upQ = copy.copy(quat)
-        rightQ = copy.copy(quat)
-        #forwardQ = copy.copy(quat)
+        camQuat = self.base.camera.getQuat()    #camQuat  ha ha, get it?
+        upQ = copy.copy(camQuat)
+        rightQ = copy.copy(camQuat)
+        #forwardQ = copy.copy(camQuat)
         forward = self.base.camera.getQuat().getForward()
         forward.normalize()
-        up = quat.getUp()
-        right = quat.getRight()
-        forward = quat.getForward()
+        up = camQuat.getUp()
+        right = camQuat.getRight()
+        forward = camQuat.getForward()
         up.normalize()
         right.normalize()
         forward.normalize()
@@ -89,8 +97,8 @@ class FreeViewController():
         rightQ.setFromAxisAngle(y * self.MOUSESENSITIVITY, right)
         #forwardQ.setFromAxisAngle(45, right)
                     
-        newQuat = quat.multiply(upQ.multiply(rightQ))
-        self.base.camera.setQuat(newQuat)
+        newQuat = camQuat.multiply(upQ.multiply(rightQ))
+        #self.base.camera.setQuat(newQuat)
         
         elapsed = task.time - self.lastTask
         #Move player
@@ -114,12 +122,12 @@ class FreeViewController():
                 else:
                     self.speed[k] = self.MAXSPEED * -1
             
-        
-            
         self.base.camera.setFluidPos(self.base.camera, 
                                        self.speed["x"], 
                                        self.speed["y"], 
                                        self.speed["z"])
+        #print ('camera: ' + str(self.base.camera.getX()))
+        print ('direction', self.direction['x'])
         
         self.lastTask = task.time
         return task.cont
@@ -132,6 +140,10 @@ class FreeViewController():
     def setControllerActiveState(self, active):
         #disable mouse and hide cursor
         self.vcActive = active
+        
+        pointer = self.base.win.getPointer(0)
+        self.mouseX = pointer.getX()
+        self.mouseY = pointer.getY()
         
         props = WindowProperties()
         props.setCursorHidden(active)
