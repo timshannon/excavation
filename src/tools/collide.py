@@ -30,6 +30,7 @@ from tools.viewController import FreeViewController, RotateViewController
 from utility.globalDef import GlobalDef
 from panda3d.core import loadPrcFileData, WindowProperties
 from direct.showbase.ShowBase import ShowBase
+from direct.task.Task import TaskManager
 
 
 loadPrcFileData('startup', 'window-type none')
@@ -221,6 +222,7 @@ class JsonEditor(wx.TextCtrl):
         kwargs['style'] = wx.TE_MULTILINE
         super(JsonEditor, self).__init__(*args, **kwargs)
         
+        
     def UpdateJson(self):
         self.Clear()
         self.AppendText(self.collision.toJson())
@@ -228,7 +230,7 @@ class JsonEditor(wx.TextCtrl):
                     
 class Collide(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
-             
+    
     def __init__(self): 
         wx.App.__init__(self)
         ShowBase.__init__(self) 
@@ -244,9 +246,10 @@ class Collide(wx.App, ShowBase):
         self.registerActions()
         self.collision = Collision()
         self.jEditor.collision = self.collision
+        self.wp = WindowProperties()
         
         #viewControllers
-        FreeViewController(base, 
+        self.fvc = FreeViewController(base, 
                             0.1, 
                             .05,
                             .25,
@@ -257,8 +260,10 @@ class Collide(wx.App, ShowBase):
                             right='d', 
                             up='e', 
                             down='space')
+        messenger.toggleVerbose()
 
-        self.wxStep()    
+        self.wxStep()   
+        
     
     
     def registerActions(self):
@@ -286,8 +291,12 @@ class Collide(wx.App, ShowBase):
         if self.modelNode:
             self.modelNode.removeNode()
         
+                
         self.modelNode = self.loader.loadModel(parms['model'])
         self.modelNode.reparentTo(self.render)
+        
+        
+        
         
         
     def save(self, parms):
