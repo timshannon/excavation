@@ -127,7 +127,7 @@ class FreeViewController():
                                        self.speed["y"], 
                                        self.speed["z"])
         #print ('camera: ' + str(self.base.camera.getX()))
-        print ('direction', self.direction['x'])
+        #print ('direction', self.direction['x'])
         
         self.lastTask = task.time
         return task.cont
