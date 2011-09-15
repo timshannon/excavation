@@ -28,7 +28,7 @@ from tools.actionManager import Action, ActionManager
 from tools.collision import Collision
 from tools.viewController import FreeViewController, RotateViewController 
 from utility.globalDef import GlobalDef
-from panda3d.core import loadPrcFileData, WindowProperties
+from panda3d.core import loadPrcFileData, WindowProperties, ModifierButtons
 from direct.showbase.ShowBase import ShowBase
 from direct.task.Task import TaskManager
 
@@ -246,8 +246,7 @@ class Collide(wx.App, ShowBase):
         self.registerActions()
         self.collision = Collision()
         self.jEditor.collision = self.collision
-        self.wp = WindowProperties()
-        
+                
         #viewControllers
         self.fvc = FreeViewController(base, 
                             0.1, 
@@ -260,8 +259,9 @@ class Collide(wx.App, ShowBase):
                             right='d', 
                             up='e', 
                             down='space')
-        messenger.toggleVerbose()
-
+        base.mouseWatcherNode.setModifierButtons(ModifierButtons()) 
+        base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
+        #messenger.toggleVerbose()
         self.wxStep()   
         
     
@@ -294,13 +294,20 @@ class Collide(wx.App, ShowBase):
                 
         self.modelNode = self.loader.loadModel(parms['model'])
         self.modelNode.reparentTo(self.render)
-        
-        
+        self.setFocus() 
         
         
         
     def save(self, parms):
         pass
+        
+        
+    def setFocus(self):
+        '''Sets the keyboard focus back to the panda window'''
+        wp = WindowProperties()
+        wp.setForeground(True) 
+        base.win.requestProperties(wp)
+        
         
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 

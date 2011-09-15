@@ -59,6 +59,9 @@ class Excavation(ShowBase):
         self.load_level()
         self.add_keys()
         #base.useDrive()
+        base.mouseWatcherNode.setModifierButtons(ModifierButtons()) 
+        base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
+        messenger.toggleVerbose()
         
         taskMgr.add(self.update_player, 'update_player') 
         
@@ -83,12 +86,12 @@ class Excavation(ShowBase):
         
         
     def load_level(self):
-        level2 = self.loader.loadModel(os.path.join(self.RUNNINGDIR, self.MODELPATH + "test/box.egg"))
+        #level2 = self.loader.loadModel(os.path.join( "panda.egg.pz"))
         level = self.loader.loadModel('/usr/share/panda3d/models/panda.egg.pz')
         level.reparentTo(self.render)
-        level2.reparentTo(self.render)
+        #level2.reparentTo(self.render)
         
-        level2.setPos(10,10,10)
+        #level2.setPos(10,10,10)
         
         
         
@@ -170,7 +173,7 @@ class Excavation(ShowBase):
 import direct.directbase.DirectStart 
 from pandac.PandaModules import * 
 
-ConfigVariableBool("fullscreen",0).setValue(1)
+#ConfigVariableBool("fullscreen",0).setValue(1)
  
 app = Excavation()
 app.run()
