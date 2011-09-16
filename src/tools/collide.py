@@ -30,7 +30,6 @@ from tools.viewController import FreeViewController, RotateViewController
 from utility.globalDef import GlobalDef
 from panda3d.core import loadPrcFileData, WindowProperties, ModifierButtons
 from direct.showbase.ShowBase import ShowBase
-from direct.task.Task import TaskManager
 
 
 loadPrcFileData('startup', 'window-type none')
@@ -262,6 +261,9 @@ class Collide(wx.App, ShowBase):
         base.mouseWatcherNode.setModifierButtons(ModifierButtons()) 
         base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
         #messenger.toggleVerbose()
+        
+        
+        taskMgr.doMethodLater(1, self.autoFocus, 'autoFocus')
         self.wxStep()   
         
     
@@ -294,21 +296,48 @@ class Collide(wx.App, ShowBase):
                 
         self.modelNode = self.loader.loadModel(parms['model'])
         self.modelNode.reparentTo(self.render)
-        self.setFocus() 
-        
+        #self.setFocus() 
         
         
     def save(self, parms):
         pass
         
         
-    def setFocus(self):
-        '''Sets the keyboard focus back to the panda window'''
-        wp = WindowProperties()
-        wp.setForeground(True) 
-        base.win.requestProperties(wp)
         
+    def autoFocus(self, task):
+        '''Checks if the cursor is within the bounds of the panda window,
+            and if so set the focus on the panda window so key events work
+            properly.'''
+        wp = WindowProperties(base.win.getProperties())
         
+        if wp.getForeground():
+            print 'has foreground'
+            return task.again
+        
+        pointer = base.win.getPointer(0)
+        x = pointer.getX()
+        y = pointer.getY()
+        
+                
+        if wp.hasOrigin():
+            winX = wp.getXOrigin()
+            winY = wp.getYOrigin()
+        else:
+            print 'no origin'
+            return task.again
+            
+        print(winX, winY)        
+        
+        if x >= winX and x <= winX + wp.getXSize() and \
+            y >= winY and y <= winY + wp.getYSize():
+            #wp.setForeground(True) 
+            #base.win.requestProperties(wp)
+            print 'has focus'
+        
+                
+        return task.again
+    
+       
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 
         self.oldLoop = wx.EventLoop.GetActive() 
@@ -334,5 +363,5 @@ class Collide(wx.App, ShowBase):
         time.sleep(0.01)
         if task != None: return task.cont 
 
-app = Collide() 
+app = Collide()
 run() 
