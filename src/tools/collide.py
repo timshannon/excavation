@@ -217,11 +217,25 @@ class PandaFrame(wx.Frame):
       
 class JsonEditor(wx.TextCtrl):
     collision = ''
+    panda = None
+    
     def __init__(self, *args, **kwargs):
         kwargs['style'] = wx.TE_MULTILINE
         super(JsonEditor, self).__init__(*args, **kwargs)
         
+        self.Bind(wx.EVT_KILL_FOCUS, self.loseFocus)
+        self.Bind(wx.EVT_SET_FOCUS, self.gainFocus)
         
+    def loseFocus(self, event):
+        #update panda window with changes
+        #use action manager so it can be undone
+        self.panda.setForeground()
+    
+    def gainFocus(self, event):
+        #update json with panda window changes
+        self.panda.setBackground()
+    
+            
     def UpdateJson(self):
         self.Clear()
         self.AppendText(self.collision.toJson())
@@ -240,6 +254,7 @@ class Collide(wx.App, ShowBase):
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
         self.jEditor = self.frame.jEditor
+        self.jEditor.panda = self
         self.modelNode = None
         
         self.registerActions()
@@ -260,13 +275,30 @@ class Collide(wx.App, ShowBase):
                                       down='space')
         base.mouseWatcherNode.setModifierButtons(ModifierButtons()) 
         base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
+        
+        self.accept('mouse1', self.click)
         #messenger.toggleVerbose()
         
-        
-        taskMgr.doMethodLater(1, self.autoFocus, 'autoFocus')
         self.wxStep()   
         
-    
+        
+    def setBackground(self):
+        wp = WindowProperties(base.win.getProperties())
+        if wp.getForeground():
+            wp.setForeground(False) 
+            base.win.requestProperties(wp)
+            #print 'set background'
+            
+    def setForeground(self):
+        wp = WindowProperties(base.win.getProperties())
+        if not wp.getForeground():
+            wp.setForeground(True) 
+            base.win.requestProperties(wp) 
+            
+    def click(self):
+        '''mouse 1 click'''
+        self.setForeground()
+            
     
     def registerActions(self):
         '''Register all of the actions to the editor functions so
@@ -302,41 +334,7 @@ class Collide(wx.App, ShowBase):
     def save(self, parms):
         pass
         
-        
-        
-    def autoFocus(self, task):
-        '''Checks if the cursor is within the bounds of the panda window,
-            and if so set the focus on the panda window so key events work
-            properly.'''
-        wp = WindowProperties(base.win.getProperties())
-        
-        if wp.getForeground():
-            print 'has foreground'
-            return task.again
-        
-        pointer = base.win.getPointer(0)
-        x = pointer.getX()
-        y = pointer.getY()
-        
-                
-        if wp.hasOrigin():
-            winX = wp.getXOrigin()
-            winY = wp.getYOrigin()
-        else:
-            print 'no origin'
-            return task.again
-            
-        print(winX, winY)        
-        
-        if x >= winX and x <= winX + wp.getXSize() and \
-            y >= winY and y <= winY + wp.getYSize():
-            #wp.setForeground(True) 
-            #base.win.requestProperties(wp)
-            print 'has focus'
-        
-                
-        return task.again
-    
+       
        
     def replaceEventLoop(self): 
         self.evtLoop = wx.EventLoop() 

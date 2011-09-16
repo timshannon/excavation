@@ -130,9 +130,12 @@ class FreeViewController():
         self.mouseX = pointer.getX()
         self.mouseY = pointer.getY()
         
-        props = WindowProperties()
-        props.setCursorHidden(active)
-        self.base.win.requestProperties(props)
+        wp = WindowProperties(self.base.win.getProperties())
+        if not wp.getForeground():
+            wp.setForeground(True) 
+        
+        wp.setCursorHidden(active)
+        self.base.win.requestProperties(wp)
         
     
 class RotateViewController():
