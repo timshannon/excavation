@@ -59,16 +59,15 @@ class FreeViewController():
         self.base.taskMgr.add(self.updateCamera, 'updateCamera') 
         
     def updateCamera(self, task):
-        """ handles player movement"""
+        """ handles camera movement"""
         if not self.vcActive:
             return task.cont
         
         
-        if not self.base.mouseWatcherNode.hasMouse():
-            return task.cont
+        pointer = self.base.win.getPointer(0)
+        x = pointer.getX()
+        y = pointer.getY()
         
-        x = self.base.mouseWatcherNode.getMouseX()
-        y = self.base.mouseWatcherNode.getMouseY()
         
         #Reset pointer position
         self.base.win.movePointer(0, self.mouseX, self.mouseY)
@@ -79,26 +78,12 @@ class FreeViewController():
         if not self.INVERTMOUSE:
             y = y * -1
         
+        x = x * self.MOUSESENSITIVITY
+        y = y * self.MOUSESENSITIVITY
         
-        camQuat = self.base.camera.getQuat()    #camQuat  ha ha, get it?
-        upQ = copy.copy(camQuat)
-        rightQ = copy.copy(camQuat)
-        #forwardQ = copy.copy(camQuat)
-        forward = self.base.camera.getQuat().getForward()
-        forward.normalize()
-        up = camQuat.getUp()
-        right = camQuat.getRight()
-        forward = camQuat.getForward()
-        up.normalize()
-        right.normalize()
-        forward.normalize()
-                   
-        upQ.setFromAxisAngle(x * self.MOUSESENSITIVITY, up)
-        rightQ.setFromAxisAngle(y * self.MOUSESENSITIVITY, right)
-        #forwardQ.setFromAxisAngle(45, right)
-                    
-        newQuat = camQuat.multiply(upQ.multiply(rightQ))
-        #self.base.camera.setQuat(newQuat)
+        
+        self.base.camera.setHpr(self.base.camera, x, y, 0)
+        
         
         elapsed = task.time - self.lastTask
         #Move player
