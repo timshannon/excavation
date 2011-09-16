@@ -249,16 +249,16 @@ class Collide(wx.App, ShowBase):
                 
         #viewControllers
         self.fvc = FreeViewController(base, 
-                            0.1, 
-                            .05,
-                            .25,
-                            activate='mouse3',
-                            forward='w', 
-                            backward='s', 
-                            left='a', 
-                            right='d', 
-                            up='e', 
-                            down='space')
+                                      1, 
+                                      .5,
+                                      1,
+                                      activate='mouse3',
+                                      forward='w', 
+                                      backward='s', 
+                                      left='a', 
+                                      right='d', 
+                                      up='e', 
+                                      down='space')
         base.mouseWatcherNode.setModifierButtons(ModifierButtons()) 
         base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
         #messenger.toggleVerbose()
