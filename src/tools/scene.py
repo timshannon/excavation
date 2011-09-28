@@ -22,6 +22,7 @@ import cPickle
 import os
 import json
 from utility.globalDef import GlobalDef
+from panda3d.core import VBase4, Point3
 
 __all__ = ["Scene", "Node", "Light", "Spotlight", "Entity", "PointLight", "DirectionalLight"]
 
