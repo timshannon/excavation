@@ -1,4 +1,4 @@
-#Copyright (c) 2009-2010 Tim Shannon
+#Copyright (c) 2009 Tim Shannon
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
@@ -38,8 +38,8 @@ class Scene():
     
     def write(self, fileName):
         file = open(fileName, "wb")
-        #TODO: Replace pickle with xml or yaml file format
-        cPickle.dump(self, file)
+        #TODO: Replace pickle with json file format
+        json.dump(self.toJson(), file, indent=4, sort_keys=True) 
         file.close()
         
     def load(self, fileName):
@@ -51,7 +51,8 @@ class Scene():
         self.tree = scene.tree
        
     def toJson(self):
-        pass
+        return self.tree.toJson()
+
     def loadScene(self, render):
         self.loadNode(self.tree, render)
         
@@ -144,6 +145,7 @@ class Scene():
             parentNode.setLight(nodeP)
         elif type(node).__name__ == "Entity":
             #lookup entity class and instantiate it
+            #TODO: Finish this
             pass
 
 
@@ -203,6 +205,10 @@ class Node(object):
         self.r = r
 
     def toJson(self):
+        jChildren = []
+        for child in self.children:
+            jChildren.append(child.toJson())
+
         return {'name':self.name,
                 'x':self.x,
                 'y':self.y,
@@ -210,12 +216,15 @@ class Node(object):
                 'h':self.h,
                 'p':self.p,
                 'r':self.r,
-                'layer':self.layer}
+                'layer':self.layer,
+                'children':jChildren}
 
                     
 class Entity(Node):
-    keyValues = {}  #keyvalue dictionary to hold any settings the entity may make use of
-    type = ""       #type of entity used to identify to python file to use?
+    #keyvalue dictionary to hold any settings the entity may make use of
+    keyValues = {} 
+    #type of entity used to identify to python file to use?
+    type = ""       
 
     def __init__(self,
                  keyValues,
