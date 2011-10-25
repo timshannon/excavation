@@ -98,9 +98,9 @@ class PandaFrame(wx.Frame):
         if not os.access(self.SETTINGSFILE, os.F_OK):
             self.saveSettings()
         
-        file = open(self.SETTINGSFILE, "rb")
-        self.settings = cPickle.load(file)
-        file.close()
+        sFile = open(self.SETTINGSFILE, "rb")
+        self.settings = cPickle.load(sFile)
+        sFile.close()
         
         self.recentFiles = self.settings["recentFiles"]
         self.saveDir = self.settings["saveDir"]
@@ -110,9 +110,9 @@ class PandaFrame(wx.Frame):
         self.settings["recentFiles"] = self.recentFiles
         self.settings["saveDir"] = self.saveDir
         
-        file = open(self.SETTINGSFILE, "wb")
-        cPickle.dump(self.settings, file)
-        file.close()
+        sFile = open(self.SETTINGSFILE, "wb")
+        cPickle.dump(self.settings, sFile)
+        sFile.close()
     
     def createMenus(self):
         def buildMenu(menu, valueList):
@@ -217,25 +217,11 @@ class PandaFrame(wx.Frame):
       
 class JsonEditor(wx.TextCtrl):
     collision = ''
-    panda = None
     
     def __init__(self, *args, **kwargs):
         kwargs['style'] = wx.TE_MULTILINE
         super(JsonEditor, self).__init__(*args, **kwargs)
-        
-        self.Bind(wx.EVT_KILL_FOCUS, self.loseFocus)
-        self.Bind(wx.EVT_SET_FOCUS, self.gainFocus)
-        
-    def loseFocus(self, event):
-        #update panda window with changes
-        #use action manager so it can be undone
-        self.panda.setForeground()
-    
-    def gainFocus(self, event):
-        #update json with panda window changes
-        self.panda.setBackground()
-    
-            
+                        
     def UpdateJson(self):
         self.Clear()
         self.AppendText(self.collision.toJson())
@@ -254,7 +240,7 @@ class Collide(wx.App, ShowBase):
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
         self.jEditor = self.frame.jEditor
-        self.jEditor.panda = self
+        
         self.modelNode = None
         
         self.registerActions()
@@ -287,7 +273,7 @@ class Collide(wx.App, ShowBase):
         if wp.getForeground():
             wp.setForeground(False) 
             base.win.requestProperties(wp)
-            #print 'set background'
+        
             
     def setForeground(self):
         wp = WindowProperties(base.win.getProperties())
