@@ -88,7 +88,7 @@ class FreeViewController():
         elapsed = task.time - self.lastTask
         #Move player
         for k in self.direction.keys():
-            if self.direction[k] <> 0:
+            if self.direction[k] != 0:
                 self.speed[k] = self.speed[k] + (self.ACCELERATION * self.direction[k] * elapsed)
             else:
                 #decelerate
@@ -131,8 +131,7 @@ class FreeViewController():
         self.mouseY = pointer.getY()
         
         wp = WindowProperties(self.base.win.getProperties())
-        if not wp.getForeground():
-            wp.setForeground(True) 
+        wp.setForeground(active) 
         
         wp.setCursorHidden(active)
         self.base.win.requestProperties(wp)
