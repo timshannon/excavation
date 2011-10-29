@@ -21,8 +21,10 @@
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletSphereShape
 from panda3d.bullet import BulletPlaneShape
+
 from panda3d.core import Vec3
 from panda3d.core import Point3
+from panda3d.core import TransformState
 
 import json
 import os
@@ -117,6 +119,16 @@ class Shape(object):
     relP = 0
     relR = 0                
     
+    def transformState(self):
+        '''Returns the relative transform state necessary to
+            to position the collision shape with its model'''
+        return TransformState.makePosHpr(Point3(self.relX,
+                                                self.relY,
+                                                self.relZ),
+                                         Point3(self.relH,
+                                                self.relP,
+                                                self.relR))
+    
     def toJson(self):
         return {'relX':self.relX,
                    'relY':self.relY,
@@ -135,6 +147,9 @@ class Sphere(Shape):
     
     def setRadius(self, radius):
         self.radius = radius
+    
+    def getShape(self):
+        return BulletSphereShape(self.radius)
         
     def toJson(self):
         dict = super(Sphere, self).toJson()

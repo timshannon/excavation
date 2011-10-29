@@ -311,7 +311,7 @@ class Collide(wx.App, ShowBase):
         if self.modelNode:
             self.modelNode.removeNode()
         
-        #TODO: Load orderd list of vertexes from the model so that
+        #TODO: Load ordered list of vertexes from the model so that
         #    sizing operations can quick snap to the vertex bounds
         #    Regrabbing the unordered list of vertexes for each collision
         #    shape change operation would take way to long, especially on
