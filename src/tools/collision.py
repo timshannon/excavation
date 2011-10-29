@@ -21,6 +21,14 @@
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletSphereShape
 from panda3d.bullet import BulletPlaneShape
+from panda3d.bullet import BulletBoxShape
+from panda3d.bullet import BulletCylinderShape
+from panda3d.bullet import BulletCapsuleShape
+from panda3d.bullet import BulletConeShape
+from panda3d.bullet import BulletConvexHullShape
+from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import BulletUpAxis
+
 
 from panda3d.core import Vec3
 from panda3d.core import Point3
@@ -80,13 +88,15 @@ class Collision():
                 elif k == 'Cylinder':
                     self.shapes.append(Cylinder(v['radius'], 
                                                 v['height'], 
-                                                v['axis']))
+                                                v['enmAxis']))
                 elif k == 'Capsule':
                     self.shapes.append(Capsule(v['radius'], 
-                                               v['height']))
+                                               v['height'],
+                                               v['enmAxis']))
                 elif k == 'Cone':
                     self.shapes.append(Cone(v['radius'],
-                                            v['height']))
+                                            v['height'],
+                                            v['enmAxis']))
                 elif k == 'ConvexHull':
                     self.shapes.append(ConvexHull(v['points']))
                 
@@ -169,7 +179,9 @@ class Plane(Shape):
         self.normal = Vec3(normal[0],normal[1],normal[2])
         self.distance = distance
                  
-                 
+    def getShape(self):
+        return BulletPlaneShape(self.normal, self.distance)
+    
     def toJson(self):
         dict = super(Plane, self).toJson()
         dict['normal'] = [self.normal.getX(), self.normal.getY(), self.normal.getZ()]
@@ -189,6 +201,10 @@ class Box(Shape):
         self.y = y
         self.z = z
         
+    def getShape(self):
+        return BulletBoxShape(Vec3(self.x, 
+                                   self.y, 
+                                   self.z))
     def toJson(self):
         dict = super(Box, self).toJson()
         dict['x'] = self.x
@@ -200,21 +216,24 @@ class Box(Shape):
 class Cylinder(Shape):
     radius = 0
     height = 0
-    axis = 0    #bullet enum
+    enmAxis = 0    #bullet enum
     
     def __init__(self,
                  radius,
                  height,
-                 axis):
+                 enmAxis):
         self.radius = radius
         self.height = height
-        self.axis = axis
+        self.enmAxis = enmAxis
+        
+    def getShape(self):
+        return BulletCylinderShape(self.radius, self.height, self.enmAxis)
         
     def toJson(self):
         dict = super(Cylinder, self).toJson()
         dict['radius'] = self.radius
         dict['height'] = self.height
-        dict['axis'] = self.axis
+        dict['enmAxis'] = self.enmAxis
         
         return dict
     
@@ -222,39 +241,54 @@ class Cylinder(Shape):
 class Capsule(Shape):
     radius = 0
     height = 0
+    enmAxis = 0
     
     def __init__(self,
                  radius,
-                 height):
+                 height,
+                 enmAxis):
         self.height = height
         self.radius = radius
+        self.enmAxis = enmAxis
+        
+    def getShape(self):
+        return BulletCapsuleShape(self.radius, self.height, self.enmAxis)
         
     def toJson(self):
         dict = super(Capsule, self).toJson()
         dict['radius'] = self.radius
         dict['height'] = self.height
+        dict['enmAxis'] = self.enmAxis
         
         return dict 
     
 class Cone(Shape):
     radius = 0
     height = 0
+    enmAxis = 0
     
     def __init__(self,
                  radius,
-                 height):
+                 height,
+                 enmAxis):
         self.radius = radius
         self.height = height
+        self.enmAxis = enmAxis
+        
+    def getShape(self):
+        return BulletConeShape(self.radius, self.height, self.enmAxis)
         
     def toJson(self):
         dict = super(Cone, self).toJson()
         dict['radius'] = self.radius
         dict['height'] = self.height
+        dict['enmAxis'] = self.enmAxis
         
         return dict 
         
-    
+
 class ConvexHull(Shape):
+    
     points = []
     
     def __init__(self,
@@ -262,6 +296,7 @@ class ConvexHull(Shape):
         for p in points:
             self.addPoint(Point3(p[0], p[1], p[2]))
         
+            
     def addPoint(self, point3):
         self.points.append(point3)
         
