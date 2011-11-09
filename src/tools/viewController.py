@@ -11,17 +11,14 @@ class FreeViewController():
     
     def __init__(self,
                  base,
-                 mouseSensitivity,
-                 maxSpeed,
-                 acceleration,
-                 **keys):
+                 **args):
         
-        if mouseSensitivity > 0:
-            self.MOUSESENSITIVITY = mouseSensitivity
-        if maxSpeed > 0:
-            self.MAXSPEED = maxSpeed
-        if acceleration > 0:
-            self.ACCELERATION = acceleration
+        if args['mouseSensitivity'] > 0:
+            self.MOUSESENSITIVITY = args['mouseSensitivity']
+        if args['maxSpeed'] > 0:
+            self.MAXSPEED = args['maxSpeed']
+        if args['acceleration'] > 0:
+            self.ACCELERATION = args['acceleration']
         
         self.vcActive = False
         self.base = base
@@ -40,21 +37,21 @@ class FreeViewController():
         self.lastTask = 0
 
         #Add keys
-        self.base.accept(keys['forward'], self.move, ["y", 1])
-        self.base.accept(keys['forward'] + '-up', self.move, ["y", 0])
-        self.base.accept(keys['backward'], self.move, ["y", -1])
-        self.base.accept(keys['backward'] + "-up", self.move, ["y", 0])
-        self.base.accept(keys['left'], self.move, ["x", -1])
-        self.base.accept(keys['left'] + "-up", self.move, ["x", 0])
-        self.base.accept(keys['right'], self.move, ["x", 1])
-        self.base.accept(keys['right'] + "-up", self.move, ["x", 0])
-        self.base.accept(keys['up'], self.move, ["z", 1])
-        self.base.accept(keys['up'] + "-up", self.move, ["z", 0])
-        self.base.accept(keys['down'], self.move, ["z", -1])
-        self.base.accept(keys['down'] + "-up", self.move, ["z", 0])
+        self.base.accept(args['forward'], self.move, ["y", 1])
+        self.base.accept(args['forward'] + '-up', self.move, ["y", 0])
+        self.base.accept(args['backward'], self.move, ["y", -1])
+        self.base.accept(args['backward'] + "-up", self.move, ["y", 0])
+        self.base.accept(args['left'], self.move, ["x", -1])
+        self.base.accept(args['left'] + "-up", self.move, ["x", 0])
+        self.base.accept(args['right'], self.move, ["x", 1])
+        self.base.accept(args['right'] + "-up", self.move, ["x", 0])
+        self.base.accept(args['up'], self.move, ["z", 1])
+        self.base.accept(args['up'] + "-up", self.move, ["z", 0])
+        self.base.accept(args['down'], self.move, ["z", -1])
+        self.base.accept(args['down'] + "-up", self.move, ["z", 0])
         
-        self.base.accept(keys['activate'], self.setControllerActiveState, [True])
-        self.base.accept(keys['activate'] + '-up', self.setControllerActiveState, [False])
+        self.base.accept(args['activate'], self.setControllerActiveState, [True])
+        self.base.accept(args['activate'] + '-up', self.setControllerActiveState, [False])
         
         self.base.taskMgr.add(self.updateCamera, 'updateCamera') 
         

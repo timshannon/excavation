@@ -27,8 +27,6 @@ from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletConeShape
 from panda3d.bullet import BulletConvexHullShape
 from panda3d.bullet import BulletTriangleMeshShape
-from panda3d.bullet import BulletUpAxis
-
 
 from panda3d.core import Vec3
 from panda3d.core import Point3
@@ -59,6 +57,7 @@ class Collision():
     
     shapes = []
     mass = 0.0
+    convexOnly = False
     
     def __init__(self,
                  file=''):
@@ -70,7 +69,7 @@ class Collision():
         jObject = json.load(fileObj)
         
         self.mass = jObject['mass']
-        
+        self.convexOnly = jObject['convexOnly']
         shapes = jObject['shapes']
         self.shapes = []
         
@@ -97,8 +96,6 @@ class Collision():
                     self.shapes.append(Cone(v['radius'],
                                             v['height'],
                                             v['enmAxis']))
-                elif k == 'ConvexHull':
-                    self.shapes.append(ConvexHull(v['points']))
                 
                 self.shapes[-1].relX = v['relX']
                 self.shapes[-1].relY = v['relY']
@@ -119,6 +116,7 @@ class Collision():
             jObject.append({s.__class__.__name__:s.toJson()})
         
         return {'mass':self.mass,
+                'convexOnly':self.convexOnly,
                 'shapes':jObject}
 
 class Shape(object):
@@ -286,28 +284,4 @@ class Cone(Shape):
         
         return dict 
         
-
-class ConvexHull(Shape):
-    
-    points = []
-    
-    def __init__(self,
-                 points):
-        for p in points:
-            self.addPoint(Point3(p[0], p[1], p[2]))
-        
-            
-    def addPoint(self, point3):
-        self.points.append(point3)
-        
-    def toJson(self):
-        points = []
-        
-        for p in self.points:
-            points.append([p.getX(),p.getY(),p.getZ()])
-        
-        dict = super(ConvexHull, self).toJson()
-        dict['points'] = points
-
-        return dict
 
