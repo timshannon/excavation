@@ -28,7 +28,9 @@ from tools.actionManager import Action, ActionManager
 from tools.collision import Collision
 from tools.viewController import FreeViewController, RotateViewController 
 from utility.globalDef import GlobalDef
-from panda3d.core import loadPrcFileData, WindowProperties, ModifierButtons
+from panda3d.core import WindowProperties, ModifierButtons
+from panda3d.core import loadPrcFile, loadPrcFileData
+from panda3d.core import ConfigVariableString, ConfigVariableInt, ConfigVariableDouble 
 from direct.showbase.ShowBase import ShowBase
 
 
@@ -241,6 +243,9 @@ class Collide(wx.App, ShowBase):
         self.frame.actionManager = self.actionManager
         self.jEditor = self.frame.jEditor
         
+        #load collide config file
+        loadPrcFile(GlobalDef.RUNNINGDIR + "/collide.prc")
+        
         self.modelNode = None
         
         self.registerActions()
@@ -249,16 +254,16 @@ class Collide(wx.App, ShowBase):
                 
         #viewControllers
         self.fvc = FreeViewController(base, 
-                                      1, 
-                                      .5,
-                                      1,
-                                      activate='mouse3',
-                                      forward='w', 
-                                      backward='s', 
-                                      left='a', 
-                                      right='d', 
-                                      up='e', 
-                                      down='space')
+                                      mouseSensitivity=ConfigVariableDouble('mouseSensitivity', 0.1).getValue(), 
+                                      maxSpeed=ConfigVariableDouble('maxSpeed', .05).getValue(),
+                                      acceleration=ConfigVariableDouble('acceleration',1).getValue(),
+                                      activate=ConfigVariableString('activate', 'mouse3').getValue(),
+                                      forward=ConfigVariableString('forward', 'w').getValue(), 
+                                      backward=ConfigVariableString('backward', 's').getValue(), 
+                                      left=ConfigVariableString('left', 'a').getValue(), 
+                                      right=ConfigVariableString('right', 'd').getValue(), 
+                                      up=ConfigVariableString('up', 'e').getValue(), 
+                                      down=ConfigVariableString('down', 'space').getValue())
         base.mouseWatcherNode.setModifierButtons(ModifierButtons()) 
         base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
         
@@ -318,7 +323,8 @@ class Collide(wx.App, ShowBase):
         #    complex models.  Grab them once on load instead and order them
         self.modelNode = self.loader.loadModel(parms['model'])
         self.modelNode.reparentTo(self.render)
-        #self.setFocus() 
+        
+        
         
         
     def save(self, parms):
