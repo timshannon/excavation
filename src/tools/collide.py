@@ -25,12 +25,19 @@ import cPickle
 import time
 
 from tools.actionManager import Action, ActionManager
+from tools import collision
 from tools.collision import Collision
 from tools.viewController import FreeViewController, RotateViewController 
 from utility.globalDef import GlobalDef
 from panda3d.core import WindowProperties, ModifierButtons
 from panda3d.core import loadPrcFile, loadPrcFileData
 from panda3d.core import ConfigVariableString, ConfigVariableInt, ConfigVariableDouble 
+from panda3d.core import Vec3
+from panda3d.core import Point3
+from panda3d.core import TransformState
+
+from panda3d.bullet import BulletWorld
+from panda3d.bullet import BulletRigidBodyNode
 from direct.showbase.ShowBase import ShowBase
 
 
@@ -65,6 +72,9 @@ class PandaFrame(wx.Frame):
     ID_ADDSPHERE = wx.NewId()
     ID_ADDPLANE = wx.NewId()
     ID_ADDBOX = wx.NewId()
+    ID_ADDCYLINDER = wx.NewId()
+    ID_ADDCAPSULE = wx.NewId()
+    ID_ADDCONE = wx.NewId()
     ID_LOADMODEL = wx.NewId()
 
             
@@ -99,9 +109,7 @@ class PandaFrame(wx.Frame):
         self.createMenus()
         
         sidebar.SplitHorizontally(self.shapeList, self.shapeProp, 0)
-        split.SplitVertically(self.pandapanel, sidebar, 800)
-        
-        
+        split.SplitVertically(self.pandapanel, sidebar, 900)
         
                
     def loadSettings(self):
@@ -173,7 +181,11 @@ class PandaFrame(wx.Frame):
         #add menu
         mAdd = wx.Menu()
         addList = [(self.ID_ADDSPHERE, 'Sphere', 'Add a sphere', self.add), \
-                    (self.ID_ADDPLANE, 'Plane', 'Add a plane', self.add)
+                    (self.ID_ADDPLANE, 'Plane', 'Add a plane', self.add), \
+                    (self.ID_ADDBOX, 'Box', 'Add a box', self.add), \
+                    (self.ID_ADDCYLINDER, 'Cylinder', 'Add a cylinder', self.add), \
+                    (self.ID_ADDCAPSULE, 'Capsule', 'Add a capsule', self.add), \
+                    (self.ID_ADDCONE, 'Cone', 'Add a cone', self.add)
                     ]
         buildMenu(mAdd, addList)
         menuBar.Append(mAdd, '&Add')
@@ -186,9 +198,10 @@ class PandaFrame(wx.Frame):
     
     def add(self, event):
         """Adds an item, determined by the event's sender id"""
-        
-        if event.id == self.ID_ADDMODEL:
-            self.actionManager.execute('addModel')
+        if event.Id == self.ID_ADDBOX:
+            self.actionManager.execute('addBox',
+                                       shape='box',
+                                       x=1,y=1,z=1)
     
     def loadModel(self, event):
         '''Loads a model for viewing with the collision file, or for pulling
@@ -269,6 +282,9 @@ class ShapeList(wx.ListCtrl):
     def __init__(self, *args, **kwargs):
         super(ShapeList, self).__init__(*args, **kwargs)
         
+    def addShape(self, shape):
+        pass
+        
 class ShapeProperties(wx.ListCtrl):
     
     def __init__(self, *args, **kwargs):
@@ -288,6 +304,12 @@ class Collide(wx.App, ShowBase):
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
         self.shapeList = self.frame.shapeList
+        
+        
+        #initialize bulletworld
+        world = BulletWorld()
+        world.setGravity(Vec3(0, 0, -9.81))
+        self.bodyNode = BulletRigidBodyNode('baseNode')
         
         #load collide config file
         loadPrcFile(GlobalDef.RUNNINGDIR + "/collide.prc")
@@ -333,7 +355,7 @@ class Collide(wx.App, ShowBase):
             
     def click(self):
         '''mouse 1 click'''
-        self.setForeground()
+        
             
     
     def registerActions(self):
@@ -343,6 +365,7 @@ class Collide(wx.App, ShowBase):
         self.actionManager.registerAction('new', Action(self.new))
         self.actionManager.registerAction('save', Action(self.save))
         self.actionManager.registerAction('loadModel', Action(self.loadModel))
+        self.actionManager.registerAction('addBox', Action(self.addShape, self.removeShape))
         
     
     def open(self, parms):
@@ -351,7 +374,6 @@ class Collide(wx.App, ShowBase):
     def new(self, parms):
         self.actionManager.reset()
         self.collision = Collision()
-        self.jEditor.UpdateJson()
         self.modelNode = None
         for node in render.getChildren():
             node.removeNode()
@@ -369,12 +391,24 @@ class Collide(wx.App, ShowBase):
         self.modelNode = self.loader.loadModel(parms['model'])
         self.modelNode.reparentTo(self.render)
         
+    def addShape(self, parms):
+        '''Adds a given shape based on the parms passed in'''
+        if parms['shape'] == 'box':
+            colShape = collision.Box(parms['x'], 
+                                     parms['y'],
+                                     parms['z'])
+            self.collision.shapes.append(colShape)
+            self.bodyNode.addShape(colShape.getShape(), 
+                                          colShape.transformState())
+                
         
         
+    def removeShape(self, parms):
+        '''removes the passed in shape'''
+        pass
         
     def save(self, parms):
         pass
-        
        
        
     def replaceEventLoop(self): 
