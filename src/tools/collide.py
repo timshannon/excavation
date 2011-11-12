@@ -80,7 +80,13 @@ class PandaFrame(wx.Frame):
         
         self.pandapanel = PandaPanel(split, wx.ID_ANY, size=self.ClientSize) 
         self.pandapanel.initialize()
-        self.jEditor = JsonEditor(split)
+        
+        sidebar = wx.SplitterWindow(split, -1)
+        
+        self.shapeList = ShapeList(sidebar)
+        self.shapeProp = ShapeProperties(sidebar)
+        
+        sidebar.SetSashGravity(0.0)
         split.SetSashGravity(1.0)
         
         #settings
@@ -92,10 +98,12 @@ class PandaFrame(wx.Frame):
         self.CreateStatusBar()
         self.createMenus()
         
-        split.SplitVertically(self.pandapanel, self.jEditor, 800)
+        sidebar.SplitHorizontally(self.shapeList, self.shapeProp, 0)
+        split.SplitVertically(self.pandapanel, sidebar, 800)
         
-       
         
+        
+               
     def loadSettings(self):
         if not os.access(self.SETTINGSFILE, os.F_OK):
             self.saveSettings()
@@ -134,6 +142,7 @@ class PandaFrame(wx.Frame):
         
         menuBar = wx.MenuBar()
         
+        #file menu
         mFile = wx.Menu()
         fileList = [(wx.ID_NEW, '&New', 'Create a new collision', self.new), \
                     (wx.ID_OPEN, '&Open', 'Open an existing collision', self.open), \
@@ -147,6 +156,21 @@ class PandaFrame(wx.Frame):
         buildMenu(mFile, fileList)
         menuBar.Append(mFile, '&File')
         
+        #edit menu
+        mEdit = wx.Menu()
+        editList = [(wx.ID_UNDO, 'Undo', 'Undo the previous action', self.undo), \
+                    (wx.ID_REDO, 'Redo', 'Redo the previous undone action', self.redo), \
+                    (wx.ID_SEPARATOR, None, None, None), \
+                    (wx.ID_CUT, 'Cut', 'Cut the selected item', self.cut), \
+                    (wx.ID_COPY, '&Copy', 'Copy the selected item', self.copy), \
+                    (wx.ID_PASTE, 'Paste', 'Paste the contents of the clipboard', self.paste), \
+                    (wx.ID_DELETE, 'Delete', 'Delete the selected item', self.delete), \
+                    (wx.ID_SEPARATOR, None, None, None), \
+                    (wx.ID_REFRESH, 'Reload File', 'Reload the current collision file', self.reloadFile)]
+        buildMenu(mEdit, editList)
+        menuBar.Append(mEdit, '&Edit')
+        
+        #add menu
         mAdd = wx.Menu()
         addList = [(self.ID_ADDSPHERE, 'Sphere', 'Add a sphere', self.add), \
                     (self.ID_ADDPLANE, 'Plane', 'Add a plane', self.add)
@@ -182,6 +206,29 @@ class PandaFrame(wx.Frame):
                                          model=model)
         
         
+    def undo(self, event):
+        pass
+    
+    def redo(self, event):
+        pass
+    
+    def cut(self, event):
+        pass
+    
+    def copy(self, event):
+        pass
+    
+    def paste(self, event):
+        pass
+    
+    def delete(self, event):
+        pass
+    
+    def reloadFile(self, event):
+        if self.filename:
+            self.actionManager.execute('open', 
+                                       filename=self.filename)
+            
     
     def open(self, event):
         dlg = wx.FileDialog(self, 
@@ -217,18 +264,17 @@ class PandaFrame(wx.Frame):
         self.Close()
         
       
-class JsonEditor(wx.TextCtrl):
-    collision = ''
+class ShapeList(wx.ListCtrl):
     
     def __init__(self, *args, **kwargs):
-        kwargs['style'] = wx.TE_MULTILINE
-        super(JsonEditor, self).__init__(*args, **kwargs)
-                        
-    def UpdateJson(self):
-        self.Clear()
-        self.AppendText(self.collision.toJson())
+        super(ShapeList, self).__init__(*args, **kwargs)
         
-                    
+class ShapeProperties(wx.ListCtrl):
+    
+    def __init__(self, *args, **kwargs):
+        super(ShapeProperties, self).__init__(*args, **kwargs)
+        
+                     
 class Collide(wx.App, ShowBase):
     """Panda object for handling all panda related tasks and events"""
     
@@ -241,7 +287,7 @@ class Collide(wx.App, ShowBase):
         
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
-        self.jEditor = self.frame.jEditor
+        self.shapeList = self.frame.shapeList
         
         #load collide config file
         loadPrcFile(GlobalDef.RUNNINGDIR + "/collide.prc")
@@ -250,8 +296,7 @@ class Collide(wx.App, ShowBase):
         
         self.registerActions()
         self.collision = Collision()
-        self.jEditor.collision = self.collision
-                
+                        
         #viewControllers
         self.fvc = FreeViewController(base, 
                                       mouseSensitivity=ConfigVariableDouble('mouseSensitivity', 0.1).getValue(), 

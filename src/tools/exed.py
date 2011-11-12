@@ -95,7 +95,7 @@ class PandaFrame(wx.Frame):
         self.propList = PropList(self, style=wx.SIMPLE_BORDER)
         
         vSizer.Add(self.sceneTree, 1, wx.EXPAND)
-        vSizer.Add(self.propList, 1, wx.EXPAND)  
+        vSizer.Add(self.propList, 1, wx.EXPAND)
         hSizer.Add(self.pandapanel, 4, wx.EXPAND)
         hSizer.Add(vSizer, 1, wx.EXPAND)
               
