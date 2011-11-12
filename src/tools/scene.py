@@ -34,7 +34,7 @@ class Scene():
             self.tree = Node("render")
             self.keyValues = {}  #dictionary for scene level values, ambient light level, skybox, name, level description, level load hints, etc
         else:
-            self.read(fileName)
+            self.load(fileName)
     
     def write(self, fileName):
         file = open(fileName, "wb")
