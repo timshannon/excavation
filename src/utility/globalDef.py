@@ -7,7 +7,7 @@ class GlobalDef(object):
     '''
         Shared information across all of Excavation code
     '''
-    
+    #TODO: Make compatible with tools, probably hardcode value?
     RUNNINGDIR = os.path.abspath(sys.path[0])
     MODELPATH = os.path.join(RUNNINGDIR, "../data/models/")
     SCENEPATH = os.path.join(RUNNINGDIR, "../data/scenes/")    
