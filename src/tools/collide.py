@@ -38,6 +38,7 @@ from panda3d.core import TransformState
 
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletRigidBodyNode
+from panda3d.bullet import BulletDebugNode
 from direct.showbase.ShowBase import ShowBase
 
 
@@ -217,6 +218,7 @@ class PandaFrame(wx.Frame):
                                  dlg.GetFilename())
             self.actionManager.execute('loadModel', 
                                          model=model)
+            
         
         
     def undo(self, event):
@@ -307,9 +309,18 @@ class Collide(wx.App, ShowBase):
         
         
         #initialize bulletworld
-        world = BulletWorld()
-        world.setGravity(Vec3(0, 0, -9.81))
+        self.bWorld = BulletWorld()
+        self.bWorld.setGravity(Vec3(0, 0, -9.81))
         self.bodyNode = BulletRigidBodyNode('baseNode')
+        render.attachNewNode(self.bodyNode)
+        self.bWorld.attachRigidBody(self.bodyNode)
+        #debug node
+        self.debugNode = BulletDebugNode('Debug')
+        debugNP = render.attachNewNode(self.debugNode)
+        debugNP.show()
+        self.bWorld.setDebugNode(debugNP.node())
+        
+        taskMgr.add(self.update, 'update')
         
         #load collide config file
         loadPrcFile(GlobalDef.RUNNINGDIR + "/collide.prc")
@@ -355,8 +366,8 @@ class Collide(wx.App, ShowBase):
             
     def click(self):
         '''mouse 1 click'''
+        print render.ls()
         
-            
     
     def registerActions(self):
         '''Register all of the actions to the editor functions so
@@ -375,8 +386,11 @@ class Collide(wx.App, ShowBase):
         self.actionManager.reset()
         self.collision = Collision()
         self.modelNode = None
-        for node in render.getChildren():
-            node.removeNode()
+        
+        for shape in self.collision.shapes:
+            self.bodyNode.removeShape(shape.bulletShape)
+        
+        
             
         
     def loadModel(self, parms):
@@ -389,7 +403,7 @@ class Collide(wx.App, ShowBase):
         #    shape change operation would take way to long, especially on
         #    complex models.  Grab them once on load instead and order them
         self.modelNode = self.loader.loadModel(parms['model'])
-        self.modelNode.reparentTo(self.render)
+        self.modelNode.reparentTo(render)
         
     def addShape(self, parms):
         '''Adds a given shape based on the parms passed in'''
@@ -398,8 +412,10 @@ class Collide(wx.App, ShowBase):
                                      parms['y'],
                                      parms['z'])
             self.collision.shapes.append(colShape)
-            self.bodyNode.addShape(colShape.getShape(), 
+            self.bodyNode.addShape(colShape.createShape(), 
                                           colShape.transformState())
+            
+            
                 
         
         
@@ -434,7 +450,12 @@ class Collide(wx.App, ShowBase):
             self.evtLoop.Dispatch() 
         self.ProcessIdle() 
         time.sleep(0.01)
-        if task != None: return task.cont 
+        if task != None: return task.cont
+        
+    def update(self, task):
+        dt = globalClock.getDt()
+        self.bWorld.doPhysics(dt)
+        return task.cont 
 
 app = Collide()
 run() 
