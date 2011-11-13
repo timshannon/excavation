@@ -125,7 +125,8 @@ class Shape(object):
     relZ = 0
     relH = 0
     relP = 0
-    relR = 0                
+    relR = 0
+    bulletShape = None         
     
     def transformState(self):
         '''Returns the relative transform state necessary to
@@ -156,7 +157,7 @@ class Sphere(Shape):
     def setRadius(self, radius):
         self.radius = radius
     
-    def getShape(self):
+    def createShape(self):
         return BulletSphereShape(self.radius)
         
     def toJson(self):
@@ -177,8 +178,10 @@ class Plane(Shape):
         self.normal = Vec3(normal[0],normal[1],normal[2])
         self.distance = distance
                  
-    def getShape(self):
-        return BulletPlaneShape(self.normal, self.distance)
+    def createShape(self):
+        self.bulletShape = BulletPlaneShape(self.normal, self.distance)
+        
+        return self.bulletShape
     
     def toJson(self):
         dict = super(Plane, self).toJson()
@@ -199,10 +202,12 @@ class Box(Shape):
         self.y = y
         self.z = z
         
-    def getShape(self):
-        return BulletBoxShape(Vec3(self.x, 
-                                   self.y, 
-                                   self.z))
+    def createShape(self):
+        self.bulletShape =  BulletBoxShape(Vec3(self.x, 
+                                           self.y, 
+                                           self.z))
+        return self.bulletShape
+    
     def toJson(self):
         dict = super(Box, self).toJson()
         dict['x'] = self.x
@@ -224,8 +229,9 @@ class Cylinder(Shape):
         self.height = height
         self.enmAxis = enmAxis
         
-    def getShape(self):
-        return BulletCylinderShape(self.radius, self.height, self.enmAxis)
+    def createShape(self):
+        self.bulletShape = BulletCylinderShape(self.radius, self.height, self.enmAxis)
+        return self.bulletShape
         
     def toJson(self):
         dict = super(Cylinder, self).toJson()
@@ -249,8 +255,9 @@ class Capsule(Shape):
         self.radius = radius
         self.enmAxis = enmAxis
         
-    def getShape(self):
-        return BulletCapsuleShape(self.radius, self.height, self.enmAxis)
+    def createShape(self):
+        self.bulletShape = BulletCapsuleShape(self.radius, self.height, self.enmAxis)
+        return self.bulletShape
         
     def toJson(self):
         dict = super(Capsule, self).toJson()
@@ -273,8 +280,9 @@ class Cone(Shape):
         self.height = height
         self.enmAxis = enmAxis
         
-    def getShape(self):
-        return BulletConeShape(self.radius, self.height, self.enmAxis)
+    def createShape(self):
+        self.bulletShape = BulletConeShape(self.radius, self.height, self.enmAxis)
+        return self.bulletShape
         
     def toJson(self):
         dict = super(Cone, self).toJson()
