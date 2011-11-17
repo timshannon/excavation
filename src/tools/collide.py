@@ -222,10 +222,10 @@ class PandaFrame(wx.Frame):
         
         
     def undo(self, event):
-        pass
+        self.actionManager.undo()
     
     def redo(self, event):
-        pass
+        self.actionManager.redo()
     
     def cut(self, event):
         pass
@@ -261,7 +261,7 @@ class PandaFrame(wx.Frame):
         if self.filename <> '':
             self.actionManager.execute('save', filename=self.filename)
         else:
-            self.saveSceneAs(None)
+            self.saveAs(None)
             
     
     def saveAs(self, event):
@@ -306,21 +306,19 @@ class Collide(wx.App, ShowBase):
         self.actionManager = ActionManager()
         self.frame.actionManager = self.actionManager
         self.shapeList = self.frame.shapeList
-        
+        self.collision = Collision()
         
         #initialize bulletworld
         self.bWorld = BulletWorld()
         self.bWorld.setGravity(Vec3(0, 0, -9.81))
-        self.bodyNode = BulletRigidBodyNode('baseNode')
-        render.attachNewNode(self.bodyNode)
-        self.bWorld.attachRigidBody(self.bodyNode)
+        self.bodyNode = self.collision.createNode(render, self.bWorld)
         #debug node
-        self.debugNode = BulletDebugNode('Debug')
-        debugNP = render.attachNewNode(self.debugNode)
-        debugNP.show()
-        self.bWorld.setDebugNode(debugNP.node())
+        debugNode = BulletDebugNode('Debug')
+        self.debugNP = render.attachNewNode(debugNode)
+        self.debugNP.show()
+        self.bWorld.setDebugNode(self.debugNP.node())
         
-        taskMgr.add(self.update, 'update')
+        taskMgr.add(self.bulletUpdate, 'bulletUpdate')
         
         #load collide config file
         loadPrcFile(GlobalDef.RUNNINGDIR + "/collide.prc")
@@ -328,8 +326,7 @@ class Collide(wx.App, ShowBase):
         self.modelNode = None
         
         self.registerActions()
-        self.collision = Collision()
-                        
+                                
         #viewControllers
         self.fvc = FreeViewController(base, 
                                       mouseSensitivity=ConfigVariableDouble('mouseSensitivity', 0.1).getValue(), 
@@ -346,6 +343,7 @@ class Collide(wx.App, ShowBase):
         base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
         
         self.accept('mouse1', self.click)
+        self.accept('p', self.printRender)
         #messenger.toggleVerbose()
         
         self.wxStep()   
@@ -366,8 +364,11 @@ class Collide(wx.App, ShowBase):
             
     def click(self):
         '''mouse 1 click'''
+        pass
+    
+    def printRender(self):
         print render.ls()
-        
+                
     
     def registerActions(self):
         '''Register all of the actions to the editor functions so
@@ -380,17 +381,25 @@ class Collide(wx.App, ShowBase):
         
     
     def open(self, parms):
-        self.new(parms)
+        self.actionManager.reset()
+        self.collision = Collision(parms['filename'])
+        if self.modelNode:
+            self.modelNode.removeNode()
+        self.bodyNode.removeNode()
+        
+        self.bodyNode = self.collision.createNode(render, self.bWorld)
+        if self.collision.model:
+            self.actionManager.execute('loadModel', model=self.collision.model)
         
     def new(self, parms):
         self.actionManager.reset()
         self.collision = Collision()
-        self.modelNode = None
+        if self.modelNode:
+            self.modelNode.removeNode()
+        self.bodyNode.removeNode()
+        self.bodyNode = self.collision.createNode(render, self.bWorld)
         
-        for shape in self.collision.shapes:
-            self.bodyNode.removeShape(shape.bulletShape)
-        
-        
+                       
             
         
     def loadModel(self, parms):
@@ -404,6 +413,7 @@ class Collide(wx.App, ShowBase):
         #    complex models.  Grab them once on load instead and order them
         self.modelNode = self.loader.loadModel(parms['model'])
         self.modelNode.reparentTo(render)
+        self.collision.model = parms['model']
         
     def addShape(self, parms):
         '''Adds a given shape based on the parms passed in'''
@@ -412,19 +422,21 @@ class Collide(wx.App, ShowBase):
                                      parms['y'],
                                      parms['z'])
             self.collision.shapes.append(colShape)
-            self.bodyNode.addShape(colShape.createShape(), 
+            self.bodyNode.node().addShape(colShape.createShape(), 
                                           colShape.transformState())
+            parms['colShape'] = colShape
             
             
                 
         
         
     def removeShape(self, parms):
-        '''removes the passed in shape'''
-        pass
+        '''removes the passed in colShape'''
+        self.bodyNode.node().removeShape(parms['colShape'].bulletShape)
+        self.collision.shapes.remove(parms['colShape'])
         
     def save(self, parms):
-        pass
+        self.collision.write(parms['filename'])
        
        
     def replaceEventLoop(self): 
@@ -452,7 +464,7 @@ class Collide(wx.App, ShowBase):
         time.sleep(0.01)
         if task != None: return task.cont
         
-    def update(self, task):
+    def bulletUpdate(self, task):
         dt = globalClock.getDt()
         self.bWorld.doPhysics(dt)
         return task.cont 

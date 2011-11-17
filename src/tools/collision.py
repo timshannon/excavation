@@ -27,6 +27,7 @@ from panda3d.bullet import BulletCapsuleShape
 from panda3d.bullet import BulletConeShape
 from panda3d.bullet import BulletConvexHullShape
 from panda3d.bullet import BulletTriangleMeshShape
+from panda3d.bullet import BulletRigidBodyNode
 
 from panda3d.core import Vec3
 from panda3d.core import Point3
@@ -54,22 +55,28 @@ class Collision():
         if there are no shapes defined, then it will default to Triangle Mesh shape with
         every geom in the egg file being automatically added.
     '''
-    
-    shapes = []
-    mass = 0.0
-    convexOnly = False
-    
+           
     def __init__(self,
                  file=''):
+        self.shapes = []
+        self.mass = 0.0
+        self.convexOnly = False
+        self.name = 'Unnamed Collision'
+        self.model = ''
+    
         if file:
             self.load(file)
+            self.name = file
+        
              
     def load(self, file):
         fileObj = open(file, 'rb')
         jObject = json.load(fileObj)
         
+        self.name = file
         self.mass = jObject['mass']
         self.convexOnly = jObject['convexOnly']
+        self.model = jObject['model']
         shapes = jObject['shapes']
         self.shapes = []
         
@@ -104,7 +111,23 @@ class Collision():
                 self.shapes[-1].relP = v['relP']
                 self.shapes[-1].relR = v['relR']
         
+    def createNode(self, render, bulletWorld):
+        '''Creates the rigid body node, adds it to the world and the renderer
+            adds all the shapes, and returns the node'''
+        node = BulletRigidBodyNode(self.name)
+        nodePath = render.attachNewNode(node)
+        bulletWorld.attachRigidBody(node)
+        
+        for s in self.shapes:
+            node.addShape(s.createShape(),
+                          s.transformState())
+        
+        return nodePath
+            
+    
+    
     def write(self, file):
+        self.name = file
         fileObj = open(file, 'wb')
         json.dump(self.toJson(),fileObj, indent=4, sort_keys=True)
         
@@ -117,16 +140,26 @@ class Collision():
         
         return {'mass':self.mass,
                 'convexOnly':self.convexOnly,
+                'model':self.model,
                 'shapes':jObject}
 
 class Shape(object):
-    relX = 0
-    relY = 0
-    relZ = 0
-    relH = 0
-    relP = 0
-    relR = 0
-    bulletShape = None         
+    
+    def __init__(self, 
+                 relX = 0,
+                 relY = 0,
+                 relZ = 0,
+                 relH = 0,
+                 relP = 0,
+                 relR = 0,
+                 bulletShape = None):
+        self.relX = relX
+        self.relY = relY
+        self.relZ = relZ
+        self.relH = relH
+        self.relP = relP
+        self.relR = relR
+        self.bulletShape = bulletShape
     
     def transformState(self):
         '''Returns the relative transform state necessary to
@@ -152,6 +185,7 @@ class Sphere(Shape):
     
     def __init__(self,
                  radius):
+        super(Sphere, self).__init__()
         self.radius = radius
     
     def setRadius(self, radius):
@@ -174,7 +208,7 @@ class Plane(Shape):
     def __init__(self,
                  normal,
                  distance):
-    
+        super(Plane, self).__init__()
         self.normal = Vec3(normal[0],normal[1],normal[2])
         self.distance = distance
                  
@@ -198,6 +232,7 @@ class Box(Shape):
                  x,
                  y,
                  z):
+        super(Box, self).__init__()
         self.x = x
         self.y = y
         self.z = z
@@ -225,6 +260,7 @@ class Cylinder(Shape):
                  radius,
                  height,
                  enmAxis):
+        super(Cylinder, self).__init__()
         self.radius = radius
         self.height = height
         self.enmAxis = enmAxis
@@ -251,6 +287,7 @@ class Capsule(Shape):
                  radius,
                  height,
                  enmAxis):
+        super(Capsule, self).__init__()
         self.height = height
         self.radius = radius
         self.enmAxis = enmAxis
@@ -276,6 +313,7 @@ class Cone(Shape):
                  radius,
                  height,
                  enmAxis):
+        super(Cone, self).__init__()
         self.radius = radius
         self.height = height
         self.enmAxis = enmAxis
