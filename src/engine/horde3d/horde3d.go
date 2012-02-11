@@ -1,62 +1,13 @@
-// *************************************************************************************************
-//
-// Horde3D
-//   Next-Generation Graphics Engine
-// --------------------------------------
-// Copyright (C) 2006-2009 Nicolas Schulz
-//
-// This software is distributed under the terms of the Eclipse Public License v1.0.
-// A copy of the license may be obtained at: http://www.eclipse.org/legal/epl-v10.html
-//
-// *************************************************************************************************
-
-/*	Title: Horde3D API */
 package horde3d
 
-/*
-#pragma once
-
-#ifndef DLL
-#	if defined( WIN32 ) || defined( _WINDOWS )
-#		define DLL extern "C" __declspec( dllimport )
-#	else
-#  if defined( __GNUC__ ) && __GNUC__ >= 4
-#   define DLL extern "C" __attribute__ ((visibility("default")))
-#  else
-#		define DLL extern "C"
-#  endif
-#	endif
-#endif
+/*
+#cgo LDFLAGS: -lHorde3D
+#include "goHorde3D.h"
 */
 import "C"
 
-/*	Topic: Conventions
-		Some conventions for the API.
-
-	Horde3D uses a right-handed coordinate system, where y is the up-axis and the positive z-axis is
-	pointing out of the screen. The rotations are specified in degrees and rotation direction is
-	counter-clockwise when looking down the axis from the the positive end towards the origin. View
-	vectors like the camera or light direction are always pointing along the negative z-axis when no
-	transformation is applied. Matrices in Horde are stored in a column-major memory layout. When
-	Euler angles are used, the rotation order is YXZ [*vec], so the z-rotation is applied first.
-*/
-
-// *************************************************************************************************
-// Core Library
-// *************************************************************************************************
-
-/* Group: Typedefs and constants */
-
-/*	Constants: Typedefs
-	H3DRes   - handle to resource (type: int32)
-	H3DNode  - handle to scene node (type: int32)
-*/
-
-/*	Constants: Predefined constants
-	H3DRootNode  - Scene root node handle
-*/
-const H3DRootNode int32 = 1
-
-func H3dInit() bool {
-	return bool(C.h3dInit())
+func H3dInit() int {
+	return int(C.h3dInit())
 }
+
+func H3dGetOption(
