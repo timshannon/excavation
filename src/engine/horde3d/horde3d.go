@@ -357,10 +357,10 @@ const (
 		                 (combination of all flags above)
 	*/
 	const(
-		H3DNodeFlags_NoDraw = 1,
-		NoCastShadow = 2,
-		NoRayQuery = 4,
-		Inactive = 7  // NoDraw | NoCastShadow | NoRayQuery
+		H3DNodeFlags_NoDraw = 1
+		H3DNodeFlags_NoCastShadow = 2
+		H3DNodeFlags_NoRayQuery = 4
+		H3DNodeFlags_Inactive = 7  // NoDraw | NoCastShadow | NoRayQuery
 	)
 
 	/*	Enum: H3DNodeParams
@@ -371,8 +371,8 @@ const (
 		                 in an 'Attachment' XML string
 	*/
 	const(
-		H3DNodeParams_NameStr = 1,
-		AttachmentStr
+		H3DNodeParams_NameStr = 1
+		H3DNodeParams_AttachmentStr
 	)
 
 
