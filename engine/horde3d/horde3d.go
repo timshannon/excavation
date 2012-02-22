@@ -504,7 +504,7 @@ const (
 	SpreadAngleF   - Angle of cone for random emission direction (default: 0.0)
 	ForceF3        - Force vector XYZ applied to particles (default: 0.0, 0.0, 0.0)
 */
-cons (
+const (
 	_ = iota + 700
 	H3DEmitter_MatResI
 	H3DEmitter_PartEffResI
