@@ -2,13 +2,31 @@ package engine
 
 import (
 	"excavation/engine/horde3d"
-	"fmt"
 	"github.com/banthar/Go-SDL/sdl"
 )
 
 func Init() bool {
-	test := sdl.BUTTON_LEFT
-	test2 := horde3d.H3DEmitter_DelayF
-	fmt.Println("tests: ", test, test2)
+	var running bool = true
+
+	if sdl.Init(sdl.INIT_VIDEO) != 0 {
+		panic(sdl.GetError())
+	}
+	sdl.WM_SetCaption("Excavation", "test")
+
+	//set sdl video mode
+	if sdl.SetVideoMode(800, 600, 32, sdl.OPENGL) == nil {
+		panic(sdl.GetError())
+	}
+
+	horde3d.H3dInit()
+
+	for running == true {
+		if event := sdl.PollEvent(); event == sdl.QUIT {
+			running = false
+		}
+		sdl.GL_SwapBuffers()
+	}
+	sdl.Quit()
 	return true
+
 }
