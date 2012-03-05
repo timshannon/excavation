@@ -21,8 +21,10 @@ func Init() bool {
 	horde3d.H3dInit()
 
 	for running == true {
-		if event := sdl.PollEvent(); event == sdl.QUIT {
+		switch event := sdl.PollEvent(); event.(type) {
+		case *sdl.QuitEvent:
 			running = false
+			break
 		}
 		sdl.GL_SwapBuffers()
 	}
