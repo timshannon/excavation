@@ -3,6 +3,7 @@ package horde3d
 /*
 #cgo LDFLAGS: -lHorde3D
 #include "goHorde3D.h"
+#include <stdlib.h>
 */
 import "C"
 import "unsafe"
@@ -533,5 +534,5 @@ func H3dGetVersionString() string {
 	verPointer := C.h3dGetVersionString()
 	defer C.free(unsafe.Pointer(verPointer))
 
-	return string(verPointer)
+	return C.GoString(verPointer)
 }
