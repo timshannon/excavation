@@ -5,6 +5,15 @@ package horde3d
 #include "goHorde3D.h"
 */
 import "C"
+import "unsafe"
+
+//typedef int H3DRes;
+//typedef int H3DNode;
+type H3DRes int
+type H3DNode int
+
+//const H3DNode H3DRootNode = 1;
+const H3DRootNode H3DNode = 1
 
 /* Group: Enumerations */
 
@@ -518,4 +527,11 @@ const (
 
 func H3dInit() int {
 	return int(C.h3dInit())
+}
+
+func H3dGetVersionString() string {
+	verPointer := C.h3dGetVersionString()
+	defer C.free(unsafe.Pointer(verPointer))
+
+	return string(verPointer)
 }
