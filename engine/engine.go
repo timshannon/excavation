@@ -2,6 +2,7 @@ package engine
 
 import (
 	"excavation/engine/horde3d"
+	"fmt"
 	"github.com/banthar/Go-SDL/sdl"
 )
 
@@ -19,6 +20,7 @@ func Init() bool {
 	}
 
 	horde3d.H3dInit()
+	fmt.Println("Version: ", horde3d.H3dGetVersionString())
 
 	for running == true {
 		switch event := sdl.PollEvent(); event.(type) {
