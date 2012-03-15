@@ -6,7 +6,8 @@ package horde3d
 #include <stdlib.h>
 */
 import "C"
-import "unsafe"
+
+//import "unsafe"
 
 //typedef int H3DRes;
 //typedef int H3DNode;
@@ -532,7 +533,6 @@ func H3dInit() int {
 
 func H3dGetVersionString() string {
 	verPointer := C.h3dGetVersionString()
-	defer C.free(unsafe.Pointer(verPointer))
 
 	return C.GoString(verPointer)
 }
