@@ -8,6 +8,7 @@ import (
 
 func Init() bool {
 	var running bool = true
+	var cam horde3d.H3DNode = 0
 
 	if sdl.Init(sdl.INIT_VIDEO) != 0 {
 		panic(sdl.GetError())
@@ -28,8 +29,10 @@ func Init() bool {
 			running = false
 			break
 		}
+		horde3d.H3dRender(cam)
 		sdl.GL_SwapBuffers()
 	}
+	horde3d.H3dRelease()
 	sdl.Quit()
 	return true
 
