@@ -6,8 +6,7 @@ package horde3d
 #include <stdlib.h>
 */
 import "C"
-
-//import "unsafe"
+import "unsafe"
 
 //typedef int H3DRes;
 //typedef int H3DNode;
@@ -527,12 +526,50 @@ const (
 	H3DEmitter_ForceF3
 )
 
-func H3dInit() int {
-	return int(C.h3dInit())
+//used for bools from c interfaces
+var Bool = map[int]bool{
+	0: false,
+	1: true,
 }
 
 func H3dGetVersionString() string {
 	verPointer := C.h3dGetVersionString()
 
 	return C.GoString(verPointer)
+}
+
+func H3dCheckExtension(extensionName string) bool {
+	cExtName := C.CString(extensionName)
+	defer C.free(unsafe.Pointer(cExtName))
+	return Bool[int(C.h3dCheckExtension(cExtName))]
+}
+
+func H3dGetError() bool {
+	return Bool[int(C.h3dGetError())]
+}
+
+func H3dInit() bool {
+	return Bool[int(C.h3dInit())]
+}
+
+func H3dRelease() {
+	C.h3dRelease()
+}
+
+func H3dRender(cameraNode H3DNode) {
+	C.h3dRender(C.H3DNode(cameraNode))
+}
+
+func H3dFinalizeFrame() {
+	C.h3dFinalizeFrame()
+}
+
+func H3dClear() {
+	C.h3dClear()
+}
+
+func H3dGetMessage(*level int, *time float32) string {
+	message := C.h3dGetMessage(C.int(level), C.float(time))
+
+	return C.GoString(message)
 }
