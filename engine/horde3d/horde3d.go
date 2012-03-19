@@ -568,8 +568,8 @@ func H3dClear() {
 	C.h3dClear()
 }
 
-func H3dGetMessage(level int, time float32) string {
-	message := C.h3dGetMessage(C.int(level), C.float(time))
-
+func H3dGetMessage(level *int, time *float32) string {
+	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
+		(*C.float)(unsafe.Pointer(time)))
 	return C.GoString(message)
 }
