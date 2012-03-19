@@ -527,9 +527,13 @@ const (
 )
 
 //used for bools from c interfaces
-var Bool = map[int]bool{
+var ToBool = map[int]bool{
 	0: false,
 	1: true,
+}
+var FromBool = map[bool]int{
+	false: 1,
+	true:  0,
 }
 
 func H3dGetVersionString() string {
@@ -541,15 +545,15 @@ func H3dGetVersionString() string {
 func H3dCheckExtension(extensionName string) bool {
 	cExtName := C.CString(extensionName)
 	defer C.free(unsafe.Pointer(cExtName))
-	return Bool[int(C.h3dCheckExtension(cExtName))]
+	return ToBool[int(C.h3dCheckExtension(cExtName))]
 }
 
 func H3dGetError() bool {
-	return Bool[int(C.h3dGetError())]
+	return ToBool[int(C.h3dGetError())]
 }
 
 func H3dInit() bool {
-	return Bool[int(C.h3dInit())]
+	return ToBool[int(C.h3dInit())]
 }
 
 func H3dRelease() {
@@ -568,8 +572,56 @@ func H3dClear() {
 	C.h3dClear()
 }
 
-func H3dGetMessage(level *int, time *float32) string {
+func H3dGetMessage(level *int,
+	time *float32) string {
+	//TODO: Test if level and time get returned via ref
 	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
 		(*C.float)(unsafe.Pointer(time)))
 	return C.GoString(message)
+}
+
+func H3dGetOption(param int) float32 {
+	return float32(C.h3dGetOption(C.int(param)))
+}
+
+func H3dSetOption(param int, value float32) bool {
+	return ToBool[int(C.h3dSetOption(C.int(param), C.float(value)))]
+}
+
+func H3dGetStat(param int, reset bool) float32 {
+	return float32(C.h3dGetStat(C.int(param), C.int(FromBool[reset])))
+}
+
+func H3dShowOverlays(verts *float32,
+	vertCount int,
+	colR float32,
+	colG float32,
+	colB float32,
+	colA float32,
+	materialRes H3DRes,
+	flags int) {
+	C.h3dShowOverlays((*C.float)(unsafe.Pointer(verts)),
+		C.int(vertCount),
+		C.float(colR),
+		C.float(colG),
+		C.float(colB),
+		C.float(colA),
+		C.H3DRes(materialRes),
+		C.int(flags))
+}
+
+func H3dClearOverlays() {
+	C.h3dClearOverlays()
+}
+
+func H3dGetResType(res H3DRes) int {
+	return int(C.h3dGetResType(C.H3DRes(res)))
+}
+
+func H3dGetResName(res H3DRes) string {
+	return C.GoString(C.h3dGetResName(C.H3DRes(res)))
+}
+
+func H3dGetNextResource(resType int, start H3DRes) H3DRes {
+	return H3DRes(C.h3dGetNextResource(C.int(resType), C.H3DRes(start)))
 }
