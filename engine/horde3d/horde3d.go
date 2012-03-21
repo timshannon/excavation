@@ -577,6 +577,7 @@ func H3dGetMessage(level *int,
 	//TODO: Test if level and time get returned via ref
 	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
 		(*C.float)(unsafe.Pointer(time)))
+	defer C.free(unsafe.Pointer(message))
 	return C.GoString(message)
 }
 
@@ -624,4 +625,7 @@ func H3dGetResName(res H3DRes) string {
 
 func H3dGetNextResource(resType int, start H3DRes) H3DRes {
 	return H3DRes(C.h3dGetNextResource(C.int(resType), C.H3DRes(start)))
+}
+
+func H3dFindResource(resType int, name *string) H3DRes {
 }
