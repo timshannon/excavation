@@ -527,11 +527,11 @@ const (
 )
 
 //used for bools from c interfaces
-var ToBool = map[int]bool{
+var Bool = map[int]bool{
 	0: false,
 	1: true,
 }
-var FromBool = map[bool]int{
+var Int = map[bool]int{
 	false: 1,
 	true:  0,
 }
@@ -545,15 +545,15 @@ func H3dGetVersionString() string {
 func H3dCheckExtension(extensionName string) bool {
 	cExtName := C.CString(extensionName)
 	defer C.free(unsafe.Pointer(cExtName))
-	return ToBool[int(C.h3dCheckExtension(cExtName))]
+	return Bool[int(C.h3dCheckExtension(cExtName))]
 }
 
 func H3dGetError() bool {
-	return ToBool[int(C.h3dGetError())]
+	return Bool[int(C.h3dGetError())]
 }
 
 func H3dInit() bool {
-	return ToBool[int(C.h3dInit())]
+	return Bool[int(C.h3dInit())]
 }
 
 func H3dRelease() {
@@ -586,11 +586,11 @@ func H3dGetOption(param int) float32 {
 }
 
 func H3dSetOption(param int, value float32) bool {
-	return ToBool[int(C.h3dSetOption(C.int(param), C.float(value)))]
+	return Bool[int(C.h3dSetOption(C.int(param), C.float(value)))]
 }
 
 func H3dGetStat(param int, reset bool) float32 {
-	return float32(C.h3dGetStat(C.int(param), C.int(FromBool[reset])))
+	return float32(C.h3dGetStat(C.int(param), C.int(Int[reset])))
 }
 
 func H3dShowOverlays(verts *float32,
@@ -628,4 +628,21 @@ func H3dGetNextResource(resType int, start H3DRes) H3DRes {
 }
 
 func H3dFindResource(resType int, name *string) H3DRes {
+	return H3DRes(C.h3dFindResource(C.int(resType), (*C.char)(unsafe.Pointer(name))))
+}
+
+func H3dAddResource(resType int, name *string, flags int) H3DRes {
+	return H3DRes(C.h3dAddResource(C.int(resType), (*C.char)(unsafe.Pointer(name)), C.int(flags)))
+}
+
+func H3dCloneResource(sourceRes H3DRes, name *string) H3DRes {
+	return H3DRes(C.h3dCloneResource(C.H3DRes(sourceRes), (*C.char)(unsafe.Pointer(name))))
+}
+
+func H3dRemoveResource(res H3DRes) int {
+	return int(C.h3dRemoveResource(C.H3DRes(res)))
+}
+
+func H3dIsResLoaded(res H3DRes) bool {
+	return Bool[int(C.h3dIsResLoaded(C.H3DRes(res)))]
 }
