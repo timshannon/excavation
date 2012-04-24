@@ -9,6 +9,7 @@ import (
 func Init() bool {
 	var running bool = true
 	var cam horde3d.H3DNode = 0
+	var testRes horde3d.H3DRes = 1234
 
 	if sdl.Init(sdl.INIT_VIDEO) != 0 {
 		panic(sdl.GetError())
@@ -30,6 +31,8 @@ func Init() bool {
 			break
 		}
 		horde3d.H3dRender(cam)
+		testRes = horde3d.H3dFindResource(horde3d.H3DResTypes_Material, "test")
+		horde3d.H3dIsResLoaded(testRes)
 		sdl.GL_SwapBuffers()
 	}
 	horde3d.H3dRelease()

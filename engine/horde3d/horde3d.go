@@ -531,9 +531,9 @@ var Bool = map[int]bool{
 	0: false,
 	1: true,
 }
-var Int = map[bool]int{
-	false: 1,
-	true:  0,
+var Int = map[bool]C.int{
+	false: C.int(1),
+	true:  C.int(0),
 }
 
 func H3dGetVersionString() string {
@@ -574,7 +574,6 @@ func H3dClear() {
 
 func H3dGetMessage(level *int,
 	time *float32) string {
-	//TODO: Test if level and time get returned via ref
 	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
 		(*C.float)(unsafe.Pointer(time)))
 	defer C.free(unsafe.Pointer(message))
@@ -590,7 +589,7 @@ func H3dSetOption(param int, value float32) bool {
 }
 
 func H3dGetStat(param int, reset bool) float32 {
-	return float32(C.h3dGetStat(C.int(param), C.int(Int[reset])))
+	return float32(C.h3dGetStat(C.int(param), Int[reset]))
 }
 
 func H3dShowOverlays(verts *float32,
@@ -627,16 +626,16 @@ func H3dGetNextResource(resType int, start H3DRes) H3DRes {
 	return H3DRes(C.h3dGetNextResource(C.int(resType), C.H3DRes(start)))
 }
 
-func H3dFindResource(resType int, name *string) H3DRes {
-	return H3DRes(C.h3dFindResource(C.int(resType), (*C.char)(unsafe.Pointer(name))))
+func H3dFindResource(resType int, name string) H3DRes {
+	return H3DRes(C.h3dFindResource(C.int(resType), (*C.char)(unsafe.Pointer(&name))))
 }
 
-func H3dAddResource(resType int, name *string, flags int) H3DRes {
-	return H3DRes(C.h3dAddResource(C.int(resType), (*C.char)(unsafe.Pointer(name)), C.int(flags)))
+func H3dAddResource(resType int, name string, flags int) H3DRes {
+	return H3DRes(C.h3dAddResource(C.int(resType), (*C.char)(unsafe.Pointer(&name)), C.int(flags)))
 }
 
-func H3dCloneResource(sourceRes H3DRes, name *string) H3DRes {
-	return H3DRes(C.h3dCloneResource(C.H3DRes(sourceRes), (*C.char)(unsafe.Pointer(name))))
+func H3dCloneResource(sourceRes H3DRes, name string) H3DRes {
+	return H3DRes(C.h3dCloneResource(C.H3DRes(sourceRes), (*C.char)(unsafe.Pointer(&name))))
 }
 
 func H3dRemoveResource(res H3DRes) int {
@@ -646,3 +645,42 @@ func H3dRemoveResource(res H3DRes) int {
 func H3dIsResLoaded(res H3DRes) bool {
 	return Bool[int(C.h3dIsResLoaded(C.H3DRes(res)))]
 }
+
+func H3dLoadResource(res H3DRes, data *string, size int) bool {
+	return Bool[int(C.h3dLoadResource(C.H3DRes(res), (*C.char)(unsafe.Pointer(&data)), C.int(size)))]
+
+}
+
+func H3dUnloadResource(res H3DRes) {
+	C.h3dUnloadResource(C.H3DRes(res))
+}
+
+func H3dGetResElemCount(res H3DRes, elem int) int {
+	return int(C.h3dGetResElemCount(C.H3DRes(res), C.int(elem)))
+}
+
+func H3dFindResElem(res H3DRes, elem int, param int, value *string) int {
+	return int(C.h3dFindResElem(C.H3DRes(res),
+		C.int(elem), C.int(param), (*C.char)(unsafe.Pointer(&value))))
+}
+
+func H3dGetResParamI(res H3DRes, elem int, elemIdx int, param int) int {
+	return int(C.h3dGetResParamI(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(param)))
+}
+
+func H3dSetResParamI(res H3DRes, elem int, elemIdx int, param int, value int) {
+	C.h3dSetResParamI(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(param), C.int(value))
+}
+
+func H3dGetResParamF(res H3DRes, elem int, elemIdx int, param int, compIdx int) float32 {
+	return float32(C.h3dGetResParamF(C.H3DRes(res),
+		C.int(elem), C.int(elemIdx), C.int(param), C.int(compIdx)))
+}
+
+func H3dSetResParamF(res H3DRes, elem int, elemIdx int, param int, compIdx int, value float32) {
+	C.h3dSetResParamF(C.H3DRes(res),
+		C.int(elem), C.int(elemIdx), C.int(param), C.int(compIdx), C.float(value))
+}
+
+func H3dGetResParamStr(res H3DRes, elem int, elemIdx int, param int) string {
+
