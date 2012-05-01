@@ -7,6 +7,7 @@ package horde3d
 */
 import "C"
 import "unsafe"
+import "reflect"
 
 //typedef int H3DRes;
 //typedef int H3DNode;
@@ -538,6 +539,7 @@ var Int = map[bool]C.int{
 
 func H3dGetVersionString() string {
 	verPointer := C.h3dGetVersionString()
+	//is this needed?
 	defer C.free(unsafe.Pointer(verPointer))
 
 	return C.GoString(verPointer)
@@ -659,9 +661,11 @@ func H3dGetResElemCount(res H3DRes, elem int) int {
 	return int(C.h3dGetResElemCount(C.H3DRes(res), C.int(elem)))
 }
 
-func H3dFindResElem(res H3DRes, elem int, param int, value *string) int {
+func H3dFindResElem(res H3DRes, elem int, param int, value string) int {
+	cValue := C.CString(value)
+	defer C.free(unsafe.Pointer(cValue))
 	return int(C.h3dFindResElem(C.H3DRes(res),
-		C.int(elem), C.int(param), (*C.char)(unsafe.Pointer(&value))))
+		C.int(elem), C.int(param), cValue))
 }
 
 func H3dGetResParamI(res H3DRes, elem int, elemIdx int, param int) int {
@@ -694,6 +698,57 @@ func H3dSetResParamStr(res H3DRes, elem int, elemIdx int, param int, value strin
 	C.h3dSetResParamStr(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(param), cValue)
 }
 
-func H3dMapResStream(res H3DRes, elem int, elemIdx int, stream int, read bool, write bool) {
-	C.h3dMapResStream(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(stream), Int[read], Int[write])
+func H3dMapResStream(res H3DRes, elem int, elemIdx int, stream int, read bool, write bool, size int) []byte {
+	//TODO: Review this method of getting the stream data from the pointer 
+
+	//Create []byte of the proper size and data without having to copy the entire stream into a new
+	//	go slice useing C.GoSlice
+	cStream := C.h3dMapResStream(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(stream),
+		Int[read], Int[write])
+	var gStream []byte
+	slcHead := (*reflect.SliceHeader)((unsafe.Pointer(&gStream)))
+	slcHead.Cap = size
+	slcHead.Len = size
+	slcHead.Data = uintptr(unsafe.Pointer(cStream))
+	return gStream
+}
+
+func H3dUnmapResStream(res H3DRes) {
+	C.h3dUnmapResStream(C.H3DRes(res))
+}
+
+func H3dQueryUnloadedResource(index int) H3DRes {
+	return H3DRes(C.h3dQueryUnloadedResource(C.int(index)))
+}
+
+func H3dReleaseUnusedResources() {
+	C.h3dReleaseUnusedResources()
+}
+
+func H3dCreateTexture(name string, width int, height int, fmt int, flags int) H3DRes {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	return H3DRes(C.h3dCreateTexture(cName, C.int(width), C.int(height), C.int(fmt), C.int(flags)))
+}
+
+func H3dSetShaderPreambles(vertPreamble string, fragPreamble string) {
+	cVertPreamble := C.CString(vertPreamble)
+	cFragPreamble := C.CString(fragPreamble)
+	defer C.free(unsafe.Pointer(cVertPreamble))
+	defer C.free(unsafe.Pointer(cFragPreamble))
+
+	C.h3dSetShaderPreambles(cVertPreamble, cFragPreamble)
+}
+
+func H3dSetMaterialUniform(materialRes H3DRes, name string, a float32, b float32,
+	c float32, d float32) bool {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+
+	return Bool[int(C.h3dSetMaterialUniform(C.H3DRes(materialRes), cName,
+		C.float(a), C.float(b), C.float(c), C.float(d)))]
+}
+
+func H3dResizePipelineBuffers(pipeRes H3DRes, width int, height int) {
+	C.h3dResizePipelineBuffers(C.H3DRes(pipeRes), C.int(width), C.int(height))
 }
