@@ -538,6 +538,7 @@ var Int = map[bool]C.int{
 
 func H3dGetVersionString() string {
 	verPointer := C.h3dGetVersionString()
+	defer C.free(unsafe.Pointer(verPointer))
 
 	return C.GoString(verPointer)
 }
@@ -572,8 +573,7 @@ func H3dClear() {
 	C.h3dClear()
 }
 
-func H3dGetMessage(level *int,
-	time *float32) string {
+func H3dGetMessage(level *int, time *float32) string {
 	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
 		(*C.float)(unsafe.Pointer(time)))
 	defer C.free(unsafe.Pointer(message))
@@ -683,4 +683,17 @@ func H3dSetResParamF(res H3DRes, elem int, elemIdx int, param int, compIdx int, 
 }
 
 func H3dGetResParamStr(res H3DRes, elem int, elemIdx int, param int) string {
+	value := C.h3dGetResParamStr(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(param))
+	defer C.free(unsafe.Pointer(value))
+	return C.GoString(value)
+}
 
+func H3dSetResParamStr(res H3DRes, elem int, elemIdx int, param int, value string) {
+	cValue := C.CString(value)
+	defer C.free(unsafe.Pointer(cValue))
+	C.h3dSetResParamStr(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(param), cValue)
+}
+
+func H3dMapResStream(res H3DRes, elem int, elemIdx int, stream int, read bool, write bool) {
+	C.h3dMapResStream(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(stream), Int[read], Int[write])
+}
