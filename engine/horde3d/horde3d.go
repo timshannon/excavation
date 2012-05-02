@@ -757,11 +757,39 @@ func H3dGetRenderTargetData(pipelineRes H3DRes, targetName string, bufIndex int,
 	height *int, compCount *int, dataBuffer []byte) bool {
 	cTargetName := C.CString(targetName)
 	defer C.free(unsafe.Pointer(cTargetName))
-	//TODO: Not sure if this is correct, or out Go's GC will handle it
+	//TODO: Not sure if this is correct, or how Go's GC will handle it
 
 	slcHead := (*reflect.SliceHeader)((unsafe.Pointer(&dataBuffer)))
 
 	return Bool[int(C.h3dGetRenderTargetData(C.H3DRes(pipelineRes), cTargetName,
 		C.int(bufIndex), (*C.int)(unsafe.Pointer(&width)), (*C.int)(unsafe.Pointer(height)),
 		(*C.int)(unsafe.Pointer(compCount)), unsafe.Pointer(slcHead.Data), C.int(len(dataBuffer))))]
+}
+
+func H3dGetNodeType(node H3DNode) int {
+	return int(C.h3dGetNodeType(C.H3DNode(node)))
+}
+
+func H3dGetNodeParent(node H3DNode) H3DNode {
+	return H3DNode(C.h3dGetNodeParent(C.H3DNode(node)))
+}
+
+func H3dSetNodeParent(node H3DNode, parent H3DNode) bool {
+	return Bool[int(C.h3dSetNodeParent(C.H3DNode(node), C.H3DNode(parent)))]
+}
+
+func H3dGetNodeChild(node H3DNode, index int) bool {
+	return Bool[int(C.h3dGetNodeChild(C.H3DNode(node), C.int(index)))]
+}
+
+func H3dAddNodes(parent H3DNode, sceneGraphRes H3DRes) H3DNode {
+	return H3DNode(C.h3dAddNodes(C.H3DNode(parent), C.H3DRes(sceneGraphRes)))
+}
+
+func H3dRemoveNode(node H3DNode) {
+	C.h3dRemoveNode(C.H3DNode(node))
+}
+
+func H3dCheckNodeTransFlag(node H3DNode, reset bool) bool {
+	return Bool[int(C.h3dCheckNodeTransFlag(C.H3DNode(node), Int[reset]))]
 }
