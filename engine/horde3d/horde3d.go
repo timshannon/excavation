@@ -577,7 +577,7 @@ func H3dClear() {
 
 func H3dGetMessage(level *int, time *float32) string {
 	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
-		(*C.float)(unsafe.Pointer(time)))
+		(*C.float)(unsafe.Pointer(&time)))
 	defer C.free(unsafe.Pointer(message))
 	return C.GoString(message)
 }
@@ -602,7 +602,7 @@ func H3dShowOverlays(verts *float32,
 	colA float32,
 	materialRes H3DRes,
 	flags int) {
-	C.h3dShowOverlays((*C.float)(unsafe.Pointer(verts)),
+	C.h3dShowOverlays((*C.float)(unsafe.Pointer(&verts)),
 		C.int(vertCount),
 		C.float(colR),
 		C.float(colG),
@@ -702,7 +702,7 @@ func H3dMapResStream(res H3DRes, elem int, elemIdx int, stream int, read bool, w
 	//TODO: Review this method of getting the stream data from the pointer 
 
 	//Create []byte of the proper size and data without having to copy the entire stream into a new
-	//	go slice useing C.GoSlice
+	//	go slice using C.GoSlice
 	cStream := C.h3dMapResStream(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(stream),
 		Int[read], Int[write])
 	var gStream []byte
@@ -751,4 +751,17 @@ func H3dSetMaterialUniform(materialRes H3DRes, name string, a float32, b float32
 
 func H3dResizePipelineBuffers(pipeRes H3DRes, width int, height int) {
 	C.h3dResizePipelineBuffers(C.H3DRes(pipeRes), C.int(width), C.int(height))
+}
+
+func H3dGetRenderTargetData(pipelineRes H3DRes, targetName string, bufIndex int, width *int,
+	height *int, compCount *int, dataBuffer []byte) bool {
+	cTargetName := C.CString(targetName)
+	defer C.free(unsafe.Pointer(cTargetName))
+	//TODO: Not sure if this is correct, or out Go's GC will handle it
+
+	slcHead := (*reflect.SliceHeader)((unsafe.Pointer(&dataBuffer)))
+
+	return Bool[int(C.h3dGetRenderTargetData(C.H3DRes(pipelineRes), cTargetName,
+		C.int(bufIndex), (*C.int)(unsafe.Pointer(&width)), (*C.int)(unsafe.Pointer(height)),
+		(*C.int)(unsafe.Pointer(compCount)), unsafe.Pointer(slcHead.Data), C.int(len(dataBuffer))))]
 }
