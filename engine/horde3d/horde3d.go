@@ -577,7 +577,7 @@ func H3dClear() {
 
 func H3dGetMessage(level *int, time *float32) string {
 	message := C.h3dGetMessage((*C.int)(unsafe.Pointer(level)),
-		(*C.float)(unsafe.Pointer(&time)))
+		(*C.float)(unsafe.Pointer(time)))
 	defer C.free(unsafe.Pointer(message))
 	return C.GoString(message)
 }
@@ -602,7 +602,7 @@ func H3dShowOverlays(verts *float32,
 	colA float32,
 	materialRes H3DRes,
 	flags int) {
-	C.h3dShowOverlays((*C.float)(unsafe.Pointer(&verts)),
+	C.h3dShowOverlays((*C.float)(unsafe.Pointer(verts)),
 		C.int(vertCount),
 		C.float(colR),
 		C.float(colG),
@@ -649,7 +649,7 @@ func H3dIsResLoaded(res H3DRes) bool {
 }
 
 func H3dLoadResource(res H3DRes, data *string, size int) bool {
-	return Bool[int(C.h3dLoadResource(C.H3DRes(res), (*C.char)(unsafe.Pointer(&data)), C.int(size)))]
+	return Bool[int(C.h3dLoadResource(C.H3DRes(res), (*C.char)(unsafe.Pointer(data)), C.int(size)))]
 
 }
 
@@ -701,16 +701,10 @@ func H3dSetResParamStr(res H3DRes, elem int, elemIdx int, param int, value strin
 func H3dMapResStream(res H3DRes, elem int, elemIdx int, stream int, read bool, write bool, size int) []byte {
 	//TODO: Review this method of getting the stream data from the pointer 
 
-	//Create []byte of the proper size and data without having to copy the entire stream into a new
-	//	go slice using C.GoSlice
 	cStream := C.h3dMapResStream(C.H3DRes(res), C.int(elem), C.int(elemIdx), C.int(stream),
 		Int[read], Int[write])
-	var gStream []byte
-	slcHead := (*reflect.SliceHeader)((unsafe.Pointer(&gStream)))
-	slcHead.Cap = size
-	slcHead.Len = size
-	slcHead.Data = uintptr(unsafe.Pointer(cStream))
-	return gStream
+
+	return C.GoBytes(unsafe.Pointer(cStream), C.int(size))
 }
 
 func H3dUnmapResStream(res H3DRes) {
@@ -762,7 +756,7 @@ func H3dGetRenderTargetData(pipelineRes H3DRes, targetName string, bufIndex int,
 	slcHead := (*reflect.SliceHeader)((unsafe.Pointer(&dataBuffer)))
 
 	return Bool[int(C.h3dGetRenderTargetData(C.H3DRes(pipelineRes), cTargetName,
-		C.int(bufIndex), (*C.int)(unsafe.Pointer(&width)), (*C.int)(unsafe.Pointer(height)),
+		C.int(bufIndex), (*C.int)(unsafe.Pointer(width)), (*C.int)(unsafe.Pointer(height)),
 		(*C.int)(unsafe.Pointer(compCount)), unsafe.Pointer(slcHead.Data), C.int(len(dataBuffer))))]
 }
 
@@ -793,3 +787,29 @@ func H3dRemoveNode(node H3DNode) {
 func H3dCheckNodeTransFlag(node H3DNode, reset bool) bool {
 	return Bool[int(C.h3dCheckNodeTransFlag(C.H3DNode(node), Int[reset]))]
 }
+
+func H3dGetNodeTransform(node H3DNode, tx *float32, ty *float32, tz *float32,
+	rx *float32, ry *float32, rz *float32, sx *float32, sy *float32, sz *float32) {
+	C.h3dGetNodeTransform(C.H3DNode(node), (*C.float)(unsafe.Pointer(tx)), (*C.float)(unsafe.Pointer(ty)),
+		(*C.float)(unsafe.Pointer(tz)), (*C.float)(unsafe.Pointer(rx)), (*C.float)(unsafe.Pointer(ry)),
+		(*C.float)(unsafe.Pointer(rz)), (*C.float)(unsafe.Pointer(sx)), (*C.float)(unsafe.Pointer(sy)),
+		(*C.float)(unsafe.Pointer(sz)))
+}
+
+func H3dSetNodeTransform(node H3DNode, tx float32, ty float32, tz float32,
+	rx float32, ry float32, rz float32, sx float32, sy float32, sz float32) {
+	C.h3dSetNodeTransform(C.H3DNode(node), C.float(tx), C.float(ty), C.float(tz),
+		C.float(rx), C.float(ry), C.float(rz), C.float(sx), C.float(sy), C.float(sz))
+}
+
+func H3dGetNodeTransMats(node H3DNode, relMat []float32, absMat []float32) {
+	//TODO: Handle nil pointers, possibly check for nil
+	relMatHead := (*reflect.SliceHeader)((unsafe.Pointer(&relMat)))
+	absMatHead := (*reflect.SliceHeader)((unsafe.Pointer(&absMat)))
+
+	C.h3dGetNodeTransMats(C.H3DNode(node), unsafe.Pointer(relMatHead.Data), unsafe.Pointer(absMatHead.Data))
+}
+
+//func H3dSetNodeTransMat(node H3DNode, mat4x4 []float32) {
+
+//}
