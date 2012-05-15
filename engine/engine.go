@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"excavation/engine/horde3d"
+	"code.google.com/p/gohorde/horde3d"
 	"fmt"
 	"github.com/banthar/Go-SDL/sdl"
 )
