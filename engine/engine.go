@@ -27,16 +27,20 @@ func Init() error {
 		return err
 	}
 
-	//TODO: Load from config
+	var mode int
+	if cfg.Bool("Fullscreen") {
+		mode = glfw.Fullscreen
+	} else {
+		mode = glfw.Windowed
+	}
 	if err := glfw.OpenWindow(cfg.Int("WindowWidth"),
 		cfg.Int("WindowHeight"), 8, 8, 8, 8,
 		cfg.Int("WindowDepth"), 8,
-		cfg.Int("WindowMode")); err != nil {
+		mode); err != nil {
 		return err
 	}
 
-	//vsync from settings file
-	glfw.SetSwapInterval(1)
+	glfw.SetSwapInterval(cfg.Int("VSync"))
 	glfw.SetWindowTitle(windowTitle)
 
 	if !horde3d.Init() {
