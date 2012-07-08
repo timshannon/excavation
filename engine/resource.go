@@ -66,3 +66,21 @@ func (res *Resource) Load() error {
 	return nil
 
 }
+
+func (res *Resource) Clone(cloneName string) *Resource {
+	clone := new(Resource)
+	clone.H3DRes = horde3d.CloneResource(res.H3DRes, cloneName)
+	return clone
+}
+
+func (res *Resource) Remove() int {
+	return horde3d.RemoveResource(res.H3DRes)
+}
+
+func (res *Resource) IsLoaded() bool {
+	return horde3d.IsResLoaded(res.H3DRes)
+}
+
+func (res *Resource) Unload() {
+	horde3d.UnloadResource(res.H3DRes)
+}
