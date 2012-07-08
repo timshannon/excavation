@@ -49,9 +49,6 @@ func Init() error {
 	}
 
 	//load pipeline
-	//TODO: Resource manager
-	//pipeline = horde3d.AddResource(horde3d.ResTypes_Pipeline, "pipelines/hdr.pipeline.xml", 0)
-	//horde3d.LoadResourcesFromDisk("../content")
 	pipeline, err = LoadPipeline()
 	if err != nil {
 		return err
