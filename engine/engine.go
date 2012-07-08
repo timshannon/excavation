@@ -12,7 +12,7 @@ const (
 
 //globally accessible camera and pipeline
 var Cam horde3d.H3DNode
-var pipeline horde3d.H3DRes
+var pipeline *Resource
 var running bool
 
 func Init() error {
@@ -50,11 +50,15 @@ func Init() error {
 
 	//load pipeline
 	//TODO: Resource manager
-	pipeline = horde3d.AddResource(horde3d.ResTypes_Pipeline, "pipelines/hdr.pipeline.xml", 0)
-	horde3d.LoadResourcesFromDisk("../content")
+	//pipeline = horde3d.AddResource(horde3d.ResTypes_Pipeline, "pipelines/hdr.pipeline.xml", 0)
+	//horde3d.LoadResourcesFromDisk("../content")
+	pipeline, err = LoadPipeline()
+	if err != nil {
+		return err
+	}
 
 	//add camera
-	Cam = horde3d.AddCameraNode(horde3d.RootNode, "Camera", pipeline)
+	Cam = horde3d.AddCameraNode(horde3d.RootNode, "Camera", pipeline.H3DRes)
 	glfw.SetWindowSizeCallback(onResize)
 	return nil
 
@@ -96,6 +100,6 @@ func onResize(w, h int) {
 
 	//TODO: Set clip distance? Config?
 	horde3d.SetupCameraView(Cam, 45.0, float32(w)/float32(h), 0.1, 1000.0)
-	horde3d.ResizePipelineBuffers(pipeline, w, h)
+	horde3d.ResizePipelineBuffers(pipeline.H3DRes, w, h)
 
 }
