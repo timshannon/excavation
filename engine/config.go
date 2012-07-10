@@ -16,6 +16,7 @@ type Config struct {
 func NewCfg(fileName string) (*Config, error) {
 	cfg := new(Config)
 
+	cfg.values = make(map[string]interface{})
 	//if just a filename with no path is passed in,
 	// then combine it with the userDir
 	if !path.IsAbs(fileName) {
@@ -120,9 +121,6 @@ func (cfg *Config) Float(name string) float64 {
 }
 
 func (cfg *Config) SetValue(name string, value interface{}) {
-	if cfg.values == nil {
-		cfg.values = make(map[string]interface{})
-	}
 	cfg.values[name] = value
 }
 
