@@ -19,6 +19,14 @@ func init() {
 	dataFile = path.Join(wd, "exData.tar.gz")
 }
 
+func SetDataDir(dir string) {
+	dataDir = dir
+}
+
+func SetDataFile(file string) {
+	dataFile = file
+}
+
 //LoadPipeline loads the default pipeline for the engine
 func LoadPipeline() (*Resource, error) {
 	pipeline := new(Resource)

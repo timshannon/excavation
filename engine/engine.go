@@ -18,8 +18,11 @@ var running bool
 func Init() error {
 
 	//load settings from config file
-	cfg, err := LoadConfig()
+	cfg, err := NewStandardCfg()
 	if err != nil {
+		return err
+	}
+	if err = cfg.Load(); err != nil {
 		return err
 	}
 
