@@ -2,89 +2,136 @@ package engine
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path"
 )
 
-type Config map[string]interface{}
+type Config struct {
+	FileName string
+	values   map[string]interface{}
+}
+
+func NewCfg(fileName string) (*Config, error) {
+	cfg := new(Config)
+
+	//if just a filename with no path is passed in,
+	// then combine it with the userDir
+	if !path.IsAbs(fileName) {
+		userDir, err := UserDir()
+		if err != nil {
+			return nil, err
+		}
+		fileName = path.Join(userDir, fileName)
+	}
+
+	cfg.FileName = fileName
+	return cfg, nil
+}
 
 //Loads the standard config file 
-func LoadConfig() (Config, error) {
-	var cfgFile string
-	userDir, err := UserDir()
+func NewStandardCfg() (*Config, error) {
+	cfg, err := NewCfg("excavation.cfg")
 	if err != nil {
 		return nil, err
 	}
 
-	cfgFile = path.Join(userDir, "config.cfg")
-	if file, err := os.Open(cfgFile); err != nil {
+	if file, err := os.Open(cfg.FileName); err != nil {
 		if os.IsNotExist(err) {
 			//file doesn't exist
 			// create one with default values
-			createDefaultConfig(cfgFile)
+			cfg.SetValue("WindowWidth", 1024)
+			cfg.SetValue("WindowHeight", 728)
+			cfg.SetValue("WindowDepth", 24)
+			cfg.SetValue("Fullscreen", false)
+			//TODO: test lower case name with json
+			cfg.SetValue("vSync", 1)
+			if err = cfg.Write(); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
 		}
 	} else {
 		file.Close()
 	}
-	return LoadConfigFile(cfgFile)
+	return cfg, nil
 }
 
-func LoadControlConfig() (Config, error) {
-	userDir, err := UserDir()
+func NewControlCfg() (*Config, error) {
+	cfg, err := NewCfg("controls.cfg")
 	if err != nil {
 		return nil, err
 	}
-	//TODO: Control mapping
-	return LoadConfigFile(path.Join(userDir, "controls.cfg"))
+
+	if file, err := os.Open(cfg.FileName); err != nil {
+		if os.IsNotExist(err) {
+			//file doesn't exist
+			// create one with default values
+			//TODO: Default controls
+			if err = cfg.Write(); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	} else {
+		file.Close()
+	}
+	return cfg, nil
 
 }
 
 //Loads a specific config file at a specific location
-func LoadConfigFile(file string) (Config, error) {
-	cfg := Config{}
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
+func (cfg *Config) Load() error {
+	if cfg.FileName == "" {
+		return errors.New("No Filename set for Config object")
 	}
-	if err = json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
 
-func (cfg Config) Value(name string) interface{} {
-	return cfg[name]
-}
-
-func (cfg Config) Int(name string) int {
-	return int(cfg[name].(float64))
-}
-
-func (cfg Config) String(name string) string {
-	return cfg[name].(string)
-}
-
-func (cfg Config) Bool(name string) bool {
-	return cfg[name].(bool)
-}
-
-func (cfg Config) Float(name string) float64 {
-	return cfg[name].(float64)
-}
-
-func createDefaultConfig(file string) error {
-	cfg := Config{}
-	cfg["WindowWidth"] = 1024
-	cfg["WindowHeight"] = 728
-	cfg["WindowDepth"] = 24
-	cfg["Fullscreen"] = false
-	cfg["VSync"] = 1
-
-	data, err := json.MarshalIndent(cfg, "", "    ")
+	data, err := ioutil.ReadFile(cfg.FileName)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(file, data, 0644)
+	if err = json.Unmarshal(data, &cfg.values); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (cfg *Config) Value(name string) interface{} {
+	return cfg.values[name]
+}
+
+func (cfg *Config) Int(name string) int {
+	return int(cfg.values[name].(float64))
+}
+
+func (cfg *Config) String(name string) string {
+	return cfg.values[name].(string)
+}
+
+func (cfg *Config) Bool(name string) bool {
+	return cfg.values[name].(bool)
+}
+
+func (cfg *Config) Float(name string) float64 {
+	return cfg.values[name].(float64)
+}
+
+func (cfg *Config) SetValue(name string, value interface{}) {
+	if cfg.values == nil {
+		cfg.values = make(map[string]interface{})
+	}
+	cfg.values[name] = value
+}
+
+func (cfg *Config) Write() error {
+	data, err := json.MarshalIndent(cfg.values, "", "    ")
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(cfg.FileName, data, 0644)
 	return err
+
 }

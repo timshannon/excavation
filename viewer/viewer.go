@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	//setup separate init
-	// with in memory pipeline and hardcoded window values
-	//if err := engine.Init(); err != nil {
-	//panic("Error starting Excavation engine: " + err.Error())
-	//}
+	engine.SetCfgFileName("viewer.cfg")
+
+	if err := engine.Init(); err != nil {
+		panic("Error starting Excavation engine: " + err.Error())
+	}
 
 	engine.StartMainLoop()
 
