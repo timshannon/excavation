@@ -46,8 +46,7 @@ func NewStandardCfg() (*Config, error) {
 			cfg.SetValue("WindowHeight", 728)
 			cfg.SetValue("WindowDepth", 24)
 			cfg.SetValue("Fullscreen", false)
-			//TODO: test lower case name with json
-			cfg.SetValue("vSync", 1)
+			cfg.SetValue("VSync", 1)
 			if err = cfg.Write(); err != nil {
 				return nil, err
 			}

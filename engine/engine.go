@@ -58,6 +58,7 @@ func Init() error {
 	}
 
 	//add camera
+	//TODO: camera and node types
 	Cam = horde3d.AddCameraNode(horde3d.RootNode, "Camera", pipeline.H3DRes)
 	glfw.SetWindowSizeCallback(onResize)
 	return nil
