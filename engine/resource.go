@@ -19,23 +19,53 @@ func init() {
 	dataFile = path.Join(wd, "exData.tar.gz")
 }
 
-func SetDataDir(dir string) {
-	dataDir = dir
-}
+func NewPipeline(name string) *Resource {
+	pipeline := new(Resource)
+	pipeline.H3DRes = horde3d.AddResource(horde3d.ResTypes_Pipeline,
+		name, 0)
 
-func SetDataFile(file string) {
-	dataFile = file
+	return pipeline
+
 }
 
 //LoadPipeline loads the default pipeline for the engine
 func LoadPipeline() (*Resource, error) {
-	pipeline := new(Resource)
-	pipeline.H3DRes = horde3d.AddResource(horde3d.ResTypes_Pipeline,
-		"pipelines/hdr.pipeline.xml", 0)
+	pipeline := NewPipeline("pipelines/hdr.pipeline.xml")
 	if err := pipeline.Load(); err != nil {
 		return nil, err
 	}
 	return pipeline, nil
+}
+
+func NewScene(name string) *Resource {
+	scene := new(Resource)
+	scene.H3DRes = horde3d.AddResource(horde3d.ResTypes_SceneGraph,
+		name, 0)
+
+	return scene
+}
+
+func NewGeometry(name string) *Resource {
+	geo := new(Resource)
+
+	geo.H3DRes = horde3d.AddResource(horde3d.ResTypes_Geometry,
+		name, 0)
+	return geo
+}
+
+func NewAnimation(name string) *Resource {
+	anim := new(Resource)
+	anim.H3DRes = horde3d.AddResource(horde3d.ResTypes_Animation,
+		name, 0)
+	return anim
+}
+
+func NewParticleEffect(name string) *Resource {
+	part := new(Resource)
+
+	part.H3DRes = horde3d.AddResource(horde3d.ResTypes_ParticleEffect,
+		name, 0)
+	return part
 }
 
 type Resource struct {
@@ -56,19 +86,21 @@ func (res *Resource) Name() string {
 // if the resource doesn't exist in the data folder, then it will
 // try to load it from the data file
 func (res *Resource) Load() error {
-	data, err := ioutil.ReadFile(path.Join(dataDir, res.Name()))
+	if !res.IsLoaded() {
+		data, err := ioutil.ReadFile(path.Join(dataDir, res.Name()))
 
-	if os.IsNotExist(err) {
-		//TODO: load from tar.gz data file
-	}
+		if os.IsNotExist(err) {
+			//TODO: load from tar.gz data file
+		}
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	good := horde3d.LoadResource(res.H3DRes, data)
-	if !good {
-		return errors.New("Horde3D was unable to load the resource.")
+		good := horde3d.LoadResource(res.H3DRes, data)
+		if !good {
+			return errors.New("Horde3D was unable to load the resource.")
+		}
 	}
 
 	return nil
