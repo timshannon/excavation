@@ -104,3 +104,7 @@ func onResize(w, h int) {
 	horde3d.ResizePipelineBuffers(pipeline.H3DRes, w, h)
 
 }
+
+func Time() float64 {
+	return glfw.Time()
+}
