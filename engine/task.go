@@ -23,12 +23,12 @@ type taskFunc func(task *Task)
 type Task struct {
 	Name     string
 	Func     taskFunc
-	Time     float64
-	Frames   int
-	priority int
+	start    float64
+	frames   int
 	Data     map[string]interface{}
 	state    uint
 	delay    float64
+	priority int
 }
 
 func (t *Task) Priority() int { return t.priority }
@@ -38,11 +38,25 @@ func (t *Task) SetPriority(priority int) {
 	sorted = false
 }
 
+//Wait schedules the task to run the given # of seconds in the future
 func (t *Task) Wait(seconds float64) {
-	t.delay = seconds
+	t.delay = Time() + seconds
 	t.state = TaskWaiting
 }
 
+//Time is the number of seconds passed since this task first started
+func (t *Task) Time() float64 {
+	return Time() - t.start
+}
+
+//Frames is the number of frames or number of times this task has been called
+func (t *Task) Frames() int { return t.frames }
+func (t *Task) Stop()       { t.state = TaskStopped }
+func (t *Task) Start()      { t.Wait(0) }
+func (t *Task) State() uint { return t.state }
+func (t *Task) Remove()     { t.state = TaskCompleted }
+
+//sorting primitives
 type Tasks []*Task
 
 func (t Tasks) Len() int      { return len(t) }
@@ -52,8 +66,19 @@ type ByPriority struct{ Tasks }
 
 func (t ByPriority) Less(i, j int) bool { return t.Tasks[i].priority < t.Tasks[j].priority }
 
+//AddTask creates a new task and adds it to the queue
 func AddTask(name string, function taskFunc, priority int, delay float64) {
-	task := &Task{name, function, 0, 0, priority, nil, TaskWaiting, delay}
+	task := &Task{Name: name,
+		Func:     function,
+		start:    0,
+		frames:   0,
+		Data:     nil,
+		priority: priority,
+		state:    TaskWaiting,
+		delay:    0}
+	if delay != 0 {
+		task.Wait(delay)
+	}
 	taskList = append(taskList, task)
 
 	//new task added resort
@@ -76,12 +101,9 @@ func runTasks() {
 			taskList = append(taskList[:i], taskList[i+1:]...)
 		case TaskWaiting:
 			//check delay
-			task.delay = task.delay - (Time() - task.Time)
-			if task.delay <= 0 {
-				task.delay = 0
+			if task.delay <= Time() {
 				task.state = TaskRunning
 			}
-			fallthrough
 		case TaskRunning:
 			taskQueue = append(taskQueue, task)
 		case TaskStopped:
@@ -92,7 +114,15 @@ func runTasks() {
 
 	//run through all queued tasks
 	for _, task := range taskQueue {
-		task.Time = Time()
+		//TODO: Threaded tasks, queue up horde transformations
+		if task.start == 0 {
+			task.start = Time()
+		}
+		task.frames++
+		task.Func(task)
 
 	}
+
+	//empty queue
+	taskQueue = taskQueue[0:0]
 }

@@ -69,7 +69,7 @@ func StartMainLoop() {
 	running = true
 
 	for running {
-		//TODO: taskmanager
+		runTasks()
 		horde3d.Render(Cam)
 		horde3d.FinalizeFrame()
 		glfw.SwapBuffers()
