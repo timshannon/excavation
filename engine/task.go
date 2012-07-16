@@ -25,7 +25,6 @@ type Task struct {
 	Func     taskFunc
 	start    float64
 	frames   int
-	Data     map[string]interface{}
 	state    uint
 	delay    float64
 	priority int
@@ -49,7 +48,7 @@ func (t *Task) Time() float64 {
 	return Time() - t.start
 }
 
-//Frames is the number of frames or number of times this task has been called
+//Frames is the number of frames/times this task has been called
 func (t *Task) Frames() int { return t.frames }
 func (t *Task) Stop()       { t.state = TaskStopped }
 func (t *Task) Start()      { t.Wait(0) }
@@ -72,7 +71,6 @@ func AddTask(name string, function taskFunc, priority int, delay float64) {
 		Func:     function,
 		start:    0,
 		frames:   0,
-		Data:     nil,
 		priority: priority,
 		state:    TaskWaiting,
 		delay:    0}
