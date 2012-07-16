@@ -51,6 +51,10 @@ func Init() error {
 		return errors.New("Error starting Horde3D.  Check Horde3D_log.html for more information")
 	}
 
+	//setup input handling
+	//TODO: Load control config
+	glfw.SetKeyCallback(keyHandler)
+
 	//load pipeline
 	pipeline, err = LoadPipeline()
 	if err != nil {
@@ -94,6 +98,7 @@ func onResize(w, h int) {
 		h = 1
 	}
 
+	//camera Type
 	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportXI, 0)
 	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportYI, 0)
 	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportWidthI, w)
