@@ -2,11 +2,10 @@ package main
 
 import (
 	"excavation/engine"
-	"fmt"
 )
 
 func main() {
-	if err := engine.Init(); err != nil {
+	if err := engine.Init("excavation"); err != nil {
 		panic("Error starting Excavation: " + err.Error())
 	}
 
