@@ -6,6 +6,12 @@ import (
 	"path"
 )
 
+var appName string = "excavation"
+
+func setAppName(name string) {
+	appName = name
+}
+
 //UserDir is the current users folder where everything user specific
 // like controls, save games, and video settings will be stored
 // if the path isn't found, it'll be created
@@ -15,7 +21,7 @@ func UserDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	userDir = path.Join(curUser.HomeDir, ".excavation")
+	userDir = path.Join(curUser.HomeDir, "."+appName)
 	if err := os.Chdir(userDir); err != nil {
 		if os.IsNotExist(err) {
 			os.Mkdir(userDir, 0774)

@@ -15,8 +15,8 @@ var Cam horde3d.H3DNode
 var pipeline *Resource
 var running bool
 
-func Init() error {
-
+func Init(name string) error {
+	setAppName(name)
 	//load settings from config file
 	cfg, err := NewStandardCfg()
 	if err != nil {
@@ -53,7 +53,8 @@ func Init() error {
 
 	//setup input handling
 	//TODO: Load control config
-	glfw.SetKeyCallback(keyHandler)
+	glfw.SetKeyCallback(keyCallBack)
+	glfw.SetMouseButtonCallback(mButtonCallBack)
 
 	//load pipeline
 	pipeline, err = LoadPipeline()
