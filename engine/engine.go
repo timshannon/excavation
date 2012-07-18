@@ -53,8 +53,8 @@ func Init(name string) error {
 
 	//setup input handling
 	//TODO: Load control config
-	glfw.SetKeyCallback(keyCallBack)
-	glfw.SetMouseButtonCallback(mButtonCallBack)
+	//glfw.SetKeyCallback(keyCallBack)
+	//glfw.SetMouseButtonCallback(mButtonCallBack)
 
 	//load pipeline
 	pipeline, err = LoadPipeline()
@@ -74,6 +74,7 @@ func StartMainLoop() {
 	running = true
 
 	for running {
+		//TODO: If a control is bound to a joystick, run joystick callback
 		runTasks()
 		horde3d.Render(Cam)
 		horde3d.FinalizeFrame()
@@ -99,7 +100,7 @@ func onResize(w, h int) {
 		h = 1
 	}
 
-	//camera Type
+	//TODO:camera Type
 	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportXI, 0)
 	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportYI, 0)
 	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportWidthI, w)
