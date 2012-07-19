@@ -16,6 +16,7 @@ type Config struct {
 func NewCfg(fileName string) (*Config, error) {
 	cfg := new(Config)
 
+	cfg.FileName = fileName
 	cfg.values = make(map[string]interface{})
 	//if just a filename with no path is passed in,
 	// then combine it with the userDir
@@ -42,17 +43,19 @@ func NewStandardCfg() (*Config, error) {
 		if os.IsNotExist(err) {
 			//file doesn't exist
 			// create one with default values
-			cfg.SetValue("WindowWidth", 1024)
-			cfg.SetValue("WindowHeight", 728)
-			cfg.SetValue("WindowDepth", 24)
-			cfg.SetValue("Fullscreen", false)
-			cfg.SetValue("VSync", 1)
+			defaultConfigHandler(cfg)
+			/*
+				cfg.SetValue("WindowWidth", 1024)
+				cfg.SetValue("WindowHeight", 728)
+				cfg.SetValue("WindowDepth", 24)
+				cfg.SetValue("Fullscreen", false)
+				cfg.SetValue("VSync", 1)
+			*/
 			if err = cfg.Write(); err != nil {
 				return nil, err
 			}
-		} else {
-			return nil, err
 		}
+		return nil, err
 	} else {
 		file.Close()
 	}
@@ -78,17 +81,27 @@ func NewControlCfg() (*Config, error) {
 			//	Key_W
 			//	Mouse_AxisX
 			//	Joy4_Axis3
+			defaultConfigHandler(cfg)
 			if err = cfg.Write(); err != nil {
 				return nil, err
 			}
-		} else {
-			return nil, err
 		}
+		return nil, err
 	} else {
 		file.Close()
 	}
 	return cfg, nil
 
+}
+
+type DefaultConfigHandler func(cfg *Config)
+
+var defaultConfigHandler DefaultConfigHandler
+
+//SetDefaultConfigHandler lets the game code define the
+// defaults that should be written if a config file doesn't exist
+func SetDefaultConfigHandler(function DefaultConfigHandler) {
+	defaultConfigHandler = function
 }
 
 //Loads a specific config file at a specific location
