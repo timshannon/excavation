@@ -53,8 +53,10 @@ func Init(name string) error {
 
 	//setup input handling
 	//TODO: Load control config
-	//glfw.SetKeyCallback(keyCallBack)
-	//glfw.SetMouseButtonCallback(mButtonCallBack)
+	controlCfg, _ := NewControlCfg()
+	glfw.SetKeyCallback(keyCallBack)
+	glfw.SetMouseButtonCallback(mouseButtonCallback)
+	glfw.SetMousePosCallback(mousePosCallback)
 
 	//load pipeline
 	pipeline, err = LoadPipeline()
