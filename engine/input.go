@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/jteeuwen/glfw"
+	"strconv"
 	"strings"
 )
 
@@ -26,13 +26,14 @@ type InputHandler func(input Input)
 //Input is the current values of the given input
 //  Device is the source of the input
 //  State is if the button or key is pressed or released
-//  Position is the mouse position on the x or y axis
+//  x,y is the mouse position on the x or y axis
 //  AxisPosition is the 1.0 to -1.0 position on a joystick axis
 //  Unused variables will be -1, such as state for a axis input
 type Input struct {
 	Device       Device
 	State        int
-	Position     int
+	X            int
+	Y            int
 	AxisPosition float32
 }
 
@@ -53,20 +54,7 @@ type Device struct {
 	Axis        int
 }
 
-var controlInputs map[string]InputHandler
-
 func init() {
-	controlInputs = make(map[string]InputHandler)
-}
-
-//TODO: Setup callbacks on control cfg load
-
-//A named control is bound to a Input Type
-// Game code refers to the control name "strafeLeft" and gets the input type in the call
-// to determine how to handle the event
-
-func BindInput(controlName string, function InputHandler) {
-	controlInputs[controlName] = function
 }
 
 //For printing to controls config file
@@ -77,26 +65,20 @@ func (d *Device) String() string {
 	switch d.DeviceType {
 	case DeviceKeyboard:
 		prefix = "Key"
-		if d.Button < 256 {
-			suffix = string(d.Button)
-		} else {
-			//TODO: Lookup enumeration name? Reflection?
-		}
+		suffix = strconv.Itoa(d.Button)
 	case DeviceMouse:
 		prefix = "Mouse"
 		if d.Button >= 0 {
-			suffix = string(d.Button)
-		} else if d.Axis == MouseAxisX {
-			suffix = "AxisX"
-		} else if d.Axis == MouseAxisY {
-			suffix = "AxisY"
+			suffix = strconv.Itoa(d.Button)
+		} else {
+			suffix = "Axis"
 		}
 	case DeviceJoystick:
-		prefix = "Joy" + string(d.DeviceIndex)
+		prefix = "Joy" + strconv.Itoa(d.DeviceIndex)
 		if d.Button >= 0 {
-			suffix = string(d.Button)
+			suffix = strconv.Itoa(d.Button)
 		} else {
-			suffix = "Axis" + string(d.Axis)
+			suffix = "Axis" + strconv.Itoa(d.Axis)
 		}
 
 	}
@@ -104,37 +86,60 @@ func (d *Device) String() string {
 	return prefix + "_" + suffix
 }
 
-func getGlfwKeyName(key int) string {
-	//TODO: Array of special key names
-	return string(glfw.KeyBackspace)
-}
-
 //New Device creates a new Device from a control config string
 func newDevice(cfgString string) *Device {
 	dev := new(Device)
 	var prefix string
 	var suffix string
-	str := strings.Split(deviceString, "_")
+	str := strings.Split(cfgString, "_")
 	prefix = str[0]
 	suffix = str[1]
 
-	switch prefix {
-	case "Key":
+	switch {
+	case prefix == "Key":
 		dev.DeviceType = DeviceKeyboard
-		dev.Button = int(suffix)
-	case "Mouse":
+		dev.Button, _ = strconv.Atoi(suffix)
+	case prefix == "Mouse":
 		dev.DeviceType = DeviceMouse
-		if strings.HasPrefix(suffix, "AxisX") {
-			dev.Axis = MouseAxisX
-		} else if strings.HasPrefix(suffix, "AxisY") {
-			dev.Axis = MouseAxisY
-		} else {
-			dev.Button = int(suffix)
+		if !strings.HasPrefix(suffix, "Axis") {
+			dev.Button, _ = strconv.Atoi(suffix)
 		}
 
-	case "Joy": //fix
+	case strings.Contains(prefix, "Joy"):
 		dev.DeviceType = DeviceJoystick
+		dev.DeviceIndex, _ = strconv.Atoi(strings.TrimLeft(prefix, "Joy"))
+		if strings.HasPrefix(suffix, "Axis") {
+			dev.Axis, _ = strconv.Atoi(strings.TrimLeft(suffix, "Axis"))
+		} else {
+			//Button
+			dev.Button, _ = strconv.Atoi(suffix)
+		}
 	}
 
 	return dev
+}
+
+//TODO: Setup callbacks on control cfg load
+
+//A named control is bound to a Input Type
+// Game code refers to the control name "strafeLeft" and gets the input type in the call
+// to determine how to handle the event
+
+func BindInput(controlName string, function InputHandler) {
+} //loadBindingFromCfg loads and binds the inputs, creating indexed device
+// entries for use with input callbacks
+func loadBindingsFromCfg(cfg *Config) {
+
+}
+
+func keyCallBack(key, state int) {
+
+}
+
+func mouseButtonCallback(button, state int) {
+
+}
+
+func mousePosCallback(x, y int) {
+
 }

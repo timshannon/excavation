@@ -70,7 +70,7 @@ func NewControlCfg() (*Config, error) {
 			//file doesn't exist
 			// create one with default values
 			//TODO: Default controls
-			// Nameing will be as follows
+			// Naming will be as follows
 			//  Device_Axis#
 			//  Device_Button#
 			//  Examples:
