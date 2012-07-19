@@ -52,11 +52,13 @@ func Init(name string) error {
 	}
 
 	//setup input handling
-	//TODO: Load control config
 	controlCfg, _ := NewControlCfg()
-	glfw.SetKeyCallback(keyCallBack)
+	loadBindingsFromCfg(controlCfg)
+
+	glfw.SetKeyCallback(keyCallback)
 	glfw.SetMouseButtonCallback(mouseButtonCallback)
 	glfw.SetMousePosCallback(mousePosCallback)
+	glfw.SetMouseWheelCallback(mouseWheelCallback)
 
 	//load pipeline
 	pipeline, err = LoadPipeline()
@@ -76,7 +78,7 @@ func StartMainLoop() {
 	running = true
 
 	for running {
-		//TODO: If a control is bound to a joystick, run joystick callback
+		joyUpdate()
 		runTasks()
 		horde3d.Render(Cam)
 		horde3d.FinalizeFrame()
