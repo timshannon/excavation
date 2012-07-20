@@ -9,14 +9,14 @@ import (
 )
 
 type Config struct {
+	Name     string
 	FileName string
 	values   map[string]interface{}
 }
 
 func NewCfg(fileName string) (*Config, error) {
 	cfg := new(Config)
-
-	cfg.FileName = fileName
+	cfg.Name = fileName
 	cfg.values = make(map[string]interface{})
 	//if just a filename with no path is passed in,
 	// then combine it with the userDir
@@ -34,7 +34,7 @@ func NewCfg(fileName string) (*Config, error) {
 
 //Loads the standard config file 
 func NewStandardCfg() (*Config, error) {
-	cfg, err := NewCfg("excavation.cfg")
+	cfg, err := NewCfg(appName + ".cfg")
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +44,6 @@ func NewStandardCfg() (*Config, error) {
 			//file doesn't exist
 			// create one with default values
 			defaultConfigHandler(cfg)
-			/*
-				cfg.SetValue("WindowWidth", 1024)
-				cfg.SetValue("WindowHeight", 728)
-				cfg.SetValue("WindowDepth", 24)
-				cfg.SetValue("Fullscreen", false)
-				cfg.SetValue("VSync", 1)
-			*/
 			if err = cfg.Write(); err != nil {
 				return nil, err
 			}

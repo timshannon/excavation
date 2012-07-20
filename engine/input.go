@@ -37,7 +37,6 @@ var (
 )
 
 var inputHandlers map[string]InputHandler
-var curJoystick *joystick
 
 func init() {
 	mouseAxisInputs = make([]*Input, 2)
@@ -171,6 +170,8 @@ type joystick struct {
 	axes    []float32
 }
 
+var curJoystick *joystick
+
 //New Device creates a new Device from a control config string
 func newInput(cfgString string) *Input {
 	dev := &Device{-1, -1, -1, -1}
@@ -218,6 +219,42 @@ func BindInput(controlName string, function InputHandler) {
 func loadBindingsFromCfg(cfg *Config) {
 	//TODO: Setup callbacks on control cfg load
 	//TODO: Set joystick
+
+	for _, v := range cfg.values {
+		input := newInput(v.(string))
+		device := input.Device
+
+		switch device.Type {
+		case DeviceKeyboard:
+			keyInputs[device.Button] = input
+		case DeviceMouse:
+			if device.Button != -1 {
+				mouseBtnInputs[device.Button] = input
+			} else {
+				mouseAxisInputs[device.Axis] = input
+			}
+		case DeviceJoystick:
+			if device.Button != -1 {
+				joyBtnInputs[device.Button] = input
+			} else {
+				joyAxisInputs[device.Axis] = input
+			}
+			if curJoystick == nil {
+				//currently not supporting multiple binds
+				// from multiple joysticks
+				// the current joystick is set to the first
+				// bound joystick
+				curJoystick = new(joystick)
+				curJoystick.index = device.Index
+				numAxes := glfw.JoystickParam(device.Index, glfw.Axes)
+				numButtons := glfw.JoystickParam(device.Index, glfw.Buttons)
+				curJoystick.axes = make([]float32, numAxes)
+				curJoystick.buttons = make([]byte, numButtons)
+			}
+
+		}
+
+	}
 }
 
 //keyCallBack handles the glfw callback and executes the configured
