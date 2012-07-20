@@ -47,8 +47,9 @@ func NewStandardCfg() (*Config, error) {
 			if err = cfg.Write(); err != nil {
 				return nil, err
 			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	} else {
 		file.Close()
 	}
@@ -72,14 +73,15 @@ func NewControlCfg() (*Config, error) {
 			//  Examples:
 			//	Joy12_13
 			//	Key_W
-			//	Mouse_AxisX
+			//	Mouse_Axis1
 			//	Joy4_Axis3
 			defaultConfigHandler(cfg)
 			if err = cfg.Write(); err != nil {
 				return nil, err
 			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	} else {
 		file.Close()
 	}
