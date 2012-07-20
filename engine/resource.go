@@ -19,66 +19,83 @@ func init() {
 	dataFile = path.Join(wd, "exData.tar.gz")
 }
 
-func NewPipeline(name string) *Resource {
+func NewPipeline(name string) (*Resource, error) {
 	pipeline := new(Resource)
 	pipeline.H3DRes = horde3d.AddResource(horde3d.ResTypes_Pipeline,
 		name, 0)
 
-	return pipeline
+	if pipeline.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+
+	return pipeline, nil
 
 }
 
 //LoadPipeline loads the default pipeline for the engine
 func LoadPipeline() (*Resource, error) {
-	pipeline := NewPipeline("pipelines/hdr.pipeline.xml")
-	if err := pipeline.Load(); err != nil {
+	pipeline, err := NewPipeline("pipelines/hdr.pipeline.xml")
+	if err != nil {
+		return nil, err
+	}
+	if err = pipeline.Load(); err != nil {
 		return nil, err
 	}
 	return pipeline, nil
 }
 
-func NewScene(name string) *Resource {
+func NewScene(name string) (*Resource, error) {
 	scene := new(Resource)
 	scene.H3DRes = horde3d.AddResource(horde3d.ResTypes_SceneGraph,
 		name, 0)
+	if scene.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
 
-	return scene
+	return scene, nil
 }
 
-func NewGeometry(name string) *Resource {
+func NewGeometry(name string) (*Resource, error) {
 	geo := new(Resource)
 
 	geo.H3DRes = horde3d.AddResource(horde3d.ResTypes_Geometry,
 		name, 0)
-	return geo
+
+	if geo.H3dRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+	return geo, nil
 }
 
-func NewAnimation(name string) *Resource {
+func NewAnimation(name string) (*Resource, error) {
 	anim := new(Resource)
 	anim.H3DRes = horde3d.AddResource(horde3d.ResTypes_Animation,
 		name, 0)
-	return anim
+	if anim.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+
+	return anim, nil
 }
 
-func NewParticleEffect(name string) *Resource {
+func NewParticleEffect(name string) (*Resource, error) {
 	part := new(Resource)
 
 	part.H3DRes = horde3d.AddResource(horde3d.ResTypes_ParticleEffect,
 		name, 0)
-	return part
+	if part.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+	return part, nil
 }
 
 type Resource struct {
 	horde3d.H3DRes
 }
 
-func (res *Resource) Type() int {
-	return horde3d.GetResType(res.H3DRes)
-}
+func (res *Resource) Type() int { return horde3d.GetResType(res.H3DRes) }
 
-func (res *Resource) Name() string {
-	return horde3d.GetResName(res.H3DRes)
-}
+func (res *Resource) Name() string { return horde3d.GetResName(res.H3DRes) }
 
 //Resources will be loaded either from a directory or from a
 // tar.gz data file.  If the both the data folder and data tar.gz
@@ -113,14 +130,8 @@ func (res *Resource) Clone(cloneName string) *Resource {
 	return clone
 }
 
-func (res *Resource) Remove() int {
-	return horde3d.RemoveResource(res.H3DRes)
-}
+func (res *Resource) Remove() int { return horde3d.RemoveResource(res.H3DRes) }
 
-func (res *Resource) IsLoaded() bool {
-	return horde3d.IsResLoaded(res.H3DRes)
-}
+func (res *Resource) IsLoaded() bool { return horde3d.IsResLoaded(res.H3DRes) }
 
-func (res *Resource) Unload() {
-	horde3d.UnloadResource(res.H3DRes)
-}
+func (res *Resource) Unload() { horde3d.UnloadResource(res.H3DRes) }

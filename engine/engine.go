@@ -22,9 +22,8 @@ func Init(name string) error {
 	if err != nil {
 		return err
 	}
-	err = cfg.Load()
 
-	if err != nil {
+	if err = cfg.Load(); err != nil {
 		return err
 	}
 
