@@ -12,7 +12,7 @@ const (
 
 //globally accessible camera and pipeline
 var Cam horde3d.H3DNode
-var pipeline *Resource
+var pipeline *Pipeline
 var running bool
 
 func Init(name string) error {
@@ -113,10 +113,17 @@ func onResize(w, h int) {
 
 	//TODO: Set clip distance? Config?
 	horde3d.SetupCameraView(Cam, 45.0, float32(w)/float32(h), 0.1, 1000.0)
-	horde3d.ResizePipelineBuffers(pipeline.H3DRes, w, h)
+	pipeline.ResizeBuffers(w, h)
 
 }
 
 func Time() float64 {
 	return glfw.Time()
+}
+
+//Clear clears all rendering, physics, and sound resources, nodes, etc
+func Clear() {
+	horde3d.Clear()
+	//TODO: Clear audio / sound entities
+	//TODO: Clear Physics entities
 }
