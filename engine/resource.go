@@ -19,76 +19,6 @@ func init() {
 	dataFile = path.Join(wd, "exData.tar.gz")
 }
 
-func NewPipeline(name string) (*Resource, error) {
-	pipeline := new(Resource)
-	pipeline.H3DRes = horde3d.AddResource(horde3d.ResTypes_Pipeline,
-		name, 0)
-
-	if pipeline.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
-	}
-
-	return pipeline, nil
-
-}
-
-//LoadPipeline loads the default pipeline for the engine
-func LoadPipeline() (*Resource, error) {
-	pipeline, err := NewPipeline("pipelines/hdr.pipeline.xml")
-	if err != nil {
-		return nil, err
-	}
-	if err = pipeline.Load(); err != nil {
-		return nil, err
-	}
-	return pipeline, nil
-}
-
-func NewScene(name string) (*Resource, error) {
-	scene := new(Resource)
-	scene.H3DRes = horde3d.AddResource(horde3d.ResTypes_SceneGraph,
-		name, 0)
-	if scene.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
-	}
-
-	return scene, nil
-}
-
-func NewGeometry(name string) (*Resource, error) {
-	geo := new(Resource)
-
-	geo.H3DRes = horde3d.AddResource(horde3d.ResTypes_Geometry,
-		name, 0)
-
-	if geo.H3dRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
-	}
-	return geo, nil
-}
-
-func NewAnimation(name string) (*Resource, error) {
-	anim := new(Resource)
-	anim.H3DRes = horde3d.AddResource(horde3d.ResTypes_Animation,
-		name, 0)
-	if anim.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
-	}
-
-	return anim, nil
-}
-
-func NewParticleEffect(name string) (*Resource, error) {
-	part := new(Resource)
-
-	part.H3DRes = horde3d.AddResource(horde3d.ResTypes_ParticleEffect,
-		name, 0)
-	if part.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
-	}
-	return part, nil
-}
-
 type Resource struct {
 	horde3d.H3DRes
 }
@@ -135,3 +65,87 @@ func (res *Resource) Remove() int { return horde3d.RemoveResource(res.H3DRes) }
 func (res *Resource) IsLoaded() bool { return horde3d.IsResLoaded(res.H3DRes) }
 
 func (res *Resource) Unload() { horde3d.UnloadResource(res.H3DRes) }
+
+type Pipeline struct{ *Resource }
+
+func NewPipeline(name string) (*Pipeline, error) {
+	pipeline := new(Pipeline)
+	pipeline.H3DRes = horde3d.AddResource(horde3d.ResTypes_Pipeline,
+		name, 0)
+
+	if pipeline.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+
+	return pipeline, nil
+
+}
+
+//LoadPipeline loads the default pipeline for the engine
+func LoadPipeline() (*Pipeline, error) {
+	pipeline, err := NewPipeline("pipelines/hdr.pipeline.xml")
+	if err != nil {
+		return nil, err
+	}
+	if err = pipeline.Load(); err != nil {
+		return nil, err
+	}
+	return pipeline, nil
+}
+
+func (p *Pipeline) ResizeBuffers(width, height int) {
+	horde3d.ResizePipelineBuffers(p.H3DRes, width, height)
+}
+
+type Scene struct{ *Resource }
+
+func NewScene(name string) (*Scene, error) {
+	scene := new(Scene)
+	scene.H3DRes = horde3d.AddResource(horde3d.ResTypes_SceneGraph,
+		name, 0)
+	if scene.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+
+	return scene, nil
+}
+
+type Geometry struct{ *Resource }
+
+func NewGeometry(name string) (*Geometry, error) {
+	geo := new(Geometry)
+
+	geo.H3DRes = horde3d.AddResource(horde3d.ResTypes_Geometry,
+		name, 0)
+
+	if geo.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+	return geo, nil
+}
+
+type Animation struct{ *Resource }
+
+func NewAnimation(name string) (*Animation, error) {
+	anim := new(Animation)
+	anim.H3DRes = horde3d.AddResource(horde3d.ResTypes_Animation,
+		name, 0)
+	if anim.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+
+	return anim, nil
+}
+
+type ParticleEffect struct{ *Resource }
+
+func NewParticleEffect(name string) (*ParticleEffect, error) {
+	part := new(ParticleEffect)
+
+	part.H3DRes = horde3d.AddResource(horde3d.ResTypes_ParticleEffect,
+		name, 0)
+	if part.H3DRes == 0 {
+		return nil, errors.New("Unable to add resource in Horde3D.")
+	}
+	return part, nil
+}
