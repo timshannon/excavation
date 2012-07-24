@@ -141,6 +141,7 @@ func (d *Device) String() string {
 	switch d.Type {
 	case DeviceKeyboard:
 		prefix = "Key"
+		//TODO: Decode key to keyname in an array
 		suffix = strconv.Itoa(d.Button)
 	case DeviceMouse:
 		prefix = "Mouse"
@@ -214,45 +215,52 @@ func BindInput(controlName string, function InputHandler) {
 	inputHandlers[controlName] = function
 }
 
+//BindDirectInput binds an input to a function directly
+// without requiring a config entry for it
+func BindDirectInput(input string, function InputHandler) {
+	addBinding(input, input)
+	inputHandlers[input] = function
+}
+
 //loadBindingFromCfg loads and binds the inputs, creating indexed input
 // entries for use with input callbacks
 func loadBindingsFromCfg(cfg *Config) {
-	//TODO: Setup callbacks on control cfg load
-	//TODO: Set joystick
-
 	for k, v := range cfg.values {
-		input := newInput(v.(string))
-		input.controlName = k
-		device := input.Device
+		addBinding(k, v.(string))
+	}
+}
 
-		switch device.Type {
-		case DeviceKeyboard:
-			keyInputs[device.Button] = input
-		case DeviceMouse:
-			if device.Button != -1 {
-				mouseBtnInputs[device.Button] = input
-			} else {
-				mouseAxisInputs[device.Axis] = input
-			}
-		case DeviceJoystick:
-			if device.Button != -1 {
-				joyBtnInputs[device.Button] = input
-			} else {
-				joyAxisInputs[device.Axis] = input
-			}
-			if curJoystick == nil {
-				//currently not supporting multiple binds
-				// from multiple joysticks
-				// the current joystick is set to the first
-				// bound joystick
-				curJoystick = new(joystick)
-				curJoystick.index = device.Index
-				numAxes := glfw.JoystickParam(device.Index, glfw.Axes)
-				numButtons := glfw.JoystickParam(device.Index, glfw.Buttons)
-				curJoystick.axes = make([]float32, numAxes)
-				curJoystick.buttons = make([]byte, numButtons)
-			}
+func addBinding(controlName, cfgString string) {
+	input := newInput(cfgString)
+	input.controlName = controlName
+	device := input.Device
 
+	switch device.Type {
+	case DeviceKeyboard:
+		keyInputs[device.Button] = input
+	case DeviceMouse:
+		if device.Button != -1 {
+			mouseBtnInputs[device.Button] = input
+		} else {
+			mouseAxisInputs[device.Axis] = input
+		}
+	case DeviceJoystick:
+		if device.Button != -1 {
+			joyBtnInputs[device.Button] = input
+		} else {
+			joyAxisInputs[device.Axis] = input
+		}
+		if curJoystick == nil {
+			//currently not supporting multiple binds
+			// from multiple joysticks
+			// the current joystick is set to the first
+			// bound joystick
+			curJoystick = new(joystick)
+			curJoystick.index = device.Index
+			numAxes := glfw.JoystickParam(device.Index, glfw.Axes)
+			numButtons := glfw.JoystickParam(device.Index, glfw.Buttons)
+			curJoystick.axes = make([]float32, numAxes)
+			curJoystick.buttons = make([]byte, numButtons)
 		}
 
 	}

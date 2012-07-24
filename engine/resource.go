@@ -149,3 +149,9 @@ func NewParticleEffect(name string) (*ParticleEffect, error) {
 	}
 	return part, nil
 }
+
+type Material struct{ *Resource }
+
+func (m *Material) SetUniform(name string, a, b, c, d float32) bool {
+	return horde3d.SetMaterialUniform(m.H3DRes, name, a, b, c, d)
+}
