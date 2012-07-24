@@ -2,6 +2,7 @@ package main
 
 import (
 	"excavation/engine"
+	"fmt"
 )
 
 func main() {
@@ -12,8 +13,13 @@ func main() {
 		panic("Error starting Excavation: " + err.Error())
 	}
 
+	engine.BindInput("StrafeLeft", inputTest)
 	engine.StartMainLoop()
 
+}
+
+func inputTest(input *engine.Input) {
+	fmt.Println("StrafeLeft")
 }
 
 func setCfgDefaults(cfg *engine.Config) {
@@ -25,7 +31,7 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("Fullscreen", false)
 		cfg.SetValue("VSync", 1)
 	case "controls.cfg":
-		cfg.SetValue("StrafeLeft", 'A')
+		cfg.SetValue("StrafeLeft", "Joy0_1")
 	}
 
 }

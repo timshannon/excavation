@@ -53,7 +53,11 @@ func Init(name string) error {
 	}
 
 	//setup input handling
-	controlCfg, _ := NewControlCfg()
+	controlCfg, err := NewControlCfg()
+	if err != nil {
+		return err
+	}
+	controlCfg.Load()
 	loadBindingsFromCfg(controlCfg)
 
 	glfw.SetKeyCallback(keyCallback)
