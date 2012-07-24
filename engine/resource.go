@@ -69,7 +69,7 @@ func (res *Resource) Unload() { horde3d.UnloadResource(res.H3DRes) }
 type Pipeline struct{ *Resource }
 
 func NewPipeline(name string) (*Pipeline, error) {
-	pipeline := new(Pipeline)
+	pipeline := &Pipeline{new(Resource)}
 	pipeline.H3DRes = horde3d.AddResource(horde3d.ResTypes_Pipeline,
 		name, 0)
 
@@ -100,7 +100,7 @@ func (p *Pipeline) ResizeBuffers(width, height int) {
 type Scene struct{ *Resource }
 
 func NewScene(name string) (*Scene, error) {
-	scene := new(Scene)
+	scene := &Scene{new(Resource)}
 	scene.H3DRes = horde3d.AddResource(horde3d.ResTypes_SceneGraph,
 		name, 0)
 	if scene.H3DRes == 0 {
@@ -113,7 +113,7 @@ func NewScene(name string) (*Scene, error) {
 type Geometry struct{ *Resource }
 
 func NewGeometry(name string) (*Geometry, error) {
-	geo := new(Geometry)
+	geo := &Geometry{new(Resource)}
 
 	geo.H3DRes = horde3d.AddResource(horde3d.ResTypes_Geometry,
 		name, 0)
@@ -127,7 +127,7 @@ func NewGeometry(name string) (*Geometry, error) {
 type Animation struct{ *Resource }
 
 func NewAnimation(name string) (*Animation, error) {
-	anim := new(Animation)
+	anim := &Animation{new(Resource)}
 	anim.H3DRes = horde3d.AddResource(horde3d.ResTypes_Animation,
 		name, 0)
 	if anim.H3DRes == 0 {
@@ -140,7 +140,7 @@ func NewAnimation(name string) (*Animation, error) {
 type ParticleEffect struct{ *Resource }
 
 func NewParticleEffect(name string) (*ParticleEffect, error) {
-	part := new(ParticleEffect)
+	part := &ParticleEffect{new(Resource)}
 
 	part.H3DRes = horde3d.AddResource(horde3d.ResTypes_ParticleEffect,
 		name, 0)

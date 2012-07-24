@@ -29,7 +29,7 @@ const (
 )
 
 var (
-	mouseAxisInputs []*Input
+	mouseAxisInputs map[int]*Input
 	mouseBtnInputs  map[int]*Input
 	keyInputs       map[int]*Input
 	joyAxisInputs   map[int]*Input
@@ -39,7 +39,7 @@ var (
 var inputHandlers map[string]InputHandler
 
 func init() {
-	mouseAxisInputs = make([]*Input, 2)
+	mouseAxisInputs = make(map[int]*Input)
 	mouseBtnInputs = make(map[int]*Input)
 	keyInputs = make(map[int]*Input)
 	joyAxisInputs = make(map[int]*Input)
@@ -220,8 +220,9 @@ func loadBindingsFromCfg(cfg *Config) {
 	//TODO: Setup callbacks on control cfg load
 	//TODO: Set joystick
 
-	for _, v := range cfg.values {
+	for k, v := range cfg.values {
 		input := newInput(v.(string))
+		input.controlName = k
 		device := input.Device
 
 		switch device.Type {
@@ -260,32 +261,48 @@ func loadBindingsFromCfg(cfg *Config) {
 //keyCallBack handles the glfw callback and executes the configured
 // inputhandler for the given input
 func keyCallback(key, state int) {
-	input := keyInputs[key]
-	input.State = state
-	inputHandlers[input.controlName](input)
+	input, ok := keyInputs[key]
+	if ok {
+		input.State = state
+		if function, ok := inputHandlers[input.controlName]; ok {
+			function(input)
+		}
+	}
 }
 
 //mouseButtonCallBack handles the glfw callback and executes the configured
 // inputhandler for the given input
 func mouseButtonCallback(button, state int) {
-	input := mouseBtnInputs[button]
-	input.State = state
-	inputHandlers[input.controlName](input)
+	input, ok := mouseBtnInputs[button]
+	if ok {
+		input.State = state
+		if function, ok := inputHandlers[input.controlName]; ok {
+			function(input)
+		}
+	}
 }
 
 //mousePosCallBack handles the glfw callback and executes the configured
 // inputhandler for the given input
 func mousePosCallback(x, y int) {
-	input := mouseAxisInputs[MouseAxisPos]
-	input.X = x
-	input.Y = y
-	inputHandlers[input.controlName](input)
+	input, ok := mouseAxisInputs[MouseAxisPos]
+	if ok {
+		input.X = x
+		input.Y = y
+		if function, ok := inputHandlers[input.controlName]; ok {
+			function(input)
+		}
+	}
 }
 
 func mouseWheelCallback(delta int) {
-	input := mouseAxisInputs[MouseAxisWheel]
-	input.X = delta
-	inputHandlers[input.controlName](input)
+	input, ok := mouseAxisInputs[MouseAxisWheel]
+	if ok {
+		input.X = delta
+		if function, ok := inputHandlers[input.controlName]; ok {
+			function(input)
+		}
+	}
 }
 
 //joyUpdate updates the joystick input values and executes the configured
@@ -296,12 +313,15 @@ func joyUpdate() {
 		var input *Input
 		var ok bool
 		results = glfw.JoystickButtons(curJoystick.index, curJoystick.buttons)
+		//TODO: Joystick input seems to be continual
 
 		for i := 0; i < results; i++ {
 			input, ok = joyBtnInputs[i]
 			if ok {
 				input.State = int(curJoystick.buttons[i])
-				inputHandlers[input.controlName](input)
+				if function, ok := inputHandlers[input.controlName]; ok {
+					function(input)
+				}
 			}
 		}
 
@@ -310,7 +330,9 @@ func joyUpdate() {
 			input, ok = joyAxisInputs[i]
 			if ok {
 				input.AxisPos = curJoystick.axes[i]
-				inputHandlers[input.controlName](input)
+				if function, ok := inputHandlers[input.controlName]; ok {
+					function(input)
+				}
 			}
 		}
 	}
