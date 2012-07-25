@@ -7,10 +7,8 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
+	"excavation/math3d"
 )
-
-//Vector is a container for x,y,z values in that order
-type Vector [3]float32
 
 type Node struct {
 	horde3d.H3DNode
@@ -77,7 +75,10 @@ func (n *Node) CheckTransFlag(reset bool) bool {
 
 //This function gets the translation, rotation and scale of a specified scene node object. 
 // The coordinates are in local space and contain the transformation of the node relative to its parent.
-func (n *Node) Transform() (translate, rotate, scale *Vector) {
+func (n *Node) Transform() (translate, rotate, scale math3d.Vector3) {
+	translate = math3d.MakeVector3(0, 0, 0)
+	rotate = math3d.MakeVector3(0, 0, 0)
+	scale = math3d.MakeVector3(0, 0, 0)
 	horde3d.GetNodeTransform(n.H3DNode, &translate[0], &translate[1], &translate[2],
 		&rotate[0], &rotate[1], &rotate[2], &scale[0], &scale[1], &scale[2])
 	return
@@ -86,34 +87,36 @@ func (n *Node) Transform() (translate, rotate, scale *Vector) {
 //This function sets the relative translation, rotation and scale of a 
 //specified scene node object.  The coordinates are in local space and 
 //contain the transformation of the node relative to its parent.
-func (n *Node) SetTransform(translate, rotate, scale *Vector) {
+func (n *Node) SetTransform(translate, rotate, scale math3d.Vector3) {
 	horde3d.SetNodeTransform(n.H3DNode, translate[0], translate[1], translate[2],
 		rotate[0], rotate[1], rotate[2], scale[0], scale[1], scale[2])
 }
 
-//TODO: use Matrix type?  goMatrix?
 //Gets the relative transformation matrix of the node
-func (n *Node) RelativeTransMat() []float32 {
-	relative := make([]float32, 16)
+func (n *Node) RelativeTransMat() math3d.Matrix4 {
+	relative := math3d.MakeMatrix4()
 	horde3d.GetNodeTransMats(n.H3DNode, relative, nil)
 	return relative
 }
 
 //Gets the absolute transformation matrix of the node
-func (n *Node) AbsoluteTransMat() []float32 {
-	absolute := make([]float32, 16)
+func (n *Node) AbsoluteTransMat() math3d.Matrix4 {
+	absolute := math3d.MakeMatrix4()
 	horde3d.GetNodeTransMats(n.H3DNode, nil, absolute)
 	return absolute
 }
 
 //Sets the relative transformation matrix of the node
-func (n *Node) SetRelativeTransMat(matrix []float32) {
+func (n *Node) SetRelativeTransMat(matrix math3d.Matrix4) {
 	horde3d.SetNodeTransMat(n.H3DNode, matrix)
 }
 
 //Returns the bounds of a box that encompasses the node
-func (n *Node) BoundingBox() (minX, minY, minZ, maxX, maxY, maxZ float32) {
-	horde3d.GetNodeAABB(n.H3DNode, &minX, &minY, &minZ, &maxX, &maxY, &maxZ)
+func (n *Node) BoundingBox() (min, max math3d.Vector3) {
+	min = math3d.MakeVector3(0, 0, 0)
+	max = math3d.MakeVector3(0, 0, 0)
+	horde3d.GetNodeAABB(n.H3DNode, &min[0], &min[1], &min[2],
+		&max[0], &max[1], &max[2])
 	return
 }
 
@@ -192,7 +195,7 @@ func (n *Node) IsSame(other *Node) bool {
 type CastRayResult struct {
 	ResultNode   *Node
 	Distance     *float32
-	Intersection *Vector
+	Intersection math3d.Vector3
 }
 
 //This function checks recursively if the specified ray intersects the specified node or one of its children.  
@@ -200,18 +203,19 @@ type CastRayResult struct {
 //The ray is a line segment and is specified by a starting point (the origin) and a finite direction vector 
 //which also defines its length.  Currently this function is limited to returning intersections with Meshes.  
 //For Meshes, the base LOD (LOD0) is always used for performing the ray-triangle intersection tests.
-func (n *Node) CastRay(origin, direction *Vector, maxNearest int) []*CastRayResult {
+func (n *Node) CastRay(origin, direction math3d.Vector3, maxNearest int) []*CastRayResult {
 	size := horde3d.CastRay(n.H3DNode, origin[0], origin[1], origin[2],
 		direction[0], direction[1], direction[2], maxNearest)
 
 	results := make([]*CastRayResult, size)
 
 	for i := range results {
+		intersection := math3d.MakeVector3(0, 0, 0)
 		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, results[i].Distance,
-			results[i].Intersection[:])
+			intersection)
+		results[i].Intersection = intersection
 	}
 	return results
-
 }
 
 //This function checks if a specified node is visible from the perspective of a specified camera.  

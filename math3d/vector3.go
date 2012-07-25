@@ -6,7 +6,7 @@ http://www.boost.org/LICENSE_1_0.txt
 http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 */
 
-package math3d32
+package math3d
 
 import "fmt"
 import "math"

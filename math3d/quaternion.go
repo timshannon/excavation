@@ -6,7 +6,7 @@ http://www.boost.org/LICENSE_1_0.txt
 http://www.geometrictools.com/License/Boost/LICENSE_1_0.txt
 */
 
-package math3d32
+package math3d
 
 import "fmt"
 import "math"
@@ -247,7 +247,6 @@ func (m Quaternion) NLerp(t float32, a, b Quaternion) Quaternion {
 	_, _ = m.Normalize(internalε)
 	return m
 }
-
 
 func (m Quaternion) String() string {
 	return fmt.Sprintf("[%.5f,%.5f,%.5f,%.5f]", m[0], m[1], m[2], m[3])
