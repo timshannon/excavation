@@ -349,6 +349,265 @@ func AddJoint(parent *Node, name string, jointIndex int) (*Joint, error) {
 	return joint, nil
 }
 
+func (j *Joint) Index() int { return horde3d.GetNodeParamI(j.H3DNode, horde3d.Joint_JointIndexI) }
+
 type Light struct{ *Node }
+
+func AddLight(parent *Node, name string, material *Material, lightingContext string,
+	shadowContext string) *Light {
+	light := new(Light)
+	light.H3DNode = horde3d.AddLightNode(parent.H3DNode, name, material.H3DRes,
+		lightingContext, shadowContext)
+	return light
+}
+
+func (l *Light) Material() *Material {
+	material := new(Material)
+	material.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(l.H3DNode, horde3d.Light_MatResI))
+	return material
+}
+
+func (l *Light) SetMaterial(material *Material) {
+	horde3d.SetNodeParamI(l.H3DNode, horde3d.Light_MatResI, int(material.H3DRes))
+}
+
+func (l *Light) FOV() float32 { return horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_FovF, 0) }
+func (l *Light) SetFOV(newFOV float32) {
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_FovF, 0, newFOV)
+}
+
+func (l *Light) Color() math3d.Vector3 {
+	r := horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_ColorF3, 0)
+	b := horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_ColorF3, 1)
+	g := horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_ColorF3, 2)
+	return math3d.MakeVector3(r, g, b)
+}
+
+func (l *Light) SetColor(color math3d.Vector3) {
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_ColorF3, 0, color[0])
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_ColorF3, 1, color[1])
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_ColorF3, 2, color[2])
+}
+
+func (l *Light) ColorMultiplier() float32 {
+	return horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_ColorMultiplierF, 0)
+}
+
+func (l *Light) SetColorMultiplier(multiplier float32) {
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_ColorMultiplierF, 0, multiplier)
+}
+
+func (l *Light) ShadowMapCount() int {
+	return horde3d.GetNodeParamI(l.H3DNode, horde3d.Light_ShadowMapCountI)
+}
+
+func (l *Light) SetShadowMapCount(count int) {
+	horde3d.SetNodeParamI(l.H3DNode, horde3d.Light_ShadowMapCountI, count)
+}
+
+func (l *Light) ShadowSplitLambda() float32 {
+	return horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_ShadowSplitLambdaF, 0)
+}
+
+func (l *Light) SetShadowSplitLambda(lambda float32) {
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_ShadowSplitLambdaF, 0, lambda)
+}
+
+func (l *Light) ShadowMapBias() float32 {
+	return horde3d.GetNodeParamF(l.H3DNode, horde3d.Light_ShadowMapBiasF, 0)
+}
+
+func (l *Light) SetShadowMapBias(bias float32) {
+	horde3d.SetNodeParamF(l.H3DNode, horde3d.Light_ShadowMapBiasF, 0, bias)
+}
+
+func (l *Light) LightingContext() string {
+	return horde3d.GetNodeParamStr(l.H3DNode, horde3d.Light_LightingContextStr)
+}
+
+func (l *Light) SetLightingContext(context string) {
+	horde3d.SetNodeParamStr(l.H3DNode, horde3d.Light_LightingContextStr, context)
+}
+
+func (l *Light) ShadowContext() string {
+	return horde3d.GetNodeParamStr(l.H3DNode, horde3d.Light_ShadowContextStr)
+}
+
+func (l *Light) SetShadowContext(context string) {
+	horde3d.SetNodeParamStr(l.H3DNode, horde3d.Light_ShadowContextStr, context)
+}
+
 type Camera struct{ *Node }
+
+func AddCamera(parent *Node, name string, pipeline *Pipeline) *Camera {
+	camera := new(Camera)
+	camera.H3DNode = horde3d.AddCameraNode(parent.H3DNode, name, pipeline.H3DRes)
+	return camera
+}
+
+func (c *Camera) SetupView(FOV, aspect, nearDist, farDist float32) {
+	horde3d.SetupCameraView(c.H3DNode, FOV, aspect, nearDist, farDist)
+}
+
+func (c *Camera) ProjectionMatrix() math3d.Matrix4 {
+	matrix := math3d.MakeMatrix4()
+	horde3d.GetCameraProjMat(c.H3DNode, matrix)
+	return matrix
+}
+
+func (c *Camera) Pipeline() *Pipeline {
+	pipeline := new(Pipeline)
+	pipeline.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_PipeResI))
+	return pipeline
+}
+
+func (c *Camera) SetPipeline(pipeline *Pipeline) {
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_PipeResI, int(pipeline.H3DRes))
+}
+
+//2D Texture resource used as output buffer (can be 0 to use main framebuffer) (default: 0)
+func (c *Camera) OutTexture() *Texture {
+	texture := new(Texture)
+	texture.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_OutTexResI))
+	return texture
+}
+
+func (c *Camera) SetOutTexture(texture *Texture) {
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_OutTexResI, int(texture.H3DRes))
+}
+
+//Index of the output buffer for stereo rendering (values: 0 for left eye, 1 for right eye) (default: 0)
+func (c *Camera) OutputBufferIndex() int {
+	return horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_OutBufIndexI)
+}
+
+func (c *Camera) SetOutputBufferIndex(index int) {
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_OutBufIndexI, index)
+}
+
+func (c *Camera) ViewPlanes() (left, right, bottom, top float32) {
+	left = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_LeftPlaneF, 0)
+	right = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_RightPlaneF, 0)
+	bottom = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_BottomPlaneF, 0)
+	top = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_TopPlaneF, 0)
+	return
+}
+
+func (c *Camera) SetViewPlanes(left, right, bottom, top float32) {
+	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_LeftPlaneF, 0, left)
+	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_RightPlaneF, 0, right)
+	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_BottomPlaneF, 0, bottom)
+	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_TopPlaneF, 0, top)
+}
+
+func (c *Camera) Viewport() (x, y, width, height int) {
+	x = horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_ViewportXI)
+	y = horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_ViewportYI)
+	width = horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_ViewportWidthI)
+	height = horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_ViewportHeightI)
+	return
+}
+
+func (c *Camera) SetViewport(x, y, width, height int) {
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_ViewportXI, x)
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_ViewportYI, y)
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_ViewportWidthI, width)
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_ViewportHeightI, height)
+}
+
+func (c *Camera) IsOrtho() bool {
+	i := horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_OrthoI)
+	if i != 0 {
+		return true
+	}
+	return false
+}
+
+func (c *Camera) SetOrtho(value bool) {
+	var i int
+	if value {
+		i = 1
+	} else {
+		i = 0
+	}
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_OrthoI, i)
+}
+
+func (c *Camera) OcclusionCulling() bool {
+	i := horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_OccCullingI)
+
+	if i != 0 {
+		return true
+	}
+	return false
+}
+
+func (c *Camera) SetOcclusionCulling(value bool) {
+	var i int
+	if value {
+		i = 1
+	} else {
+		i = 0
+	}
+
+	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_OccCullingI, i)
+}
+
 type Emitter struct{ *Node }
+
+func AddEmitter(parent *Node, name string, material *Material, particleEffect *ParticleEffect,
+	maxParticleCount int, respawnCount int) *Emitter {
+	emitter := new(Emitter)
+	emitter.H3DNode = horde3d.AddEmitterNode(parent.H3DNode, name, material.H3DRes,
+		particleEffect.H3DRes, maxParticleCount, respawnCount)
+
+	return emitter
+}
+
+func (e *Emitter) AdvanceTime(timeDelta float32) {
+	horde3d.AdvanceEmitterTime(e.H3DNode, timeDelta)
+}
+
+func (e *Emitter) IsFinished() bool {
+	return horde3d.HasEmitterFinished(e.H3DNode)
+}
+
+func (e *Emitter) Material() *Material {
+	material := new(Material)
+	material.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(e.H3DNode, horde3d.Emitter_MatResI))
+	return material
+}
+
+func (e *Emitter) SetMaterial(material *Material) {
+	horde3d.SetNodeParamI(e.H3DNode, horde3d.Emitter_MatResI, int(material.H3DRes))
+}
+
+func (e *Emitter) ParticleEffect() *ParticleEffect {
+	partEffect := new(ParticleEffect)
+	partEffect.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(e.H3DNode, horde3d.Emitter_PartEffResI))
+	return partEffect
+}
+
+func (e *Emitter) SetParticleEffect(particleEffect *ParticleEffect) {
+	horde3d.SetNodeParamI(e.H3DNode, horde3d.Emitter_PartEffResI, int(particleEffect.H3DRes))
+}
+
+func (e *Emitter) MaxCount() int {
+	return horde3d.GetNodeParamI(e.H3DNode, horde3d.Emitter_MaxCountI)
+}
+
+func (e *Emitter) SetMaxCount(count int) {
+	horde3d.SetNodeParamI(e.H3DNode, horde3d.Emitter_MaxCountI, count)
+}
+
+func (e *Emitter) RespawnCount() int {
+	return horde3d.GetNodeParamI(e.H3DNode, horde3d.Emitter_RespawnCountI)
+}
+
+func (e *Emitter) SetRespawnCount(count int) {
+	horde3d.SetNodeParamI(e.H3DNode, horde3d.Emitter_RespawnCountI, count)
+}
+
+func (e *Emitter) Delay() float32 {
+	return horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_DelayF, 0)
+}

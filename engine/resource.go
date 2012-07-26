@@ -141,6 +141,17 @@ func NewAnimation(name string) (*Animation, error) {
 	return anim, nil
 }
 
+type Material struct{ *Resource }
+
+func (m *Material) SetUniform(name string, a, b, c, d float32) bool {
+	return horde3d.SetMaterialUniform(m.H3DRes, name, a, b, c, d)
+}
+
+type ShaderCode struct{ *Resource }
+
+type Shader struct{ *Resource }
+type Texture struct{ *Resource }
+
 type ParticleEffect struct{ *Resource }
 
 func NewParticleEffect(name string) (*ParticleEffect, error) {
@@ -152,10 +163,4 @@ func NewParticleEffect(name string) (*ParticleEffect, error) {
 		return nil, errors.New("Unable to add resource in Horde3D.")
 	}
 	return part, nil
-}
-
-type Material struct{ *Resource }
-
-func (m *Material) SetUniform(name string, a, b, c, d float32) bool {
-	return horde3d.SetMaterialUniform(m.H3DRes, name, a, b, c, d)
 }
