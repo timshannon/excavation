@@ -611,3 +611,37 @@ func (e *Emitter) SetRespawnCount(count int) {
 func (e *Emitter) Delay() float32 {
 	return horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_DelayF, 0)
 }
+
+func (e *Emitter) SetDelay(delay float32) {
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_DelayF, 0, delay)
+}
+
+func (e *Emitter) EmissionRate() float32 {
+	return horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_EmissionRateF, 0)
+}
+
+func (e *Emitter) SetEmissionRate(rate float32) {
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_EmissionRateF, 0, rate)
+}
+
+func (e *Emitter) SpreadAngle() float32 {
+	return horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_SpreadAngleF, 0)
+}
+
+func (e *Emitter) SetSpreadAngle(angle float32) {
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_SpreadAngleF, 0, angle)
+}
+
+func (e *Emitter) Force() math3d.Vector3 {
+	x := horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0)
+	y := horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1)
+	z := horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2)
+
+	return math3d.MakeVector3(x, y, z)
+}
+
+func (e *Emitter) SetForce(force math3d.Vector3) {
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0, force[0])
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1, force[1])
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2, force[2])
+}
