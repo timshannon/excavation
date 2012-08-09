@@ -1,37 +1,34 @@
+// Copyright 2012 Tim Shannon. All rights reserved. 
+// Use of this source code is governed by the MIT license
+// that can be found in the LICENSE file. 
+
 // ****************************************************************************************
-//
-// GameEngine PlugIn
-// --------------------------------------
-// Copyright (C) 2007 Volker Wiendl
+// excavation attachment plugin for storing excavation game entity data
+//   in the scene tree
 // 
-// This file is part of the GameEngine of the University of Augsburg
-// 
-// You are not allowed to redistribute the code, if not explicitly authorized by the author
-//
 // ****************************************************************************************
 
+#ifndef EXATTACHMENT_H_
+#define EXATTACHMENT_H_
 
-#ifndef GAMECONTROLLERATTACHMENT_H_
-#define GAMECONTROLLERATTACHMENT_H_
+#include "AttachmentPlugIn.h"
+#include <QTextEdit>
 
-#include "../HordeSceneEditorCore/AttachmentPlugIn.h"
-
-class GameControllerWidget;
+//class exWidget;
 
 /**
- * This class manages the access to the GameController Library through the HordeSceneEditor
  */
-class GameControllerAttachment : public AttachmentPlugIn
+class exAttachment : public AttachmentPlugIn
 {
 	Q_OBJECT
 	Q_INTERFACES(AttachmentPlugIn)
 
 public:
-	GameControllerAttachment(QObject* parent = 0);
+	exAttachment(QObject* parent = 0);
 
-	virtual ~GameControllerAttachment();
+	virtual ~exAttachment();
 
-	QString plugInName() const {return QString("GameEngine");}
+	QString plugInName() const {return QString("exAttachment");}
 
 	QWidget* configurationWidget();
 
@@ -88,13 +85,8 @@ public:
 	 */
 	void sceneFileConfig();
 
-	/**
-	 * Registers the GameEngine Lua Bindings on the given stack
-	 * @param lua pointer to an existing lua stack
-	 */
-	void registerLuaFunctions(lua_State* lua);
-
 	
+	void registerLuaFunctions(lua_State* lua);
 	/**
 	 * \brief Returns all files referenced in the given node
 	 *
@@ -112,7 +104,7 @@ signals:
 protected:
 	SceneFile*				m_sceneFile;
 
-	GameControllerWidget*	m_widget;
+	QTextEdit*	m_widget;
 
 	QXmlTreeNode*			m_currentNode;
 	
