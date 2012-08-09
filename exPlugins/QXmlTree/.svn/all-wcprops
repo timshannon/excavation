@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/public/Horde3D/!svn/ver/1120/trunk/Tools/Horde3DEditor/src/QXmlTree
+END
+QXmlTreeUndoCommands.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/public/Horde3D/!svn/ver/44/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeUndoCommands.cpp
+END
+QXmlTree.vcxproj
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/public/Horde3D/!svn/ver/760/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTree.vcxproj
+END
+QXmlTree_2008.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/public/Horde3D/!svn/ver/215/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTree_2008.vcproj
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/public/Horde3D/!svn/ver/997/trunk/Tools/Horde3DEditor/src/QXmlTree/CMakeLists.txt
+END
+QXmlTreeNode.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/public/Horde3D/!svn/ver/167/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeNode.h
+END
+QXmlTreeView.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/public/Horde3D/!svn/ver/44/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeView.cpp
+END
+QXmlTreeUndoCommands.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/public/Horde3D/!svn/ver/44/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeUndoCommands.h
+END
+QXmlNodePropertyCommand.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/public/Horde3D/!svn/ver/1014/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlNodePropertyCommand.h
+END
+QXmlTreeView.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/public/Horde3D/!svn/ver/44/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeView.h
+END
+QXmlTreeModel.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/public/Horde3D/!svn/ver/1120/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeModel.cpp
+END
+QXmlTreeModel.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/public/Horde3D/!svn/ver/44/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeModel.h
+END
+QXmlTreeNode.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/public/Horde3D/!svn/ver/167/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTreeNode.cpp
+END
+QXmlTree_2005.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/public/Horde3D/!svn/ver/215/trunk/Tools/Horde3DEditor/src/QXmlTree/QXmlTree_2005.vcproj
+END
