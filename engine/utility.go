@@ -12,10 +12,6 @@ import (
 
 var appName string = "excavation"
 
-func setAppName(name string) {
-	appName = name
-}
-
 //UserDir is the current users folder where everything user specific
 // like controls, save games, and video settings will be stored
 // if the path isn't found, it'll be created

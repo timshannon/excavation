@@ -20,7 +20,7 @@ var pipeline *Pipeline
 var running bool
 
 func Init(name string) error {
-	setAppName(name)
+	appName = name
 	//load settings from config file
 	cfg, err := NewStandardCfg()
 	if err != nil {

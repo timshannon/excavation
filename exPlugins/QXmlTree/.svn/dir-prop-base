@@ -1,8 +1,0 @@
-K 10
-svn:ignore
-V 64
-moc_QXmlTreeModel.cpp
-moc_QXmlTreeNode.cpp
-moc_QXmlTreeView.cpp
-
-END
