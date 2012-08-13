@@ -21,7 +21,7 @@
 exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
 	m_widget = new QTextEdit();
-	//m_widget->setVisible(false);
+	m_widget->setVisible(false);
 	connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
 }
 
@@ -37,19 +37,26 @@ QWidget* exAttachment::configurationWidget()
 
 void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
 {
+	if (file)
+	{
+		//m_widget->init();
+		//m_widget->setPlainText("Init");
+	}
+	else
+	{ 
+		//if( m_sceneFile )
+		//{
+			////m_sceneFile->pluginManager()->unregisterExtraNode("exAttachment");
+		//}
+		//m_widget->release();
+	}
+	m_sceneFile = file;
 
-	//if (file)
-	//{
-	//}
-	//else
-	//{ 
-	//}
-	//m_sceneFile = file;
 }
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
-
+	
 }
 
 void exAttachment::update()
