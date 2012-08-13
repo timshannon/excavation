@@ -14,10 +14,8 @@
 #include "AttachmentPlugIn.h"
 #include <QTextEdit>
 
-//class exWidget;
+/*class exWidget;*/
 
-/**
- */
 class exAttachment : public AttachmentPlugIn
 {
 	Q_OBJECT
@@ -102,12 +100,11 @@ signals:
 	void modified(bool);
 
 protected:
-	SceneFile*				m_sceneFile;
+	SceneFile*	m_sceneFile;
 
 	QTextEdit*	m_widget;
 
-	QXmlTreeNode*			m_currentNode;
-	
+	QXmlTreeNode*	m_currentNode;
 
 };
 #endif
