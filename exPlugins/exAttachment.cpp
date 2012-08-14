@@ -9,6 +9,7 @@
 // ****************************************************************************************
 #include "exAttachment.h"
 
+#include <QXmlTree/QXmlTreeNode.h>
 //#include <Qt/qinputdialog.h>
 //#include <Qt/qmessagebox.h>
 //#include <Qt/qtextstream.h>
@@ -56,21 +57,23 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
-	
+	m_currentNode = parentNode;
 }
 
 void exAttachment::update()
 {
+	//Nothing to update
 }
 
 void exAttachment::render(int activeCameraID)
 {
+	//Nothing to render
 }
 
 void exAttachment::initNodeAttachment(QXmlTreeNode* sceneNode)
 {	
-	//Q_ASSERT(!sceneNode->xmlNode().firstChildElement("Attachment").isNull());
-
+	Q_ASSERT(!sceneNode->xmlNode().firstChildElement("Attachment").isNull());
+	m_widget->setPlainText(sceneNode->xmlNode().text());
 }
 
 void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
