@@ -98,6 +98,9 @@ public:
 
 signals:
 	void modified(bool);
+	
+private slots:
+	void updateValue();
 
 protected:
 	SceneFile*	m_sceneFile;

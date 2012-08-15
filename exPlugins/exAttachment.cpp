@@ -12,7 +12,7 @@
 #include <QXmlTree/QXmlTreeNode.h>
 //#include <Qt/qinputdialog.h>
 //#include <Qt/qmessagebox.h>
-//#include <Qt/qtextstream.h>
+#include <Qt/qtextstream.h>
 //#include <Qt/qdir.h>
 //#include <QtGui/QWizard>
 #include <QtCore/qplugin.h>
@@ -24,7 +24,8 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	m_widget = new QTextEdit();
 	m_widget->setVisible(false);
 	//TODO: Connect to textChanged signal
-	connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
+	//connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
+	connect(m_widget, SIGNAL(textChanged()), this, SLOT(updateValue()));
 }
 
 exAttachment::~exAttachment() 
@@ -100,6 +101,15 @@ void exAttachment::removeNodeAttachment()
 	setCurrentNode(m_currentNode);
 }
 
+void exAttachment::updateValue()
+{
+
+	if (m_currentNode == 0) return;
+	QString xmlData;
+	QTextStream stream(&xmlData);
+	m_currentNode->xmlNode().save(stream, 4);	
+	emit modified(true);
+}
 
 Q_EXPORT_STATIC_PLUGIN(exAttachment)
 Q_EXPORT_PLUGIN2(exattachment, exAttachment)
