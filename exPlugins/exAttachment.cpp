@@ -23,7 +23,6 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
 	m_widget = new QTextEdit();
 	m_widget->setVisible(false);
-	//TODO: Connect to textChanged signal
 	//connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
 	connect(m_widget, SIGNAL(textChanged()), this, SLOT(updateValue()));
 }
@@ -40,26 +39,13 @@ QWidget* exAttachment::configurationWidget()
 
 void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
 {
-	if (file)
-	{
-		//m_widget->init();
-		//m_widget->setPlainText("Init");
-	}
-	else
-	{ 
-		//if( m_sceneFile )
-		//{
-			////m_sceneFile->pluginManager()->unregisterExtraNode("exAttachment");
-		//}
-		//m_widget->release();
-	}
 	m_sceneFile = file;
-
 }
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
 	m_currentNode = parentNode;
+	m_widget->setPlainText(parentNode->xmlNode().text())
 }
 
 void exAttachment::update()
@@ -103,11 +89,19 @@ void exAttachment::removeNodeAttachment()
 
 void exAttachment::updateValue()
 {
-
 	if (m_currentNode == 0) return;
-	QString xmlData;
-	QTextStream stream(&xmlData);
-	m_currentNode->xmlNode().save(stream, 4);	
+// Get element in question 
+// QDomElement root = doc.documentElement(); 
+// QDomElement nodeTag = root.firstChildElement("firstchild"); 
+//  
+//  // create a new node with a QDomText child 
+//  QDomElement newNodeTag = doc.createElement(QString("firstchild"));  
+//  QDomText newNodeText = doc.createTextNode(QString("New Text")); 
+//  newNodeTag.appendChild(newNodeText); 
+//   
+//   // replace existing node with new node 
+//   root.replaceChild(newNodeTag, nodeTag); 
+//
 	emit modified(true);
 }
 
