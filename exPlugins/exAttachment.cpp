@@ -23,6 +23,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
 	m_widget = new QTextEdit();
 	m_widget->setVisible(false);
+	//TODO: Connect to textChanged signal
 	connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
 }
 
@@ -73,40 +74,32 @@ void exAttachment::render(int activeCameraID)
 void exAttachment::initNodeAttachment(QXmlTreeNode* sceneNode)
 {	
 	Q_ASSERT(!sceneNode->xmlNode().firstChildElement("Attachment").isNull());
-	m_widget->setPlainText(sceneNode->xmlNode().text());
+	//m_widget->setPlainText(sceneNode->xmlNode().text());
 }
 
 void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 {
+	//Nothing?
 }
 
 void exAttachment::createNodeAttachment()
 {	
-	//Q_ASSERT(m_currentNode != 0);	
+	Q_ASSERT(m_currentNode != 0);	
+	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
+	node.setAttribute("type", plugInName());
+	node.setAttribute("name", m_currentNode->property("Name").toString() + "_" + m_currentNode->property("ID").toString());
+	initNodeAttachment(m_currentNode);
+	setCurrentNode(m_currentNode);
 }
 
 void exAttachment::removeNodeAttachment()
 {
+	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	m_currentNode->xmlNode().removeChild(node);	
+	
+	setCurrentNode(m_currentNode);
 }
 
-QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
-{
-	return NULL;
-}
-
-void exAttachment::sceneFileConfig()
-{
-}
-
-void exAttachment::registerLuaFunctions(lua_State* lua)
-{
-}
-
-QFileInfoList exAttachment::findReferences(const QDomElement &node) const
-{
-	QFileInfoList references;	
-	return references;
-}
 
 Q_EXPORT_STATIC_PLUGIN(exAttachment)
 Q_EXPORT_PLUGIN2(exattachment, exAttachment)
