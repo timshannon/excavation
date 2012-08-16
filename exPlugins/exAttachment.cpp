@@ -45,9 +45,17 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
 	m_currentNode = parentNode;
-	m_widget->setPlainText(parentNode->xmlNode().text())
+	m_widget->setPlainText(parentNode->xmlNode().text());
 }
 
+QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
+{
+	return NULL;
+}
+
+void exAttachment::sceneFileConfig()
+{
+}
 void exAttachment::update()
 {
 	//Nothing to update
@@ -87,21 +95,21 @@ void exAttachment::removeNodeAttachment()
 	setCurrentNode(m_currentNode);
 }
 
+
+void exAttachment::registerLuaFunctions(lua_State* lua) {}
+QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 void exAttachment::updateValue()
 {
 	if (m_currentNode == 0) return;
-// Get element in question 
-// QDomElement root = doc.documentElement(); 
-// QDomElement nodeTag = root.firstChildElement("firstchild"); 
-//  
-//  // create a new node with a QDomText child 
-//  QDomElement newNodeTag = doc.createElement(QString("firstchild"));  
-//  QDomText newNodeText = doc.createTextNode(QString("New Text")); 
-//  newNodeTag.appendChild(newNodeText); 
-//   
-//   // replace existing node with new node 
-//   root.replaceChild(newNodeTag, nodeTag); 
-//
+	QDomElement oldNode = m_currentNode.firstChildElement("firstchild"); 
+	
+	QDomElement newNode = m_currentNode.creat createElement(QString("firstchild"));  
+	//  QDomText newNodeText = doc.createTextNode(QString("New Text")); 
+	//  newNodeTag.appendChild(newNodeText); 
+	//   
+	//   // replace existing node with new node 
+	//   root.replaceChild(newNodeTag, nodeTag); 
+	//
 	emit modified(true);
 }
 
