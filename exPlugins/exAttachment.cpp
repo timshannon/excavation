@@ -98,18 +98,20 @@ void exAttachment::removeNodeAttachment()
 
 void exAttachment::registerLuaFunctions(lua_State* lua) {}
 QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
+
 void exAttachment::updateValue()
 {
 	if (m_currentNode == 0) return;
-	QDomElement oldNode = m_currentNode.firstChildElement("firstchild"); 
+	QDomElement domNode = m_currentNode->xmlNode();
+	QDomDocument doc = domNode.ownerDocument();
+	QDomElement oldNode = domNode.firstChildElement(""); 
 	
-	QDomElement newNode = m_currentNode.creat createElement(QString("firstchild"));  
-	//  QDomText newNodeText = doc.createTextNode(QString("New Text")); 
-	//  newNodeTag.appendChild(newNodeText); 
-	//   
-	//   // replace existing node with new node 
-	//   root.replaceChild(newNodeTag, nodeTag); 
-	//
+	QDomElement newNode = doc.createElement(QString(""));  
+	QDomText newNodeText = doc.createTextNode(m_widget->toPlainText()); 
+	newNode.appendChild(newNodeText); 
+
+	domNode.replaceChild(newNode, oldNode); 
+	
 	emit modified(true);
 }
 
