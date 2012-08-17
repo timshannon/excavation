@@ -102,15 +102,15 @@ QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 void exAttachment::updateValue()
 {
 	if (m_currentNode == 0) return;
-	QDomElement domNode = m_currentNode->xmlNode();
-	QDomDocument doc = domNode.ownerDocument();
-	QDomElement oldNode = domNode.firstChildElement(""); 
-	
-	QDomElement newNode = doc.createElement(QString(""));  
+
+	QDomDocument doc = m_currentNode->xmlNode().ownerDocument();
+	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+
+	QDomElement newNode = doc.createElement(QString("Attachment"));
 	QDomText newNodeText = doc.createTextNode(m_widget->toPlainText()); 
 	newNode.appendChild(newNodeText); 
 
-	domNode.replaceChild(newNode, oldNode); 
+	m_currentNode->xmlNode().replaceChild(newNode, node); 
 	
 	emit modified(true);
 }
