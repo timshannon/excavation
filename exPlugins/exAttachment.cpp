@@ -17,7 +17,7 @@
 //#include <QtGui/QWizard>
 #include <QtCore/qplugin.h>
 #include <QTextEdit>
-//#include <horde3d/horde3dutils.h>
+#include <horde3d/Horde3D.h>
 
 exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
@@ -63,7 +63,8 @@ void exAttachment::update()
 
 void exAttachment::render(int activeCameraID)
 {
-	//Nothing to render
+	h3dRender(activeCameraID);
+	h3dFinalizeFrame();
 }
 
 void exAttachment::initNodeAttachment(QXmlTreeNode* sceneNode)
