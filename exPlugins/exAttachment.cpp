@@ -9,6 +9,11 @@
 // ****************************************************************************************
 #include "exAttachment.h"
 
+#include <QFile>
+#include <QTextStream>
+#include <QString>
+#include <QStringList>
+#include <QComboBox>
 #include <QXmlTree/QXmlTreeNode.h>
 //#include <Qt/qinputdialog.h>
 //#include <Qt/qmessagebox.h>
@@ -21,10 +26,9 @@
 
 exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
-	m_widget = new QTableWidget();
+	m_widget = new QTableWidget(1,2);
 	m_widget->setVisible(false);
-	//connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
-	//connect(m_widget, SIGNAL(textChanged()), this, SLOT(updateValue()));
+	connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
 }
 
 exAttachment::~exAttachment() 
@@ -40,6 +44,21 @@ QWidget* exAttachment::configurationWidget()
 void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
 {
 	m_sceneFile = file;
+
+	//Add Type combobox
+	m_widget->setCellWidget(0, 1, new QComboBox);
+	
+	//Load Entity config from file
+	QFile entFile("exEntities.def");
+	entFile.open(QIODevice::ReadOnly | QIODevice::Text);
+	QTextStream in(&entFile);
+	QString line = in.readLine();
+	while (!line.isNull()) {
+		QStringList entList = line.split(",");
+		m_widget->cellWidget(0,1)->addItem(entList.at(0), &entList);
+	}
+	
+
 }
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
