@@ -16,15 +16,15 @@
 //#include <Qt/qdir.h>
 //#include <QtGui/QWizard>
 #include <QtCore/qplugin.h>
-#include <QTextEdit>
+#include <QTableWidget>
 #include <horde3d/Horde3D.h>
 
 exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
-	m_widget = new QTextEdit();
+	m_widget = new QTableWidget();
 	m_widget->setVisible(false);
 	//connect(m_widget, SIGNAL(modified(bool)), this, SIGNAL(modified(bool)));
-	connect(m_widget, SIGNAL(textChanged()), this, SLOT(updateValue()));
+	//connect(m_widget, SIGNAL(textChanged()), this, SLOT(updateValue()));
 }
 
 exAttachment::~exAttachment() 
@@ -45,7 +45,7 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
 	m_currentNode = parentNode;
-	m_widget->setPlainText(parentNode->xmlNode().text());
+	//m_widget->setPlainText(parentNode->xmlNode().text());
 }
 
 QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
@@ -80,6 +80,7 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 
 void exAttachment::createNodeAttachment()
 {	
+	//TODO: Fix
 	Q_ASSERT(m_currentNode != 0);	
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
 	node.setAttribute("type", plugInName());
@@ -100,21 +101,21 @@ void exAttachment::removeNodeAttachment()
 void exAttachment::registerLuaFunctions(lua_State* lua) {}
 QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
-void exAttachment::updateValue()
-{
-	if (m_currentNode == 0) return;
+//void exAttachment::updateValue()
+//{
+	//if (m_currentNode == 0) return;
 
-	QDomDocument doc = m_currentNode->xmlNode().ownerDocument();
-	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	//QDomDocument doc = m_currentNode->xmlNode().ownerDocument();
+	//QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 
-	QDomElement newNode = doc.createElement(QString("Attachment"));
-	QDomText newNodeText = doc.createTextNode(m_widget->toPlainText()); 
-	newNode.appendChild(newNodeText); 
+	//QDomElement newNode = doc.createElement(QString("Attachment"));
+	//QDomText newNodeText = doc.createTextNode(m_widget->toPlainText()); 
+	//newNode.appendChild(newNodeText); 
 
-	m_currentNode->xmlNode().replaceChild(newNode, node); 
+	//m_currentNode->xmlNode().replaceChild(newNode, node); 
 	
-	emit modified(true);
-}
+	//emit modified(true);
+//}
 
 Q_EXPORT_STATIC_PLUGIN(exAttachment)
 Q_EXPORT_PLUGIN2(exattachment, exAttachment)

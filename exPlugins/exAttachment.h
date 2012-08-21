@@ -12,8 +12,7 @@
 #define EXATTACHMENT_H_
 
 #include "AttachmentPlugIn.h"
-#include <QTextEdit>
-
+#include <QTableWidget>
 /*class exWidget;*/
 
 class exAttachment : public AttachmentPlugIn
@@ -105,7 +104,7 @@ private slots:
 protected:
 	SceneFile*	m_sceneFile;
 
-	QTextEdit*	m_widget;
+	QTableWidget*	m_widget;
 
 	QXmlTreeNode*	m_currentNode;
 
