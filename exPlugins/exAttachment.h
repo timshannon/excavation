@@ -13,6 +13,7 @@
 
 #include "AttachmentPlugIn.h"
 #include <QTableWidget>
+#include <QComboBox>
 /*class exWidget;*/
 
 class exAttachment : public AttachmentPlugIn
@@ -99,10 +100,13 @@ signals:
 	void modified(bool);
 	
 private slots:
-	void updateValue();
+	void updateValue(QTableWidgetItem*, QTableWidgetItem*);
+	void changeType(int);
 
 protected:
 	SceneFile*	m_sceneFile;
+	
+	QComboBox* 	m_typeCombo;
 
 	QTableWidget*	m_widget;
 
