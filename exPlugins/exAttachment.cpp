@@ -14,6 +14,7 @@
 #include <QString>
 #include <QStringList>
 #include <QComboBox>
+#include <QLabel>
 #include <QXmlTree/QXmlTreeNode.h>
 //#include <Qt/qinputdialog.h>
 //#include <Qt/qmessagebox.h>
@@ -28,7 +29,11 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
 	m_widget = new QTableWidget(1,2);
 	m_widget->setVisible(false);
+	QStringList headers;
+	headers<<"Name"<<"Value";
+	m_widget->setHorizontalHeaderLabels(headers);
 	connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
+	//TODO:  connect Type combo change signal
 }
 
 exAttachment::~exAttachment() 
@@ -45,8 +50,9 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 {
 	m_sceneFile = file;
 
-	//Add Type combobox
-	m_widget->setCellWidget(0, 1, new QComboBox);
+	//Add Type combobox and label
+	m_widget->setItem(0, 0, new QTableWidgetItem("Type", 0));
+	QComboBox* typeCombo = new QComboBox;
 	
 	//Load Entity config from file
 	QFile entFile("exEntities.def");
@@ -55,9 +61,10 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 	QString line = in.readLine();
 	while (!line.isNull()) {
 		QStringList entList = line.split(",");
-		dynamic_cast<QComboBox*>(m_widget->cellWidget(0,1))->addItem(entList.at(0), &entList);
+		typeCombo->addItem(entList.at(0), entList);
 	}
 	
+	m_widget->setCellWidget(0, 1,typeCombo);
 
 }
 
@@ -69,6 +76,9 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 
 QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
 {
+	//There is nothing I want in the upper extras panel
+	// it throws a warning on the command line because it's null
+	// but it doesn't seem to break anything
 	return NULL;
 }
 
