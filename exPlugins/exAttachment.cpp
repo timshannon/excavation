@@ -55,7 +55,7 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 	QString line = in.readLine();
 	while (!line.isNull()) {
 		QStringList entList = line.split(",");
-		m_widget->cellWidget(0,1)->addItem(entList.at(0), &entList);
+		dynamic_cast<QComboBox*>(m_widget->cellWidget(0,1))->addItem(entList.at(0), &entList);
 	}
 	
 
