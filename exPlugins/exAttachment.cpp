@@ -13,8 +13,8 @@
 #include <QTextStream>
 #include <QString>
 #include <QStringList>
+#include <QLineEdit>
 #include <QComboBox>
-#include <QLabel>
 #include <QXmlTree/QXmlTreeNode.h>
 //#include <Qt/qinputdialog.h>
 //#include <Qt/qmessagebox.h>
@@ -32,8 +32,11 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	QStringList headers;
 	headers<<"Name"<<"Value";
 	m_widget->setHorizontalHeaderLabels(headers);
-	connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
-	//TODO:  connect Type combo change signal
+	//connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
+	connect(m_widget, SIGNAL(currentitemChanged(QTableWidgetItem*)), this, SLOT(updateValue()));
+
+	m_typeCombo = new QComboBox;
+	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
 }
 
 exAttachment::~exAttachment() 
@@ -52,8 +55,7 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 
 	//Add Type combobox and label
 	m_widget->setItem(0, 0, new QTableWidgetItem("Type", 0));
-	QComboBox* typeCombo = new QComboBox;
-	
+		
 	//Load Entity config from file
 	QFile entFile("exEntities.def");
 	entFile.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -61,17 +63,25 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 	QString line = in.readLine();
 	while (!line.isNull()) {
 		QStringList entList = line.split(",");
-		typeCombo->addItem(entList.at(0), entList);
+		m_typeCombo->addItem(entList.at(0), entList);
 	}
 	
-	m_widget->setCellWidget(0, 1,typeCombo);
+	m_widget->setCellWidget(0, 1,m_typeCombo);
 
 }
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
 	m_currentNode = parentNode;
-	//m_widget->setPlainText(parentNode->xmlNode().text());
+	QDomElement attNode = m_currentNode->xmlNode().firstChildElement("Attachment");
+
+	changeType(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
+	//update table widget values
+
+	for (int r = 0; r < m_widget->rowCount(); ++r)
+	{
+		m_widget->item(r, 1)->setText(attNode.attribute(m_widget->item(r, 0)->text(), ""));
+	}
 }
 
 QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
@@ -130,8 +140,21 @@ void exAttachment::removeNodeAttachment()
 void exAttachment::registerLuaFunctions(lua_State* lua) {}
 QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
-//void exAttachment::updateValue()
-//{
+void exAttachment::changeType(int index)
+{
+	//Parse string into tablewidgets
+	QStringList properties = m_typeCombo->itemData(index).toStringList();
+
+	m_widget->setRowCount(properties.size());
+	for (int r = 0; r < properties.size(); ++r)
+	{
+		m_widget->setItem(r, 0, new QTableWidgetItem(properties[r], 0));
+		m_widget->setCellWidget(r, 1, new QLineEdit);
+	}
+	
+}
+void exAttachment::updateValue(QTableWidgetItem* current, QTableWidgetItem* previous)
+{
 	//if (m_currentNode == 0) return;
 
 	//QDomDocument doc = m_currentNode->xmlNode().ownerDocument();
@@ -143,8 +166,8 @@ QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
 	//m_currentNode->xmlNode().replaceChild(newNode, node); 
 	
-	//emit modified(true);
-//}
+	emit modified(true);
+}
 
 Q_EXPORT_STATIC_PLUGIN(exAttachment)
 Q_EXPORT_PLUGIN2(exattachment, exAttachment)
