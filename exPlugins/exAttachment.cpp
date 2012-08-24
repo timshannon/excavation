@@ -33,7 +33,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	headers<<"Name"<<"Value";
 	m_widget->setHorizontalHeaderLabels(headers);
 	//connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
-	connect(m_widget, SIGNAL(currentitemChanged(QTableWidgetItem*)), this, SLOT(updateValue()));
+	connect(m_widget, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateValue(int, int, int, int)));
 
 	m_typeCombo = new QComboBox;
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
@@ -84,17 +84,7 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	}
 }
 
-QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
-{
-	//There is nothing I want in the upper extras panel
-	// it throws a warning on the command line because it's null
-	// but it doesn't seem to break anything
-	return NULL;
-}
 
-void exAttachment::sceneFileConfig()
-{
-}
 void exAttachment::update()
 {
 	//Nothing to update
@@ -109,7 +99,7 @@ void exAttachment::render(int activeCameraID)
 void exAttachment::initNodeAttachment(QXmlTreeNode* sceneNode)
 {	
 	Q_ASSERT(!sceneNode->xmlNode().firstChildElement("Attachment").isNull());
-	//m_widget->setPlainText(sceneNode->xmlNode().text());
+	//Nothing?
 }
 
 void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
@@ -119,11 +109,9 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 
 void exAttachment::createNodeAttachment()
 {	
-	//TODO: Fix
 	Q_ASSERT(m_currentNode != 0);	
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
 	node.setAttribute("type", plugInName());
-	node.setAttribute("name", m_currentNode->property("Name").toString() + "_" + m_currentNode->property("ID").toString());
 	initNodeAttachment(m_currentNode);
 	setCurrentNode(m_currentNode);
 }
@@ -136,12 +124,26 @@ void exAttachment::removeNodeAttachment()
 	setCurrentNode(m_currentNode);
 }
 
+QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* parent)
+{
+	//There is nothing I want in the upper extras panel
+	// it throws a warning on the command line because it's null
+	// but it doesn't seem to break anything
+	return NULL;
+}
 
+void exAttachment::sceneFileConfig()
+{
+}
 void exAttachment::registerLuaFunctions(lua_State* lua) {}
 QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
 void exAttachment::changeType(int index)
 {
+	//set type
+	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	node.setAttribute("type", m_typeCombo->currentText());
+
 	//Parse string into tablewidgets
 	QStringList properties = m_typeCombo->itemData(index).toStringList();
 
@@ -153,19 +155,14 @@ void exAttachment::changeType(int index)
 	}
 	
 }
-void exAttachment::updateValue(QTableWidgetItem* current, QTableWidgetItem* previous)
+void exAttachment::updateValue(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-	//if (m_currentNode == 0) return;
+	if (m_currentNode == 0) return;
+	if (currentRow == previousRow) return;
 
-	//QDomDocument doc = m_currentNode->xmlNode().ownerDocument();
-	//QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	node.setAttribute(m_widget->item(previousRow, 0)->text(), m_widget->item(previousRow, 1)->text());
 
-	//QDomElement newNode = doc.createElement(QString("Attachment"));
-	//QDomText newNodeText = doc.createTextNode(m_widget->toPlainText()); 
-	//newNode.appendChild(newNodeText); 
-
-	//m_currentNode->xmlNode().replaceChild(newNode, node); 
-	
 	emit modified(true);
 }
 

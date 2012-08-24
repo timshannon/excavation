@@ -100,7 +100,7 @@ signals:
 	void modified(bool);
 	
 private slots:
-	void updateValue(QTableWidgetItem*, QTableWidgetItem*);
+	void updateValue(int, int, int, int);
 	void changeType(int);
 
 protected:
