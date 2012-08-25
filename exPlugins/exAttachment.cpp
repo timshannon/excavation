@@ -15,6 +15,7 @@
 #include <QStringList>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QXmlTree/QXmlTreeNode.h>
 //#include <Qt/qinputdialog.h>
 //#include <Qt/qmessagebox.h>
@@ -23,6 +24,7 @@
 //#include <QtGui/QWizard>
 #include <QtCore/qplugin.h>
 #include <QTableWidget>
+#include <QtDebug>
 #include <horde3d/Horde3D.h>
 
 exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
@@ -35,7 +37,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	//connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
 	connect(m_widget, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateValue(int, int, int, int)));
 
-	m_typeCombo = new QComboBox;
+	m_typeCombo = new QComboBox();
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
 }
 
@@ -51,19 +53,23 @@ QWidget* exAttachment::configurationWidget()
 
 void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
 {
+	qDebug() << "init";
 	m_sceneFile = file;
 
 	//Add Type combobox and label
 	m_widget->setItem(0, 0, new QTableWidgetItem("Type", 0));
-		
+	
 	//Load Entity config from file
-	QFile entFile("exEntities.def");
+	QString path = QCoreApplication::applicationDirPath();
+	path.append("/exEntities.def");
+	QFile entFile(path);
 	entFile.open(QIODevice::ReadOnly | QIODevice::Text);
 	QTextStream in(&entFile);
 	QString line = in.readLine();
 	while (!line.isNull()) {
 		QStringList entList = line.split(",");
-		m_typeCombo->addItem(entList.at(0), entList);
+		m_typeCombo->addItem(entList[0], entList);
+		line = in.readLine();
 	}
 	
 	m_widget->setCellWidget(0, 1,m_typeCombo);
@@ -72,8 +78,15 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
+	qDebug() << "setCurrentNode";
 	m_currentNode = parentNode;
 	QDomElement attNode = m_currentNode->xmlNode().firstChildElement("Attachment");
+	
+	if (attNode.isNull()) {
+		m_currentNode = 0;
+		qDebug() << "setCurrentNode: No attachment";
+		return;
+	}
 
 	changeType(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
 	//update table widget values
@@ -98,6 +111,7 @@ void exAttachment::render(int activeCameraID)
 
 void exAttachment::initNodeAttachment(QXmlTreeNode* sceneNode)
 {	
+	qDebug() << "initNodeAttachment";
 	Q_ASSERT(!sceneNode->xmlNode().firstChildElement("Attachment").isNull());
 	//Nothing?
 }
@@ -109,6 +123,7 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 
 void exAttachment::createNodeAttachment()
 {	
+	qDebug() << "createNodeAttachment";
 	Q_ASSERT(m_currentNode != 0);	
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
 	node.setAttribute("type", plugInName());
@@ -118,6 +133,7 @@ void exAttachment::createNodeAttachment()
 
 void exAttachment::removeNodeAttachment()
 {
+	qDebug() << "removeNodeAttachment";
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	m_currentNode->xmlNode().removeChild(node);	
 	
@@ -140,8 +156,15 @@ QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
 void exAttachment::changeType(int index)
 {
+	qDebug() << "Entering changeType";
+	if (m_currentNode == 0) return;
+	qDebug() << m_currentNode;
+
 	//set type
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	
+	qDebug() << "changeType";
+	if (node.isNull()) return;
 	node.setAttribute("type", m_typeCombo->currentText());
 
 	//Parse string into tablewidgets
@@ -157,6 +180,7 @@ void exAttachment::changeType(int index)
 }
 void exAttachment::updateValue(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
+	qDebug() << "updateValue";
 	if (m_currentNode == 0) return;
 	if (currentRow == previousRow) return;
 
