@@ -39,6 +39,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 
 	m_typeCombo = new QComboBox();
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
+	m_currentNode = 0;
 }
 
 exAttachment::~exAttachment() 
@@ -56,6 +57,7 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 	qDebug() << "init";
 	m_sceneFile = file;
 
+	m_typeCombo->addItem("NONE");
 	//Add Type combobox and label
 	m_widget->setItem(0, 0, new QTableWidgetItem("Type", 0));
 	
@@ -80,18 +82,21 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
 	qDebug() << "setCurrentNode";
 	m_currentNode = parentNode;
+
+	if (m_currentNode == 0) return;
 	QDomElement attNode = m_currentNode->xmlNode().firstChildElement("Attachment");
-	
+
 	if (attNode.isNull()) {
 		m_currentNode = 0;
 		qDebug() << "setCurrentNode: No attachment";
 		return;
 	}
-
+	
+	qDebug() << "setCurrentNode: Attachment Exists";
 	changeType(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
 	//update table widget values
 
-	for (int r = 0; r < m_widget->rowCount(); ++r)
+	for (int r = 1; r < m_widget->rowCount(); ++r)
 	{
 		m_widget->item(r, 1)->setText(attNode.attribute(m_widget->item(r, 0)->text(), ""));
 	}
@@ -123,10 +128,10 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 
 void exAttachment::createNodeAttachment()
 {	
-	qDebug() << "createNodeAttachment";
 	Q_ASSERT(m_currentNode != 0);	
+	qDebug() << "createNodeAttachment";
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
-	node.setAttribute("type", plugInName());
+	node.setAttribute("type", "NONE");
 	initNodeAttachment(m_currentNode);
 	setCurrentNode(m_currentNode);
 }
@@ -145,14 +150,17 @@ QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* 
 	//There is nothing I want in the upper extras panel
 	// it throws a warning on the command line because it's null
 	// but it doesn't seem to break anything
+	
+	qDebug() << "initExtras";
 	return NULL;
 }
 
 void exAttachment::sceneFileConfig()
 {
+	qDebug() << "sceneFileConfig";
 }
-void exAttachment::registerLuaFunctions(lua_State* lua) {}
-QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
+void exAttachment::registerLuaFunctions(lua_State* lua) { qDebug() << "registerLuaFunctions";}
+QFileInfoList exAttachment::findReferences(const QDomElement &node) const {qDebug() << "findReferences";}
 
 void exAttachment::changeType(int index)
 {
@@ -166,6 +174,11 @@ void exAttachment::changeType(int index)
 	qDebug() << "changeType";
 	if (node.isNull()) return;
 	node.setAttribute("type", m_typeCombo->currentText());
+
+	if (m_typeCombo->currentText() == "NONE") {
+		m_widget->setRowCount(1);
+		return;
+	}
 
 	//Parse string into tablewidgets
 	QStringList properties = m_typeCombo->itemData(index).toStringList();
