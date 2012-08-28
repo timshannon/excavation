@@ -86,8 +86,8 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	if (m_currentNode == 0) return;
 	QDomElement attNode = m_currentNode->xmlNode().firstChildElement("Attachment");
 
+	changeType(0);
 	if (attNode.isNull()) {
-		m_currentNode = 0;
 		qDebug() << "setCurrentNode: No attachment";
 		return;
 	}
@@ -128,16 +128,12 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 
 void exAttachment::createNodeAttachment()
 {	
-	Q_ASSERT(m_currentNode != 0);	
 	qDebug() << "createNodeAttachment";
+	Q_ASSERT(m_currentNode != 0);	
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
-	qDebug() << "1";
 	node.setAttribute("type", "NONE");
-	qDebug() << "2";
 	initNodeAttachment(m_currentNode);
-	qDebug() << "3";
 	setCurrentNode(m_currentNode);
-	qDebug() << "4";
 }
 
 void exAttachment::removeNodeAttachment()
@@ -170,7 +166,6 @@ void exAttachment::changeType(int index)
 {
 	qDebug() << "Entering changeType";
 	if (m_currentNode == 0) return;
-	qDebug() << m_currentNode;
 
 	//set type
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
@@ -197,11 +192,13 @@ void exAttachment::changeType(int index)
 }
 void exAttachment::updateValue(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-	qDebug() << "updateValue";
+	qDebug() << m_currentNode;
 	if (m_currentNode == 0) return;
 	if (currentRow == previousRow) return;
 
+	qDebug() << "updateValue";
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	if (node.isNull()) return;
 	node.setAttribute(m_widget->item(previousRow, 0)->text(), m_widget->item(previousRow, 1)->text());
 
 	emit modified(true);
