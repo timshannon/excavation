@@ -131,9 +131,13 @@ void exAttachment::createNodeAttachment()
 	Q_ASSERT(m_currentNode != 0);	
 	qDebug() << "createNodeAttachment";
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
+	qDebug() << "1";
 	node.setAttribute("type", "NONE");
+	qDebug() << "2";
 	initNodeAttachment(m_currentNode);
+	qDebug() << "3";
 	setCurrentNode(m_currentNode);
+	qDebug() << "4";
 }
 
 void exAttachment::removeNodeAttachment()
