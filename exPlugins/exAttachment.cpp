@@ -200,6 +200,8 @@ void exAttachment::updateValue(int row, int column)
 
 	QLineEdit* lineEdit = new QLineEdit();
 	
+	lineEdit->setText(m_widget->currentItem()->text());
+	
 	connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setCellData()));
 	m_widget->setCellWidget(row, column, lineEdit);
 	//m_widget->item(previousRow, previousColumn)->setText("");
@@ -216,9 +218,16 @@ void exAttachment::updateValue(int row, int column)
 }
 
 void exAttachment::setCellData() {
-	
-	m_widget->removeCellWidget(m_widget->currentRow(), m_widget->currentColumn());
+	int row = m_widget->currentRow();
+	int column = m_widget->currentColumn();
 
+	QWidget* widget = m_widget->cellWidget(row, column);
+	m_widget->currentItem()->setText(dynamic_cast<QLineEdit*>(widget)->text());
+	m_widget->removeCellWidget(row, column);
+
+	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
+	node.setAttribute(m_widget->item(row, 0)->text(), m_widget->item(row, 1)->text());
+	
 	emit modified(true);
 }
 
