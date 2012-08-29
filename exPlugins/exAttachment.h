@@ -100,8 +100,9 @@ signals:
 	void modified(bool);
 	
 private slots:
-	void updateValue();
+	void updateValue(int , int );
 	void changeType(int);
+	void setCellData();
 
 protected:
 	SceneFile*	m_sceneFile;

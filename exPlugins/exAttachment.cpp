@@ -34,7 +34,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	QStringList headers;
 	headers<<"Name"<<"Value";
 	m_widget->setHorizontalHeaderLabels(headers);
-	//connect(m_widget, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateValue(int, int, int, int)));
+	connect(m_widget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(updateValue(int, int)));
 
 	m_typeCombo = new QComboBox();
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
@@ -99,9 +99,7 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	//update table widget values
 
 	for (int r = 1; r < m_widget->rowCount(); ++r)
-	{
 		m_widget->item(r, 1)->setText(attNode.attribute(m_widget->item(r, 0)->text(), ""));
-	}
 }
 
 
@@ -185,17 +183,14 @@ void exAttachment::changeType(int index)
 	QStringList properties = m_typeCombo->itemData(index).toStringList();
 
 	m_widget->setRowCount(properties.size());
-	for (int r = 0; r < properties.size(); ++r)
+	for (int r = 1; r < properties.size(); ++r)
 	{
 		m_widget->setItem(r, 0, new QTableWidgetItem(properties[r], 0));
-		QLineEdit* lineWidget = new QLineEdit;
-		connect(lineWidget, SIGNAL(editingFinished()), this, SLOT(updateValue()));
-		m_widget->setCellWidget(r, 1, lineWidget);
-		
+		m_widget->setItem(r, 1, new QTableWidgetItem(""));
 	}
 	
 }
-void exAttachment::updateValue()
+void exAttachment::updateValue(int row, int column)
 {
 	qDebug() << "updateValue";
 	if (m_currentNode == 0) return;
@@ -203,13 +198,26 @@ void exAttachment::updateValue()
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	if (node.isNull()) return;
 
-	for (int r = 1; r < m_widget->rowCount(); ++r)
-	{
-		qDebug() << "updating attribute: "; 
-		qDebug() << m_widget->item(r, 1)->text();
-		node.setAttribute(m_widget->item(r, 0)->text(), m_widget->item(r, 1)->text());
-	}
+	QLineEdit* lineEdit = new QLineEdit();
+	
+	connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setCellData()));
+	m_widget->setCellWidget(row, column, lineEdit);
+	//m_widget->item(previousRow, previousColumn)->setText("");
+	//m_widget->removeCellWidget(previousRow, previousColumn);
 
+	//for (int r = 1; r < m_widget->rowCount(); ++r)
+	//{
+		//qDebug() << "updating attribute: "; 
+		//qDebug() << m_widget->item(r, 1)->text();
+		//node.setAttribute(m_widget->item(r, 0)->text(), m_widget->item(r, 1)->text());
+	//}
+
+
+}
+
+void exAttachment::setCellData() {
+	
+	m_widget->removeCellWidget(m_widget->currentRow(), m_widget->currentColumn());
 
 	emit modified(true);
 }
