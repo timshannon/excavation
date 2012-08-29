@@ -53,7 +53,6 @@ QWidget* exAttachment::configurationWidget()
 
 void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
 {
-	qDebug() << "init";
 	m_sceneFile = file;
 
 	m_typeCombo->addItem("NONE");
@@ -79,22 +78,21 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 {	
-	qDebug() << "setCurrentNode";
 	m_currentNode = parentNode;
 
 	if (m_currentNode == 0) {
-		changeType(0);
+		m_typeCombo->setCurrentIndex(0);
 		return;
 	}
 	QDomElement attNode = m_currentNode->xmlNode().firstChildElement("Attachment");
 
 	if (attNode.isNull()) {
-		qDebug() << "setCurrentNode: No attachment";
-		changeType(0);
+		m_typeCombo->setCurrentIndex(0);
+		m_widget->setEnabled(false);
 		return;
 	}
 	
-	qDebug() << "setCurrentNode: Attachment Exists";
+	m_widget->setEnabled(true);
 	changeType(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
 	//update table widget values
 
@@ -116,7 +114,6 @@ void exAttachment::render(int activeCameraID)
 
 void exAttachment::initNodeAttachment(QXmlTreeNode* sceneNode)
 {	
-	qDebug() << "initNodeAttachment";
 	Q_ASSERT(!sceneNode->xmlNode().firstChildElement("Attachment").isNull());
 	//Nothing?
 }
@@ -128,7 +125,6 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 
 void exAttachment::createNodeAttachment()
 {	
-	qDebug() << "createNodeAttachment";
 	Q_ASSERT(m_currentNode != 0);	
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
 	node.setAttribute("type", "NONE");
@@ -138,7 +134,6 @@ void exAttachment::createNodeAttachment()
 
 void exAttachment::removeNodeAttachment()
 {
-	qDebug() << "removeNodeAttachment";
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	m_currentNode->xmlNode().removeChild(node);	
 	
@@ -151,31 +146,27 @@ QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* 
 	// it throws a warning on the command line because it's null
 	// but it doesn't seem to break anything
 	
-	qDebug() << "initExtras";
 	return NULL;
 }
 
 void exAttachment::sceneFileConfig()
 {
-	qDebug() << "sceneFileConfig";
 }
 void exAttachment::registerLuaFunctions(lua_State* lua) {}
 QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
 void exAttachment::changeType(int index)
 {
-	if (m_typeCombo->currentText() == "NONE") {
+	if (index == 0) {
 		m_widget->setRowCount(1);
 		return;
 	}
 
-	qDebug() << "Entering changeType";
 	if (m_currentNode == 0) return;
 
 	//set type
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	
-	qDebug() << "changeType";
 	if (node.isNull()) return;
 	node.setAttribute("type", m_typeCombo->currentText());
 
@@ -193,7 +184,6 @@ void exAttachment::changeType(int index)
 }
 void exAttachment::updateValue(int row, int column)
 {
-	qDebug() << "updateValue";
 	if (m_currentNode == 0) return;
 
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
@@ -205,17 +195,6 @@ void exAttachment::updateValue(int row, int column)
 	
 	connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setCellData()));
 	m_widget->setCellWidget(row, column, lineEdit);
-	//m_widget->item(previousRow, previousColumn)->setText("");
-	//m_widget->removeCellWidget(previousRow, previousColumn);
-
-	//for (int r = 1; r < m_widget->rowCount(); ++r)
-	//{
-		//qDebug() << "updating attribute: "; 
-		//qDebug() << m_widget->item(r, 1)->text();
-		//node.setAttribute(m_widget->item(r, 0)->text(), m_widget->item(r, 1)->text());
-	//}
-
-
 }
 
 void exAttachment::setCellData() {
