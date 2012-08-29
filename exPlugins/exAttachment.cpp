@@ -164,6 +164,11 @@ QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
 void exAttachment::changeType(int index)
 {
+	if (m_typeCombo->currentText() == "NONE") {
+		m_widget->setRowCount(1);
+		return;
+	}
+
 	qDebug() << "Entering changeType";
 	if (m_currentNode == 0) return;
 
@@ -174,11 +179,7 @@ void exAttachment::changeType(int index)
 	if (node.isNull()) return;
 	node.setAttribute("type", m_typeCombo->currentText());
 
-	if (m_typeCombo->currentText() == "NONE") {
-		m_widget->setRowCount(1);
-		return;
-	}
-
+	
 	//Parse string into tablewidgets
 	QStringList properties = m_typeCombo->itemData(index).toStringList();
 
