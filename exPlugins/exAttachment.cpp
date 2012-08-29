@@ -34,8 +34,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	QStringList headers;
 	headers<<"Name"<<"Value";
 	m_widget->setHorizontalHeaderLabels(headers);
-	//connect(m_widget, SIGNAL(itemSelectionChanged()), this, SLOT(updateValue()));
-	connect(m_widget, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateValue(int, int, int, int)));
+	//connect(m_widget, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateValue(int, int, int, int)));
 
 	m_typeCombo = new QComboBox();
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
@@ -83,12 +82,15 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	qDebug() << "setCurrentNode";
 	m_currentNode = parentNode;
 
-	if (m_currentNode == 0) return;
+	if (m_currentNode == 0) {
+		changeType(0);
+		return;
+	}
 	QDomElement attNode = m_currentNode->xmlNode().firstChildElement("Attachment");
 
-	changeType(0);
 	if (attNode.isNull()) {
 		qDebug() << "setCurrentNode: No attachment";
+		changeType(0);
 		return;
 	}
 	
@@ -159,8 +161,8 @@ void exAttachment::sceneFileConfig()
 {
 	qDebug() << "sceneFileConfig";
 }
-void exAttachment::registerLuaFunctions(lua_State* lua) { qDebug() << "registerLuaFunctions";}
-QFileInfoList exAttachment::findReferences(const QDomElement &node) const {qDebug() << "findReferences";}
+void exAttachment::registerLuaFunctions(lua_State* lua) {}
+QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
 void exAttachment::changeType(int index)
 {
@@ -186,20 +188,28 @@ void exAttachment::changeType(int index)
 	for (int r = 0; r < properties.size(); ++r)
 	{
 		m_widget->setItem(r, 0, new QTableWidgetItem(properties[r], 0));
-		m_widget->setCellWidget(r, 1, new QLineEdit);
+		QLineEdit* lineWidget = new QLineEdit;
+		connect(lineWidget, SIGNAL(editingFinished()), this, SLOT(updateValue()));
+		m_widget->setCellWidget(r, 1, lineWidget);
+		
 	}
 	
 }
-void exAttachment::updateValue(int currentRow, int currentColumn, int previousRow, int previousColumn)
+void exAttachment::updateValue()
 {
-	qDebug() << m_currentNode;
-	if (m_currentNode == 0) return;
-	if (currentRow == previousRow) return;
-
 	qDebug() << "updateValue";
+	if (m_currentNode == 0) return;
+
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	if (node.isNull()) return;
-	node.setAttribute(m_widget->item(previousRow, 0)->text(), m_widget->item(previousRow, 1)->text());
+
+	for (int r = 1; r < m_widget->rowCount(); ++r)
+	{
+		qDebug() << "updating attribute: "; 
+		qDebug() << m_widget->item(r, 1)->text();
+		node.setAttribute(m_widget->item(r, 0)->text(), m_widget->item(r, 1)->text());
+	}
+
 
 	emit modified(true);
 }

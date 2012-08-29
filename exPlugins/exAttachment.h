@@ -100,7 +100,7 @@ signals:
 	void modified(bool);
 	
 private slots:
-	void updateValue(int, int, int, int);
+	void updateValue();
 	void changeType(int);
 
 protected:
