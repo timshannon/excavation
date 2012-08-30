@@ -94,7 +94,9 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	}
 	
 	m_widget->setEnabled(true);
-	m_typeCombo->setCurrentIndex(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
+	int index = m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly);
+	if (index == -1) return;
+	m_typeCombo->setCurrentIndex(index);
 	//update table widget values
 
 	for (int r = 1; r < m_widget->rowCount(); ++r)
