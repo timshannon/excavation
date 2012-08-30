@@ -39,21 +39,6 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	m_typeCombo = new QComboBox();
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
 	m_currentNode = 0;
-}
-
-exAttachment::~exAttachment() 
-{
-	delete m_widget;
-}
-
-QWidget* exAttachment::configurationWidget()
-{
-	return m_widget;
-}
-
-void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
-{
-	m_sceneFile = file;
 
 	m_typeCombo->addItem("");
 	//Add Type combobox and label
@@ -74,7 +59,23 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 	}
 	
 	m_widget->setCellWidget(0, 1,m_typeCombo);
+}
 
+exAttachment::~exAttachment() 
+{
+	delete m_widget;
+}
+
+QWidget* exAttachment::configurationWidget()
+{
+	return m_widget;
+}
+
+void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
+{
+	m_sceneFile = file;
+
+	
 }
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
@@ -170,9 +171,16 @@ void exAttachment::changeType(int index)
 	//set type
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	
+	
 	if (node.isNull()) return;
-	node.setAttribute("type", m_typeCombo->currentText());
 
+	if (node.attribute("type") != m_typeCombo->currentText()) {
+		m_currentNode->xmlNode().removeChild(node);	
+		node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
+
+		node.setAttribute("type", m_typeCombo->currentText());
+
+	}	
 	
 	//Parse string into tablewidgets
 	QStringList properties = m_typeCombo->itemData(index).toStringList();
