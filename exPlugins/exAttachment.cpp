@@ -55,10 +55,11 @@ void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget)
 {
 	m_sceneFile = file;
 
-	m_typeCombo->addItem("NONE");
+	m_typeCombo->addItem("");
 	//Add Type combobox and label
-	m_widget->setItem(0, 0, new QTableWidgetItem("Type", 0));
+	m_widget->setItem(0, 0, new QTableWidgetItem("Type"));
 	
+	m_widget->item(0,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled );
 	//Load Entity config from file
 	QString path = QCoreApplication::applicationDirPath();
 	path.append("/exEntities.def");
@@ -93,7 +94,7 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	}
 	
 	m_widget->setEnabled(true);
-	changeType(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
+	m_typeCombo->setCurrentIndex(m_typeCombo->findText(attNode.attribute("type"), Qt::MatchExactly));
 	//update table widget values
 
 	for (int r = 1; r < m_widget->rowCount(); ++r)
@@ -127,7 +128,7 @@ void exAttachment::createNodeAttachment()
 {	
 	Q_ASSERT(m_currentNode != 0);	
 	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
-	node.setAttribute("type", "NONE");
+	node.setAttribute("type", "");
 	initNodeAttachment(m_currentNode);
 	setCurrentNode(m_currentNode);
 }
@@ -179,11 +180,13 @@ void exAttachment::changeType(int index)
 	{
 		m_widget->setItem(r, 0, new QTableWidgetItem(properties[r], 0));
 		m_widget->setItem(r, 1, new QTableWidgetItem(""));
+		m_widget->item(r,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled );
 	}
 	
 }
 void exAttachment::updateValue(int row, int column)
 {
+	if (column != 1) return;
 	if (m_currentNode == 0) return;
 
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
