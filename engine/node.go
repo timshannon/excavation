@@ -10,6 +10,20 @@ import (
 	"excavation/math3d"
 )
 
+const (
+	NodeTypeUndefined = horde3d.NodeTypes_Undefined
+	NodeTypeGroup     = horde3d.NodeTypes_Group
+	NodeTypeModel     = horde3d.NodeTypes_Model
+	NodeTypeMesh      = horde3d.NodeTypes_Mesh
+	NodeTypeJoint     = horde3d.NodeTypes_Joint
+	NodeTypeLight     = horde3d.NodeTypes_Light
+	NodeTypeCamera    = horde3d.NodeTypes_Camera
+	NodeTypeEmitter   = horde3d.NodeTypes_Emitter
+	//non-horde types
+	NodeTypeSound = horde3d.NodeTypes_Emitter + 1 + iota
+	NodeTypeRigidBody
+)
+
 type Node struct {
 	horde3d.H3DNode
 }
@@ -22,7 +36,7 @@ func init() {
 }
 
 //Adds nodes from a SceneGraph resource to the scene.
-func AddNodes(parent Node, sceneResource Resource) (*Node, error) {
+func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
 	node := new(Node)
 	node.H3DNode = horde3d.AddNodes(parent.H3DNode, sceneResource.H3DRes)
 
@@ -35,7 +49,13 @@ func AddNodes(parent Node, sceneResource Resource) (*Node, error) {
 
 //This function returns the type of a specified scene node.  If the node handle is invalid, 
 //the function returns the node type Unknown.
-func (n *Node) Type() int { return horde3d.GetNodeType(n.H3DNode) }
+func (n *Node) Type() int {
+	intType := horde3d.GetNodeType(n.H3DNode)
+	if intType == NodeTypeGroup {
+		//TODO: Look up type from attachment
+	}
+	return intType
+}
 
 //Returns the parent of a scene node.
 func (n *Node) Parent() *Node {
