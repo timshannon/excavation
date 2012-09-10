@@ -6,8 +6,19 @@ package main
 
 import (
 	"excavation/engine"
-	"fmt"
+	"flag"
 )
+
+//cmd line options
+var (
+	sceneFlag string
+)
+
+func init() {
+	flag.StringVar(&sceneFlag, "scene", "", "Load a specific scene directly, instead of the main menu.")
+
+	flag.Parse()
+}
 
 func main() {
 
@@ -17,13 +28,15 @@ func main() {
 		panic("Error starting Excavation: " + err.Error())
 	}
 
-	engine.BindInput("StrafeLeft", inputTest)
+	if sceneFlag != "" {
+		loadScene(sceneFlag)
+
+	} else {
+		//TODO: Load Main Menu
+	}
+
 	engine.StartMainLoop()
 
-}
-
-func inputTest(input *engine.Input) {
-	fmt.Println("StrafeLeft")
 }
 
 func setCfgDefaults(cfg *engine.Config) {
@@ -35,7 +48,23 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("Fullscreen", false)
 		cfg.SetValue("VSync", 1)
 	case "controls.cfg":
-		cfg.SetValue("StrafeLeft", "Joy0_1")
+		//cfg.SetValue("StrafeLeft", "Joy0_1")
 	}
+
+}
+
+//loadScene recursively loads all necessary resources in the given
+//scenefile and loads the entities and properties
+func loadScene(scene string) {
+	//Clear any old scene data
+	engine.ClearAll()
+
+	sceneRes, err := engine.NewScene(scene)
+	if err != nil {
+		panic(err)
+	}
+	sceneRes.Load()
+
+	sceneNode, err := engine.AddNodes(engine.Root, sceneRes)
 
 }

@@ -14,8 +14,7 @@ const (
 	windowTitle = "Excavation"
 )
 
-//globally accessible camera and pipeline
-var Cam horde3d.H3DNode
+var cam *Camera
 var pipeline *Pipeline
 var running bool
 
@@ -76,9 +75,9 @@ func Init(name string) error {
 	}
 
 	//add camera
-	//TODO: camera and node types
-	Cam = horde3d.AddCameraNode(horde3d.RootNode, "Camera", pipeline.H3DRes)
+	cam = AddCamera(Root, "MainCamera", pipeline)
 	glfw.SetWindowSizeCallback(onResize)
+
 	return nil
 
 }
@@ -89,7 +88,7 @@ func StartMainLoop() {
 	for running {
 		joyUpdate()
 		runTasks()
-		horde3d.Render(Cam)
+		horde3d.Render(cam.H3DNode)
 		horde3d.FinalizeFrame()
 		glfw.SwapBuffers()
 
@@ -108,19 +107,20 @@ func StopMainLoop() {
 	running = false
 }
 
+func ReplaceMainCam(newCamera *Camera) {
+	cam.Remove()
+	cam = newCamera
+}
+
 func onResize(w, h int) {
 	if h == 0 {
 		h = 1
 	}
 
-	//TODO:camera Type
-	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportXI, 0)
-	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportYI, 0)
-	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportWidthI, w)
-	horde3d.SetNodeParamI(Cam, horde3d.Camera_ViewportHeightI, h)
+	cam.SetViewport(0, 0, w, h)
 
 	//TODO: Set clip distance? Config?
-	horde3d.SetupCameraView(Cam, 45.0, float32(w)/float32(h), 0.1, 1000.0)
+	cam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
 	pipeline.ResizeBuffers(w, h)
 
 }
@@ -130,7 +130,7 @@ func Time() float64 {
 }
 
 //Clear clears all rendering, physics, and sound resources, nodes, etc
-func Clear() {
+func ClearAll() {
 	horde3d.Clear()
 	//TODO: Clear audio / sound entities
 	//TODO: Clear Physics entities
