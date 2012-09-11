@@ -53,18 +53,28 @@ func setCfgDefaults(cfg *engine.Config) {
 
 }
 
-//loadScene recursively loads all necessary resources in the given
+//loadScene loads a scene and all associated resources in the given
 //scenefile and loads the entities and properties
 func loadScene(scene string) {
-	//Clear any old scene data
+	//Clear any old scene data and resources
 	engine.ClearAll()
-
 	sceneRes, err := engine.NewScene(scene)
 	if err != nil {
 		panic(err)
 	}
-	sceneRes.Load()
+
+	err = sceneRes.Load()
 
 	sceneNode, err := engine.AddNodes(engine.Root, sceneRes)
 
+	err = engine.LoadAllResources()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, v := range sceneNode.Children() {
+		if v.Type() == engine.NodeTypeCamera {
+			engine.SetMainCam(&engine.Camera{v})
+		}
+	}
 }
