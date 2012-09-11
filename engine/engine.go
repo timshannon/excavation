@@ -14,9 +14,14 @@ const (
 	windowTitle = "Excavation"
 )
 
+var Root *Node
 var cam *Camera
-var pipeline *Pipeline
 var running bool
+
+func init() {
+	Root = new(Node)
+	Root.H3DNode = horde3d.RootNode
+}
 
 func Init(name string) error {
 	appName = name
@@ -69,7 +74,7 @@ func Init(name string) error {
 	glfw.SetMouseWheelCallback(mouseWheelCallback)
 
 	//load pipeline
-	pipeline, err = LoadPipeline()
+	pipeline, err := LoadPipeline()
 	if err != nil {
 		return err
 	}
@@ -77,6 +82,7 @@ func Init(name string) error {
 	//add camera
 	cam = AddCamera(Root, "MainCamera", pipeline)
 	glfw.SetWindowSizeCallback(onResize)
+	horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
 
 	return nil
 
@@ -107,7 +113,7 @@ func StopMainLoop() {
 	running = false
 }
 
-func ReplaceMainCam(newCamera *Camera) {
+func SetMainCam(newCamera *Camera) {
 	cam.Remove()
 	cam = newCamera
 }
@@ -121,7 +127,7 @@ func onResize(w, h int) {
 
 	//TODO: Set clip distance? Config?
 	cam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
-	pipeline.ResizeBuffers(w, h)
+	cam.Pipeline().ResizeBuffers(w, h)
 
 }
 

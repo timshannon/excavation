@@ -28,13 +28,6 @@ type Node struct {
 	horde3d.H3DNode
 }
 
-var Root *Node
-
-func init() {
-	Root = new(Node)
-	Root.H3DNode = horde3d.RootNode
-}
-
 //Adds nodes from a SceneGraph resource to the scene.
 func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
 	node := new(Node)
@@ -231,6 +224,7 @@ func (n *Node) CastRay(origin, direction math3d.Vector3, maxNearest int) []*Cast
 
 	for i := range results {
 		intersection := math3d.MakeVector3(0, 0, 0)
+		results[i].ResultNode = new(Node)
 		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, results[i].Distance,
 			intersection)
 		results[i].Intersection = intersection
@@ -252,7 +246,7 @@ type Group struct{ *Node }
 
 //Adds a new group node
 func AddGroup(parent *Node, name string) (*Group, error) {
-	group := new(Group)
+	group := &Group{new(Node)}
 	group.H3DNode = horde3d.AddGroupNode(parent.H3DNode, name)
 	if group.H3DNode == 0 {
 		return nil, errors.New("Error adding group node")
@@ -264,7 +258,7 @@ type Model struct{ *Node }
 
 //Adds a new model
 func AddModel(parent *Node, name string, geometry *Geometry) (*Model, error) {
-	model := new(Model)
+	model := &Model{new(Node)}
 	model.H3DNode = horde3d.AddModelNode(parent.H3DNode, name, geometry.H3DRes)
 	if model.H3DNode == 0 {
 		return nil, errors.New("Error adding Model")
@@ -274,7 +268,7 @@ func AddModel(parent *Node, name string, geometry *Geometry) (*Model, error) {
 
 //Gets the Geometry resource for the given model
 func (m *Model) Geometry() *Geometry {
-	geom := new(Geometry)
+	geom := &Geometry{new(Resource)}
 	geom.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(m.H3DNode, horde3d.Model_GeoResI))
 	return geom
 }
@@ -329,7 +323,7 @@ type Mesh struct{ *Node }
 
 func AddMesh(parent *Node, name string, material *Material, batchStart, batchCount,
 	vertRStart, vertREnd int) (*Mesh, error) {
-	mesh := new(Mesh)
+	mesh := &Mesh{new(Node)}
 	mesh.H3DNode = horde3d.AddMeshNode(parent.H3DNode, name, material.H3DRes, batchStart,
 		batchCount, vertRStart, vertREnd)
 	if mesh.H3DNode == 0 {
@@ -339,7 +333,7 @@ func AddMesh(parent *Node, name string, material *Material, batchStart, batchCou
 }
 
 func (m *Mesh) Material() *Material {
-	material := new(Material)
+	material := &Material{new(Resource)}
 	material.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(m.H3DNode, horde3d.Mesh_MatResI))
 	return material
 }
@@ -361,7 +355,7 @@ func (m *Mesh) SetLODLevel(level int) {
 type Joint struct{ *Node }
 
 func AddJoint(parent *Node, name string, jointIndex int) (*Joint, error) {
-	joint := new(Joint)
+	joint := &Joint{new(Node)}
 	joint.H3DNode = horde3d.AddJointNode(parent.H3DNode, name, jointIndex)
 	if joint.H3DNode == 0 {
 		return nil, errors.New("Error adding Joint")
@@ -375,14 +369,14 @@ type Light struct{ *Node }
 
 func AddLight(parent *Node, name string, material *Material, lightingContext string,
 	shadowContext string) *Light {
-	light := new(Light)
+	light := &Light{new(Node)}
 	light.H3DNode = horde3d.AddLightNode(parent.H3DNode, name, material.H3DRes,
 		lightingContext, shadowContext)
 	return light
 }
 
 func (l *Light) Material() *Material {
-	material := new(Material)
+	material := &Material{new(Resource)}
 	material.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(l.H3DNode, horde3d.Light_MatResI))
 	return material
 }
@@ -460,7 +454,7 @@ func (l *Light) SetShadowContext(context string) {
 type Camera struct{ *Node }
 
 func AddCamera(parent *Node, name string, pipeline *Pipeline) *Camera {
-	camera := new(Camera)
+	camera := &Camera{new(Node)}
 	camera.H3DNode = horde3d.AddCameraNode(parent.H3DNode, name, pipeline.H3DRes)
 	return camera
 }
@@ -476,7 +470,7 @@ func (c *Camera) ProjectionMatrix() math3d.Matrix4 {
 }
 
 func (c *Camera) Pipeline() *Pipeline {
-	pipeline := new(Pipeline)
+	pipeline := &Pipeline{new(Resource)}
 	pipeline.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_PipeResI))
 	return pipeline
 }
@@ -487,7 +481,7 @@ func (c *Camera) SetPipeline(pipeline *Pipeline) {
 
 //2D Texture resource used as output buffer (can be 0 to use main framebuffer) (default: 0)
 func (c *Camera) OutTexture() *Texture {
-	texture := new(Texture)
+	texture := &Texture{new(Resource)}
 	texture.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_OutTexResI))
 	return texture
 }
@@ -577,7 +571,7 @@ type Emitter struct{ *Node }
 
 func AddEmitter(parent *Node, name string, material *Material, particleEffect *ParticleEffect,
 	maxParticleCount int, respawnCount int) *Emitter {
-	emitter := new(Emitter)
+	emitter := &Emitter{new(Node)}
 	emitter.H3DNode = horde3d.AddEmitterNode(parent.H3DNode, name, material.H3DRes,
 		particleEffect.H3DRes, maxParticleCount, respawnCount)
 
@@ -593,7 +587,7 @@ func (e *Emitter) IsFinished() bool {
 }
 
 func (e *Emitter) Material() *Material {
-	material := new(Material)
+	material := &Material{new(Resource)}
 	material.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(e.H3DNode, horde3d.Emitter_MatResI))
 	return material
 }
@@ -603,7 +597,7 @@ func (e *Emitter) SetMaterial(material *Material) {
 }
 
 func (e *Emitter) ParticleEffect() *ParticleEffect {
-	partEffect := new(ParticleEffect)
+	partEffect := &ParticleEffect{new(Resource)}
 	partEffect.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(e.H3DNode, horde3d.Emitter_PartEffResI))
 	return partEffect
 }

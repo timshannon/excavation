@@ -7,6 +7,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -21,6 +22,24 @@ func init() {
 	wd, _ := os.Getwd()
 	dataDir = path.Join(wd, "data")
 	dataFile = path.Join(wd, "exData.tar.gz")
+}
+
+func LoadAllResources() error {
+
+	var res = &Resource{horde3d.GetNextResource(horde3d.ResTypes_Undefined, horde3d.H3DRes(0))}
+	var err error
+
+	for int(res.H3DRes) != 0 {
+		res.H3DRes = horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)
+		if int(res.H3DRes) != 0 {
+			err = res.Load()
+			fmt.Println("Loading: ", res.Name())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 type Resource struct {
