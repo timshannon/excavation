@@ -7,7 +7,6 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -33,7 +32,7 @@ func LoadAllResources() error {
 		res.H3DRes = horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)
 		if int(res.H3DRes) != 0 {
 			err = res.Load()
-			fmt.Println("Loading: ", res.Name())
+			//fmt.Println("Loading: ", res.Name())
 			if err != nil {
 				return err
 			}
