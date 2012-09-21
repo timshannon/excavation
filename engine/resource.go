@@ -56,7 +56,7 @@ func (res *Resource) Name() string { return horde3d.GetResName(res.H3DRes) }
 // try to load it from the data file
 func (res *Resource) Load() error {
 	if !res.IsLoaded() {
-		data, err := ioutil.ReadFile(path.Join(dataDir, res.Name()))
+		data, err := ioutil.ReadFile(res.FullPath())
 
 		if os.IsNotExist(err) {
 			//TODO: load from tar.gz data file
@@ -74,6 +74,10 @@ func (res *Resource) Load() error {
 
 	return nil
 
+}
+
+func (res *Resource) FullPath() string {
+	return path.Join(path.Join(dataDir, res.Name()))
 }
 
 func (res *Resource) Clone(cloneName string) *Resource {
