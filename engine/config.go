@@ -120,23 +120,26 @@ func (cfg *Config) Load() error {
 }
 
 func (cfg *Config) Value(name string) interface{} {
+	if cfg.values[name] == nil {
+		return nil
+	}
 	return cfg.values[name]
 }
 
 func (cfg *Config) Int(name string) int {
-	return int(cfg.values[name].(float64))
+	return int(cfg.Value(name).(float64))
 }
 
 func (cfg *Config) String(name string) string {
-	return cfg.values[name].(string)
+	return cfg.Value(name).(string)
 }
 
 func (cfg *Config) Bool(name string) bool {
-	return cfg.values[name].(bool)
+	return cfg.Value(name).(bool)
 }
 
 func (cfg *Config) Float(name string) float64 {
-	return cfg.values[name].(float64)
+	return cfg.Value(name).(float64)
 }
 
 func (cfg *Config) SetValue(name string, value interface{}) {
