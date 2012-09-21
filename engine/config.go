@@ -7,6 +7,7 @@ package engine
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -120,26 +121,46 @@ func (cfg *Config) Load() error {
 }
 
 func (cfg *Config) Value(name string) interface{} {
-	if cfg.values[name] == nil {
-		return nil
-	}
 	return cfg.values[name]
 }
 
+func printMissing(name string) {
+	fmt.Println("Config entry " + name + " does not exist. Using default.")
+}
 func (cfg *Config) Int(name string) int {
-	return int(cfg.Value(name).(float64))
+	value, ok := cfg.values[name].(float64)
+	if !ok {
+		printMissing(name)
+		return 0
+	}
+	return int(value)
 }
 
 func (cfg *Config) String(name string) string {
-	return cfg.Value(name).(string)
+	value, ok := cfg.values[name].(string)
+	if !ok {
+		printMissing(name)
+		return ""
+	}
+	return value
 }
 
 func (cfg *Config) Bool(name string) bool {
-	return cfg.Value(name).(bool)
+	value, ok := cfg.values[name].(bool)
+	if !ok {
+		printMissing(name)
+		return false
+	}
+	return value
 }
 
 func (cfg *Config) Float(name string) float64 {
-	return cfg.Value(name).(float64)
+	value, ok := cfg.values[name].(float64)
+	if !ok {
+		printMissing(name)
+		return 0.0
+	}
+	return value
 }
 
 func (cfg *Config) SetValue(name string, value interface{}) {
