@@ -8,6 +8,8 @@ import (
 	"excavation/engine"
 	"flag"
 	"fmt"
+	"os"
+	"strings"
 )
 
 //cmd line options
@@ -69,6 +71,9 @@ func setCfgDefaults(cfg *engine.Config) {
 //loadScene loads a scene and all associated resources in the given
 //scenefile and loads the entities and properties
 func loadScene(scene string) {
+	if !strings.HasSuffix(scene, ".scene.xml") {
+		scene = scene + ".scene.xml"
+	}
 	//Clear any old scene data and resources
 	engine.ClearAll()
 	sceneRes, err := engine.NewScene(scene)
@@ -76,6 +81,12 @@ func loadScene(scene string) {
 		panic(err)
 	}
 
+	if _, err := os.Stat(sceneRes.FullPath()); err != nil {
+		if os.IsNotExist(err) {
+			//TODO: Load Main Menu instead
+			panic("Scene file " + scene + " doesn't exist")
+		}
+	}
 	err = sceneRes.Load()
 
 	err = engine.LoadAllResources()
