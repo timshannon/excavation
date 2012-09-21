@@ -7,6 +7,7 @@ package main
 import (
 	"excavation/engine"
 	"flag"
+	"fmt"
 )
 
 //cmd line options
@@ -30,13 +31,25 @@ func main() {
 
 	if sceneFlag != "" {
 		loadScene(sceneFlag)
-
 	} else {
 		//TODO: Load Main Menu
 	}
 
+	//engine.AddTask("test", task, 0, 1)
+	//starting the loop should be the last thing
+	// after setting up the game
 	engine.StartMainLoop()
+}
 
+func task(t *engine.Task) {
+	children := engine.Root.Children()
+
+	fmt.Println(len(children))
+	for _, c := range children {
+		fmt.Println(c.Name())
+	}
+
+	t.Stop()
 }
 
 func setCfgDefaults(cfg *engine.Config) {
@@ -65,9 +78,9 @@ func loadScene(scene string) {
 
 	err = sceneRes.Load()
 
+	err = engine.LoadAllResources()
 	sceneNode, err := engine.AddNodes(engine.Root, sceneRes)
 
-	err = engine.LoadAllResources()
 	if err != nil {
 		panic(err)
 	}

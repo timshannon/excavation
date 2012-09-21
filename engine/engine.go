@@ -45,6 +45,7 @@ func Init(name string) error {
 	} else {
 		mode = glfw.Windowed
 	}
+
 	if err := glfw.OpenWindow(cfg.Int("WindowWidth"),
 		cfg.Int("WindowHeight"), 8, 8, 8, 8,
 		cfg.Int("WindowDepth"), 8,
@@ -81,9 +82,9 @@ func Init(name string) error {
 
 	//add camera
 	cam = AddCamera(Root, "MainCamera", pipeline)
-	glfw.SetWindowSizeCallback(onResize)
-	horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
+	//horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
 
+	glfw.SetWindowSizeCallback(onResize)
 	return nil
 
 }
@@ -114,7 +115,7 @@ func StopMainLoop() {
 }
 
 func SetMainCam(newCamera *Camera) {
-	cam.Remove()
+	//cam.Remove()
 	cam = newCamera
 }
 
