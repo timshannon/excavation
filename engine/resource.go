@@ -41,9 +41,33 @@ func LoadAllResources() error {
 	return nil
 }
 
+type ResHandler interface {
+	Type() int
+	Name() string
+	Load() error
+	FullPath() string
+	IsLoaded() bool
+	Remove()
+}
+
 type Resource struct {
 	horde3d.H3DRes
 }
+
+const (
+	ResTypeUndefined      = horde3d.ResTypes_Undefined
+	ResTypeSceneGraph     = horde3d.ResTypes_SceneGraph
+	ResTypeGeometry       = horde3d.ResTypes_Geometry
+	ResTypeAnimation      = horde3d.ResTypes_Animation
+	ResTypeMaterial       = horde3d.ResTypes_Material
+	ResTypeCode           = horde3d.ResTypes_Code
+	ResTypeShader         = horde3d.ResTypes_Shader
+	ResTypeTexture        = horde3d.ResTypes_Texture
+	ResTypeParticleEffect = horde3d.ResTypes_ParticleEffect
+	ResTypePipeline       = horde3d.ResTypes_Pipeline
+	//non-horde res types
+	ResTypeAudio = horde3d.ResTypes_Pipeline + 1 + iota
+)
 
 func (res *Resource) Type() int { return horde3d.GetResType(res.H3DRes) }
 
@@ -86,7 +110,7 @@ func (res *Resource) Clone(cloneName string) *Resource {
 	return clone
 }
 
-func (res *Resource) Remove() int { return horde3d.RemoveResource(res.H3DRes) }
+func (res *Resource) Remove() { horde3d.RemoveResource(res.H3DRes) }
 
 func (res *Resource) IsLoaded() bool { return horde3d.IsResLoaded(res.H3DRes) }
 

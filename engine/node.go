@@ -20,7 +20,7 @@ const (
 	NodeTypeCamera    = horde3d.NodeTypes_Camera
 	NodeTypeEmitter   = horde3d.NodeTypes_Emitter
 	//non-horde types
-	NodeTypeSound = horde3d.NodeTypes_Emitter + 1 + iota
+	NodeTypeAudio = horde3d.NodeTypes_Emitter + 1 + iota
 	NodeTypeRigidBody
 )
 
