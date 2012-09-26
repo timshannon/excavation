@@ -20,7 +20,7 @@ var (
 func init() {
 	wd, _ := os.Getwd()
 	dataDir = path.Join(wd, "data")
-	dataFile = path.Join(wd, "exData.tar.gz")
+	dataFile = path.Join(dataDir, "exData.tar.gz")
 }
 
 func LoadAllResources() error {
