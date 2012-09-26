@@ -84,6 +84,8 @@ func Init(name string) error {
 	cam = AddCamera(Root, "MainCamera", pipeline)
 	//horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
 
+	//Music and Audio
+	initMusic()
 	glfw.SetWindowSizeCallback(onResize)
 	return nil
 
