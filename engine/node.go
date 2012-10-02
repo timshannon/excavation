@@ -24,19 +24,21 @@ const (
 	NodeTypeRigidBody
 )
 
-type Node struct {
-	horde3d.H3DNode
-}
-
 //temp variables used to keep the GC from thrashing
 // by retaining temporary memory space for the conversion from horde's float arrays
 // to vectormath's structs, we should be able to keep gc collection to a minimum
+// Multiple threads shouldnt' be an issue, as Horde3d is singlethreaded. 
+// This may need to change in the future
 var (
-	tempMat []float32
+	tempHordeMat []float32
 )
 
 func init() {
-	tempMat = make([]float32, 16)
+	tempHordeMat = make([]float32, 16)
+}
+
+type Node struct {
+	horde3d.H3DNode
 }
 
 //Adds nodes from a SceneGraph resource to the scene.
@@ -146,43 +148,33 @@ func (n *Node) SetTransform(translate, rotate, scale *vectormath.Vector3) {
 		vectormath.V3GetY(&scale), vectormath.V3GetZ(&scale))
 }
 
-func sliceToMatrix(array []float32, matrix *vectormath.Matrix4) {
-
-}
-
-func sliceToVec4(slice []float32, vector *vectormath.Vector4) {
-	vectormath.V4MakeFromElems(vector, slice[0], slice[1], slice[2], slice[3])
-}
-
 //Gets the relative transformation matrix of the node
 func (n *Node) RelativeTransMat(result *vectormath.Matrix4) {
-	horde3d.GetNodeTransMats(n.H3DNode, tempMat, nil)
+	horde3d.GetNodeTransMats(n.H3DNode, tempHordeMat, nil)
+	sliceToMatrix4(tempHordeMat, result)
 }
 
 //Gets the absolute transformation matrix of the node
-func (n *Node) AbsoluteTransMat() math3d.Matrix4 {
-	absolute := math3d.MakeMatrix4()
-	horde3d.GetNodeTransMats(n.H3DNode, nil, absolute)
-	return absolute
+func (n *Node) AbsoluteTransMat(result *vectormath.Matrix4) {
+	horde3d.GetNodeTransMats(n.H3DNode, nil, tempHordeMat)
+	sliceToMatrix4(tempHordeMat, result)
 }
 
 //Sets the relative transformation matrix of the node
-func (n *Node) SetRelativeTransMat(matrix math3d.Matrix4) {
-	horde3d.SetNodeTransMat(n.H3DNode, matrix)
+func (n *Node) SetRelativeTransMat(matrix *vectormath.Matrix4) {
+	matrix4ToSlice(tempHordeMat, matrix)
+	horde3d.SetNodeTransMat(n.H3DNode, tempHordeMat)
 }
 
-func (n *Node) SetLocalTransform(translate, rotate math3d.Vector3) {
-	newT := translate.Sub(n.Translate())
-
-	n.SetTransform(newT, rotate, n.Scale())
-}
+//func (n *Node) SetLocalTransform(translate, rotate math3d.Vector3) {
+//	newT := translate.Sub(n.Translate())
+//
+//	n.SetTransform(newT, rotate, n.Scale())
+//}
 
 //Returns the bounds of a box that encompasses the node
-func (n *Node) BoundingBox() (min, max math3d.Vector3) {
-	min = math3d.MakeVector3(0, 0, 0)
-	max = math3d.MakeVector3(0, 0, 0)
-	horde3d.GetNodeAABB(n.H3DNode, &min[0], &min[1], &min[2],
-		&max[0], &max[1], &max[2])
+func (n *Node) BoundingBox() (minX, minY, minZ, maxX, maxY, maxZ float32) {
+	horde3d.GetNodeAABB(n.H3DNode, &minX, &minY, &minZ, &maxX, &maxY, &maxZ)
 	return
 }
 

@@ -6,7 +6,6 @@ package main
 
 import (
 	"excavation/engine"
-	"excavation/math3d"
 	"flag"
 	"fmt"
 	"os"
@@ -47,11 +46,6 @@ func main() {
 
 func task(t *engine.Task) {
 	fmt.Println("Test Task")
-
-	tr := math3d.MakeVector3(0, 0, -0.1)
-	r := camera.Rotate()
-	s := camera.Scale()
-	camera.SetLocalTransform(tr, r, s)
 
 	//t.Wait(1)
 }
