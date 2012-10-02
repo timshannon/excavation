@@ -7,7 +7,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	"excavation/math3d"
+	"github.com/spate/vectormath"
 )
 
 const (
@@ -26,6 +26,17 @@ const (
 
 type Node struct {
 	horde3d.H3DNode
+}
+
+//temp variables used to keep the GC from thrashing
+// by retaining temporary memory space for the conversion from horde's float arrays
+// to vectormath's structs, we should be able to keep gc collection to a minimum
+var (
+	tempMat []float32
+)
+
+func init() {
+	tempMat = make([]float32, 16)
 }
 
 //Adds nodes from a SceneGraph resource to the scene.
@@ -88,28 +99,64 @@ func (n *Node) CheckTransFlag(reset bool) bool {
 
 //This function gets the translation, rotation and scale of a specified scene node object. 
 // The coordinates are in local space and contain the transformation of the node relative to its parent.
-func (n *Node) Transform() (translate, rotate, scale math3d.Vector3) {
-	translate = math3d.MakeVector3(0, 0, 0)
-	rotate = math3d.MakeVector3(0, 0, 0)
-	scale = math3d.MakeVector3(0, 0, 0)
-	horde3d.GetNodeTransform(n.H3DNode, &translate[0], &translate[1], &translate[2],
-		&rotate[0], &rotate[1], &rotate[2], &scale[0], &scale[1], &scale[2])
-	return
+func (n *Node) Transform(translate, rotate, scale *vectormath.Vector3) {
+	var tx, ty, tz float32
+	var rx, ry, rz float32
+	var sx, sy, sz float32
+	horde3d.GetNodeTransform(n.H3DNode, &tx, &ty, &tz,
+		&rx, &ry, &rz, &sx, &sy, &sz)
+
+	vectormath.V3MakeFromElems(&translate, tx, ty, tz)
+	vectormath.V3MakeFromElems(&rotate, rx, ry, rz)
+	vectormath.V3MakeFromElems(&scale, sx, sy, sz)
+}
+
+func (n *Node) Translate(result *vectormath.Vector3) {
+	var tx, ty, tz float32
+
+	horde3d.GetNodeTransform(n.H3DNode, &tx, &ty, &tz,
+		nil, nil, nil, nil, nil, nil)
+	vectormath.V3MakeFromElems(&result, tx, ty, tz)
+}
+
+func (n *Node) Rotate(result *vectormath.Vector3) {
+	var rx, ry, rz float32
+
+	horde3d.GetNodeTransform(n.H3DNode, nil, nil, nil,
+		&rx, &ry, &rz, nil, nil, nil)
+	vectormath.V3MakeFromElems(&result, rx, ry, rz)
+}
+
+func (n *Node) Scale(result *vectormath.Vector3) {
+	var sx, sy, sz float32
+
+	horde3d.GetNodeTransform(n.H3DNode, nil, nil, nil,
+		nil, nil, nil, &sx, &sy, &sz)
+	vectormath.V3MakeFromElems(&result, sx, sy, sz)
 }
 
 //This function sets the relative translation, rotation and scale of a 
 //specified scene node object.  The coordinates are in local space and 
 //contain the transformation of the node relative to its parent.
-func (n *Node) SetTransform(translate, rotate, scale math3d.Vector3) {
-	horde3d.SetNodeTransform(n.H3DNode, translate[0], translate[1], translate[2],
-		rotate[0], rotate[1], rotate[2], scale[0], scale[1], scale[2])
+func (n *Node) SetTransform(translate, rotate, scale *vectormath.Vector3) {
+	horde3d.SetNodeTransform(n.H3DNode, vectormath.V3GetX(translate),
+		vectormath.V3GetY(&translate), vectormath.V3GetZ(&translate),
+		vectormath.V3GetX(&rotate), vectormath.V3GetY(&rotate),
+		vectormath.V3GetZ(&rotate), vectormath.V3GetX(&scale),
+		vectormath.V3GetY(&scale), vectormath.V3GetZ(&scale))
+}
+
+func sliceToMatrix(array []float32, matrix *vectormath.Matrix4) {
+
+}
+
+func sliceToVec4(slice []float32, vector *vectormath.Vector4) {
+	vectormath.V4MakeFromElems(vector, slice[0], slice[1], slice[2], slice[3])
 }
 
 //Gets the relative transformation matrix of the node
-func (n *Node) RelativeTransMat() math3d.Matrix4 {
-	relative := math3d.MakeMatrix4()
-	horde3d.GetNodeTransMats(n.H3DNode, relative, nil)
-	return relative
+func (n *Node) RelativeTransMat(result *vectormath.Matrix4) {
+	horde3d.GetNodeTransMats(n.H3DNode, tempMat, nil)
 }
 
 //Gets the absolute transformation matrix of the node
@@ -122,6 +169,12 @@ func (n *Node) AbsoluteTransMat() math3d.Matrix4 {
 //Sets the relative transformation matrix of the node
 func (n *Node) SetRelativeTransMat(matrix math3d.Matrix4) {
 	horde3d.SetNodeTransMat(n.H3DNode, matrix)
+}
+
+func (n *Node) SetLocalTransform(translate, rotate math3d.Vector3) {
+	newT := translate.Sub(n.Translate())
+
+	n.SetTransform(newT, rotate, n.Scale())
 }
 
 //Returns the bounds of a box that encompasses the node

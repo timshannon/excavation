@@ -1,3 +1,0 @@
-The math3d library here has been forked from https://github.com/eadf/math3d/ for Go1 compatibility.
-All original licenses and copyrights are on their respective files.
-
