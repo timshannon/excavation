@@ -94,6 +94,8 @@ func Init(name string) error {
 func StartMainLoop() {
 	running = true
 
+	onResize(1024, 768)
+
 	for running {
 		joyUpdate()
 		runTasks()

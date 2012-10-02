@@ -6,6 +6,7 @@ package main
 
 import (
 	"excavation/engine"
+	"excavation/math3d"
 	"flag"
 	"fmt"
 	"os"
@@ -15,6 +16,7 @@ import (
 //cmd line options
 var (
 	sceneFlag string
+	camera    *engine.Node
 )
 
 func init() {
@@ -37,21 +39,21 @@ func main() {
 		//TODO: Load Main Menu
 	}
 
-	//engine.AddTask("test", task, 0, 1)
+	engine.AddTask("test", task, 0, 1)
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
 }
 
 func task(t *engine.Task) {
-	children := engine.Root.Children()
+	fmt.Println("Test Task")
 
-	fmt.Println(len(children))
-	for _, c := range children {
-		fmt.Println(c.Name())
-	}
+	tr := math3d.MakeVector3(0, 0, -0.1)
+	r := camera.Rotate()
+	s := camera.Scale()
+	camera.SetLocalTransform(tr, r, s)
 
-	t.Stop()
+	//t.Wait(1)
 }
 
 func setCfgDefaults(cfg *engine.Config) {
@@ -96,9 +98,11 @@ func loadScene(scene string) {
 		panic(err)
 	}
 
-	for _, v := range sceneNode.Children() {
-		if v.Type() == engine.NodeTypeCamera {
-			engine.SetMainCam(&engine.Camera{v})
+	children := sceneNode.Children()
+	for c := range children {
+		if children[c].Type() == engine.NodeTypeCamera {
+			engine.SetMainCam(&engine.Camera{children[c]})
+			camera = children[c]
 		}
 	}
 }
