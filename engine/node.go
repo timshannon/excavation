@@ -143,11 +143,10 @@ func (n *Node) Scale(result *vectormath.Vector3) {
 //specified scene node object.  The coordinates are in local space and 
 //contain the transformation of the node relative to its parent.
 func (n *Node) SetTransform(translate, rotate, scale *vectormath.Vector3) {
-	horde3d.SetNodeTransform(n.H3DNode, vectormath.V3GetX(translate),
-		vectormath.V3GetY(translate), vectormath.V3GetZ(translate),
-		vectormath.V3GetX(rotate), vectormath.V3GetY(rotate),
-		vectormath.V3GetZ(rotate), vectormath.V3GetX(scale),
-		vectormath.V3GetY(scale), vectormath.V3GetZ(scale))
+	horde3d.SetNodeTransform(n.H3DNode, translate.X(), translate.Y(), translate.Z(),
+		rotate.X(rotate), rotate.V3GetY(rotate),
+		rotate.V3GetZ(rotate), scale.V3GetX(scale),
+		scale.V3GetY(scale), scale.V3GetZ(scale))
 }
 
 //Gets the relative transformation matrix of the node
