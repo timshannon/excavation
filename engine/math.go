@@ -4,7 +4,7 @@ import (
 	"github.com/spate/vectormath"
 )
 
-func sliceToMatrix4(m4 *vectormath.Matrix4, slice []float32) {
+func sliceToMatrix4(m *vectormath.Matrix4, slice []float32) {
 	var col0, col1, col2, col3 *vectormath.Vector4
 	vectormath.M4GetCol0(col0, m)
 	vectormath.M4GetCol1(col1, m)
@@ -25,7 +25,11 @@ func sliceToVector4(v4 *vectormath.Vector4, slice []float32) {
 	vectormath.V4MakeFromElems(v4, slice[0], slice[1], slice[2], slice[3])
 }
 
-func matrix4ToSlice(slice []float32, m4 *vectormath.Matrix4) {
+func sliceToVector3(v3 *vectormath.Vector3, slice []float32) {
+	vectormath.V3MakeFromElems(v3, slice[0], slice[1], slice[2])
+}
+
+func matrix4ToSlice(slice []float32, m *vectormath.Matrix4) {
 	var col0, col1, col2, col3 *vectormath.Vector4
 	vectormath.M4GetCol0(col0, m)
 	vectormath.M4GetCol1(col1, m)
@@ -43,4 +47,10 @@ func vector4ToSlice(slice []float32, v4 *vectormath.Vector4) {
 	slice[1] = vectormath.V4GetElem(v4, 1)
 	slice[2] = vectormath.V4GetElem(v4, 2)
 	slice[3] = vectormath.V4GetElem(v4, 3)
+}
+
+func vector3ToSlice(slice []float32, v3 *vectormath.Vector3) {
+	slice[0] = vectormath.V3GetElem(v3, 0)
+	slice[1] = vectormath.V3GetElem(v3, 1)
+	slice[2] = vectormath.V3GetElem(v3, 2)
 }
