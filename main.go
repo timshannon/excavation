@@ -8,6 +8,7 @@ import (
 	"excavation/engine"
 	"flag"
 	"fmt"
+	"github.com/spate/vectormath"
 	"os"
 	"strings"
 )
@@ -46,8 +47,25 @@ func main() {
 
 func task(t *engine.Task) {
 	fmt.Println("Test Task")
+	newVec := new(vectormath.Vector3)
+	newV4 := new(vectormath.Vector4)
 
-	//t.Wait(1)
+	relMat := new(vectormath.Matrix4)
+	camera.RelativeTransMat(relMat)
+
+	fmt.Println("Before: ", relMat)
+	vectormath.V3SetZ(newVec, -0.1)
+	vectormath.M4MulV3(newV4, relMat, newVec)
+
+	vectormath.V3SetX(newVec, vectormath.V4GetX(newV4))
+	vectormath.V3SetY(newVec, vectormath.V4GetY(newV4))
+	vectormath.V3SetZ(newVec, vectormath.V4GetZ(newV4))
+
+	vectormath.M4SetTranslation(relMat, newVec)
+	camera.SetRelativeTransMat(relMat)
+	fmt.Println("After: ", relMat)
+
+	t.Wait(.5)
 }
 
 func setCfgDefaults(cfg *engine.Config) {
