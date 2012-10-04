@@ -54,14 +54,14 @@ func task(t *engine.Task) {
 	camera.RelativeTransMat(relMat)
 
 	fmt.Println("Before: ", relMat)
-	vectormath.V3SetZ(newVec, -0.1)
+	newVec.SetZ(-0.1)
 	vectormath.M4MulV3(newV4, relMat, newVec)
 
-	vectormath.V3SetX(newVec, vectormath.V4GetX(newV4))
-	vectormath.V3SetY(newVec, vectormath.V4GetY(newV4))
-	vectormath.V3SetZ(newVec, vectormath.V4GetZ(newV4))
+	newVec.SetX(newV4.X())
+	newVec.SetY(newV4.Y())
+	newVec.SetZ(newV4.Z())
 
-	vectormath.M4SetTranslation(relMat, newVec)
+	relMat.SetTranslation(newVec)
 	camera.SetRelativeTransMat(relMat)
 	fmt.Println("After: ", relMat)
 
