@@ -7,8 +7,6 @@ package main
 import (
 	"excavation/engine"
 	"flag"
-	"fmt"
-	"github.com/spate/vectormath"
 	"os"
 	"strings"
 )
@@ -39,33 +37,9 @@ func main() {
 		//TODO: Load Main Menu
 	}
 
-	engine.AddTask("test", task, 0, 1)
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
-}
-
-func task(t *engine.Task) {
-	fmt.Println("Test Task")
-	newVec := new(vectormath.Vector3)
-	newV4 := new(vectormath.Vector4)
-
-	relMat := new(vectormath.Matrix4)
-	camera.RelativeTransMat(relMat)
-
-	fmt.Println("Before: ", relMat)
-	newVec.SetZ(-0.1)
-	vectormath.M4MulV3(newV4, relMat, newVec)
-
-	newVec.SetX(newV4.X())
-	newVec.SetY(newV4.Y())
-	newVec.SetZ(newV4.Z())
-
-	relMat.SetTranslation(newVec)
-	camera.SetRelativeTransMat(relMat)
-	fmt.Println("After: ", relMat)
-
-	t.Wait(.5)
 }
 
 func setCfgDefaults(cfg *engine.Config) {
@@ -112,9 +86,6 @@ func loadScene(scene string) {
 
 	children := sceneNode.Children()
 	for c := range children {
-		if children[c].Type() == engine.NodeTypeCamera {
-			engine.SetMainCam(&engine.Camera{children[c]})
-			camera = children[c]
-		}
+		//load entities
 	}
 }
