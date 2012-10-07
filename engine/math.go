@@ -31,3 +31,13 @@ func vector3ToSlice(slice []float32, v3 *vectormath.Vector3) {
 	slice[1] = v3.GetElem(1)
 	slice[2] = v3.GetElem(2)
 }
+
+func M4MakeRotationOnly(matrix *vectormath.Matrix4) {
+	matrix.SetElem(0, 3, 0)
+	matrix.SetElem(1, 3, 0)
+	matrix.SetElem(2, 3, 0)
+	matrix.SetElem(3, 3, 1)
+	matrix.SetElem(3, 0, 0)
+	matrix.SetElem(3, 1, 0)
+	matrix.SetElem(3, 2, 0)
+}

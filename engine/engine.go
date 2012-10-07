@@ -94,6 +94,7 @@ func Init(name string) error {
 func StartMainLoop() {
 	running = true
 
+	//TODO: fix missed onresize call
 	onResize(1024, 768)
 
 	for running {
