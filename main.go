@@ -6,6 +6,7 @@ package main
 
 import (
 	"excavation/engine"
+	"excavation/entity"
 	"flag"
 	"os"
 	"strings"
@@ -87,5 +88,12 @@ func loadScene(scene string) {
 	children := sceneNode.Children()
 	for c := range children {
 		//load entities
+		if children[c].Attachment() != "" {
+			err = entity.LoadEntity(children[c], children[c].Attachment())
+		}
+		if err != nil {
+			panic(err)
+		}
+
 	}
 }
