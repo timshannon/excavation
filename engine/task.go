@@ -27,6 +27,7 @@ type taskFunc func(task *Task)
 type Task struct {
 	Name     string
 	Func     taskFunc
+	Data     interface{}
 	start    float64
 	frames   int
 	state    uint
@@ -70,9 +71,10 @@ type ByPriority struct{ Tasks }
 func (t ByPriority) Less(i, j int) bool { return t.Tasks[i].priority < t.Tasks[j].priority }
 
 //AddTask creates a new task and adds it to the queue
-func AddTask(name string, function taskFunc, priority int, delay float64) {
+func AddTask(name string, function taskFunc, data interface{}, priority int, delay float64) {
 	task := &Task{Name: name,
 		Func:     function,
+		Data:     data,
 		start:    0,
 		frames:   0,
 		priority: priority,
