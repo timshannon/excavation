@@ -5,6 +5,7 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/jteeuwen/glfw"
 	"strconv"
 	"strings"
@@ -145,8 +146,7 @@ func (d *Device) String() string {
 	switch d.Type {
 	case DeviceKeyboard:
 		prefix = "Key"
-		//TODO: Decode key to keyname in an array
-		suffix = strconv.Itoa(d.Button)
+		suffix = keyString(d.Button)
 	case DeviceMouse:
 		prefix = "Mouse"
 		if d.Button >= 0 {
@@ -165,6 +165,26 @@ func (d *Device) String() string {
 	}
 
 	return prefix + "_" + suffix
+}
+
+func keyString(key int) string {
+	if key >= 65 && key <= 90 {
+		return string(key)
+	} else if key > 256 && key <= 324 {
+		return keyString(key)
+	}
+	return strconv.Itoa(key)
+}
+
+func keyInt(key string) int {
+	//TODO: fix
+	keyint, _ := strconv.Atoi(key)
+
+	if keyint >= 65 && keyint <= 90 {
+		return int(key[0])
+	} else if keyint > 256 && keyint <= 324 {
+	}
+	return keyint
 }
 
 //joystick is used to store information about the
@@ -191,7 +211,7 @@ func newInput(cfgString string) *Input {
 	switch {
 	case prefix == "Key":
 		dev.Type = DeviceKeyboard
-		dev.Button, _ = strconv.Atoi(suffix)
+		dev.Button = keyInt(suffix)
 	case prefix == "Mouse":
 		dev.Type = DeviceMouse
 		if strings.HasPrefix(suffix, "Axis") {
@@ -215,6 +235,7 @@ func newInput(cfgString string) *Input {
 	return input
 }
 
+//BindInput binds a config input entry to a input handler function
 func BindInput(controlName string, function InputHandler) {
 	inputHandlers[controlName] = function
 }
@@ -280,6 +301,7 @@ func keyCallback(key, state int) {
 			function(input)
 		}
 	}
+	fmt.Println(keyString(key))
 }
 
 //mouseButtonCallBack handles the glfw callback and executes the configured
