@@ -11,7 +11,7 @@ type Entity interface {
 	Trigger(value float32)                          //Value may not be necessary
 }
 
-var entities []Entity
+var entities map[int]Entity
 
 func LoadEntity(node *engine.Node, attachmentData string) error {
 
@@ -40,8 +40,13 @@ func LoadEntity(node *engine.Node, attachmentData string) error {
 
 	newEnt.load(node, args)
 
-	entities = append(entities, newEnt)
+	entities[int(node.H3DNode)] = newEnt
 
 	return nil
 
+}
+
+func EntityFromNode(node engine.Node) (Entity, bool) {
+	entity, ok := entities[int(node.H3DNode)]
+	return entity, ok
 }
