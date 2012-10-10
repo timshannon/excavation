@@ -13,6 +13,10 @@ type Entity interface {
 
 var entities map[int]Entity
 
+func init() {
+	entities = make(map[int]Entity)
+}
+
 func LoadEntity(node *engine.Node, attachmentData string) error {
 
 	var newEnt Entity

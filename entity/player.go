@@ -23,7 +23,7 @@ func (p *Player) load(node *engine.Node, args map[string]string) {
 	p.rotate = new(vectormath.Vector3)
 	p.scale = new(vectormath.Vector3)
 
-	setupPlayerControls()
+	engine.BindInput(handlePlayerInput, "Forward", "Backward", "Strafe_Right", "Strafe_Left")
 	engine.AddTask("updatePlayer", updatePlayer, p, 0, 1)
 }
 
@@ -34,7 +34,7 @@ func (p *Player) Trigger(value float32) {
 //returns the current active player
 // non input controlled players (i.e. other multiplayer players)
 // will be handled with a different entity
-func Player() *Player {
+func MainPlayer() *Player {
 	return player
 }
 
@@ -48,5 +48,8 @@ func updatePlayer(t *engine.Task) {
 }
 
 func handlePlayerInput(i *engine.Input) {
+	if i.ControlName() == "forward" && i.State == engine.StatePressed {
+		player.translate.SetZ(player.translate.Z() - 0.1)
+	}
 
 }

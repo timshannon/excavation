@@ -121,6 +121,10 @@ func (input *Input) ButtonState() (state int, ok bool) {
 	return
 }
 
+func (input *Input) ControlName() string {
+	return input.controlName
+}
+
 //Device is the source of a type of input
 // Type is either Keyboard, Mouse or Joystick
 // DeviceIndex refers to which joystick 0 - 15
