@@ -5,7 +5,6 @@
 package engine
 
 import (
-	"fmt"
 	"github.com/jteeuwen/glfw"
 	"strconv"
 	"strings"
@@ -168,23 +167,24 @@ func (d *Device) String() string {
 }
 
 func keyString(key int) string {
-	if key >= 65 && key <= 90 {
-		return string(key)
-	} else if key > 256 && key <= 324 {
-		return keyString(key)
+	if key == 32 {
+		return "Space"
 	}
-	return strconv.Itoa(key)
+	if key > 256 && key <= 324 {
+		return specialKeyString[key-257]
+	}
+	return string(key)
 }
 
 func keyInt(key string) int {
-	//TODO: fix
-	keyint, _ := strconv.Atoi(key)
-
-	if keyint >= 65 && keyint <= 90 {
-		return int(key[0])
-	} else if keyint > 256 && keyint <= 324 {
+	if key == "Space" {
+		return 32
 	}
-	return keyint
+	if keyint, ok := specialKeyInt[key]; ok {
+		return keyint
+	}
+	return int(key[0])
+
 }
 
 //joystick is used to store information about the
@@ -236,15 +236,22 @@ func newInput(cfgString string) *Input {
 }
 
 //BindInput binds a config input entry to a input handler function
-func BindInput(controlName string, function InputHandler) {
-	inputHandlers[controlName] = function
+// Note, you can bind multiple controlsNames to the same function in one call
+// ex: BindInput(function, "Strafe_Left", "Strafe_Right")
+func BindInput(function InputHandler, controlName ...string) {
+	for i := range controlName {
+		inputHandlers[controlName[i]] = function
+	}
 }
 
 //BindDirectInput binds an input to a function directly
 // without requiring a config entry for it
-func BindDirectInput(input string, function InputHandler) {
-	addBinding(input, input)
-	inputHandlers[input] = function
+// ex: BindDirectInput(function, "Key_A", "Key_Space")
+func BindDirectInput(function InputHandler, input ...string) {
+	for i := range input {
+		addBinding(input[i], input[i])
+		inputHandlers[input[i]] = function
+	}
 }
 
 //loadBindingFromCfg loads and binds the inputs, creating indexed input
@@ -301,7 +308,6 @@ func keyCallback(key, state int) {
 			function(input)
 		}
 	}
-	fmt.Println(keyString(key))
 }
 
 //mouseButtonCallBack handles the glfw callback and executes the configured

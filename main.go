@@ -52,7 +52,12 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("Fullscreen", false)
 		cfg.SetValue("VSync", 1)
 	case "controls.cfg":
-		//cfg.SetValue("StrafeLeft", "Joy0_1")
+		cfg.SetValue("Forward", "Key_W")
+		cfg.SetValue("Backward", "Key_S")
+		cfg.SetValue("StrafeLeft", "Key_A")
+		cfg.SetValue("StrafeRight", "Key_D")
+		cfg.SetValue("MoveUp", "Key_E")
+		cfg.SetValue("MoveDown", "Key_Space")
 	}
 
 }
