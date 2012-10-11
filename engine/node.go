@@ -166,11 +166,27 @@ func (n *Node) SetRelativeTransMat(matrix *vectormath.Matrix4) {
 	horde3d.SetNodeTransMat(n.H3DNode, tempHordeMat)
 }
 
-//func (n *Node) SetLocalTransform(translate, rotate math3d.Vector3) {
-//	newT := translate.Sub(n.Translate())
-//
-//	n.SetTransform(newT, rotate, n.Scale())
-//}
+func (n *Node) SetLocalTransform(translate, rotate *vectormath.Vector3) {
+	//set transform relative to itself
+	n.SetTransformRelativeTo(n, translate, rotate)
+}
+
+//SetTransformRelativeTo sets the transform relative 
+// to another node's position and rotation
+func (n *Node) SetTransformRelativeTo(otherNode *Node,
+	translate, rotate *vectormath.Vector3) {
+	t := new(vectormath.Vector3)	
+	r := new(vectormath.Vector3)	
+	orientation := new(vectormath.Quat)
+
+	n.Translate(t)
+	n.Rotate(r)
+
+	QuatFromEuler(orientation, r)
+	vectormath.QMul(
+	vectormath.V3Add(t, 
+	mPosition += mOrientation * d
+}
 
 //Returns the bounds of a box that encompasses the node
 func (n *Node) BoundingBox(min, max *vectormath.Vector3) {

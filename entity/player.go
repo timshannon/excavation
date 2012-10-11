@@ -10,6 +10,7 @@ var player *Player
 type Player struct {
 	node                     *engine.Node
 	translate, rotate, scale *vectormath.Vector3
+	velocity                 *vectormath.Vector3
 }
 
 func (p *Player) load(node *engine.Node, args map[string]string) {
@@ -22,6 +23,9 @@ func (p *Player) load(node *engine.Node, args map[string]string) {
 	p.translate = new(vectormath.Vector3)
 	p.rotate = new(vectormath.Vector3)
 	p.scale = new(vectormath.Vector3)
+	p.velocity = new(vectormath.Vector3)
+
+	//node.Transform(p.translate, p.rotate, p.scale)
 
 	engine.BindInput(handlePlayerInput, "Forward", "Backward", "Strafe_Right", "Strafe_Left")
 	engine.AddTask("updatePlayer", updatePlayer, p, 0, 1)
@@ -42,14 +46,18 @@ func updatePlayer(t *engine.Task) {
 	p := t.Data.(*Player)
 	n := p.node
 
-	//p.translate.SetZ(p.translate.Z() + -0.1)
-	n.SetTransform(p.translate, p.rotate, p.scale)
+	n.SetLocalTransform(p.velocity, p.rotate)
 
 }
 
 func handlePlayerInput(i *engine.Input) {
-	if i.ControlName() == "forward" && i.State == engine.StatePressed {
-		player.translate.SetZ(player.translate.Z() - 0.1)
+
+	if i.ControlName() == "Forward" {
+		if i.State == engine.StatePressed {
+			player.velocity.SetZ(-0.1)
+		} else {
+			player.velocity.SetZ(0)
+		}
 	}
 
 }
