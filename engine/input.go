@@ -17,8 +17,8 @@ import (
 // allocate a bunch of types over and over again with each input
 
 const (
-	StatePressed = iota
-	StateReleased
+	StateReleased = iota
+	StatePressed
 )
 
 const (
