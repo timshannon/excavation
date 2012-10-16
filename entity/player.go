@@ -2,6 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
+	"fmt"
 	"github.com/spate/vectormath"
 )
 
@@ -28,7 +29,7 @@ func (p *Player) load(node *engine.Node, args map[string]string) {
 	//node.Transform(p.translate, p.rotate, p.scale)
 
 	engine.BindInput(handlePlayerInput, "Forward", "Backward", "Strafe_Right", "Strafe_Left")
-	engine.AddTask("updatePlayer", updatePlayer, p, 0, 1)
+	engine.AddTask("updatePlayer", updatePlayer, p, 0, 0)
 }
 
 func (p *Player) Trigger(value float32) {
@@ -47,7 +48,7 @@ func updatePlayer(t *engine.Task) {
 	n := p.node
 
 	n.SetLocalTransform(p.velocity, p.rotate)
-
+	fmt.Println(p.velocity)
 }
 
 func handlePlayerInput(i *engine.Input) {
@@ -55,7 +56,11 @@ func handlePlayerInput(i *engine.Input) {
 	if i.ControlName() == "Forward" {
 		if i.State == engine.StatePressed {
 			player.velocity.SetZ(-0.1)
+			player.velocity.SetX(0)
+			player.velocity.SetY(0)
 		} else {
+			player.velocity.SetX(0)
+			player.velocity.SetY(0)
 			player.velocity.SetZ(0)
 		}
 	}

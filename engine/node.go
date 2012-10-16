@@ -28,7 +28,7 @@ const (
 // by retaining temporary memory space for the conversion from horde's float arrays
 // to vectormath's structs, we should be able to keep gc collection to a minimum
 // Multiple threads shouldnt' be an issue, as Horde3d is singlethreaded. 
-// This may need to change in the future
+// This may need to change in the future.
 var (
 	tempHordeMat    []float32
 	tempHordeVector []float32
@@ -174,18 +174,24 @@ func (n *Node) SetLocalTransform(translate, rotate *vectormath.Vector3) {
 //SetTransformRelativeTo sets the transform relative 
 // to another node's position and rotation
 func (n *Node) SetTransformRelativeTo(otherNode *Node,
-	translate, rotate *vectormath.Vector3) {
-	t := new(vectormath.Vector3)	
-	r := new(vectormath.Vector3)	
-	orientation := new(vectormath.Quat)
+	newTranslate, rotate *vectormath.Vector3) {
 
-	n.Translate(t)
-	n.Rotate(r)
+	matrix := new(vectormath.Matrix4)
+	transform := new(vectormath.Transform3)
+	m3 := new(vectormath.Matrix3)
+	translate := new(vectormath.Vector3)
 
-	QuatFromEuler(orientation, r)
-	vectormath.QMul(
-	vectormath.V3Add(t, 
-	mPosition += mOrientation * d
+	otherNode.RelativeTransMat(matrix)
+	vectormath.M4GetTranslation(translate, matrix)
+	vectormath.M4GetUpper3x3(m3, matrix)
+
+	transform.SetUpper3x3(m3)
+	vectormath.T3MulV3(newTranslate, transform, newTranslate)
+	vectormath.V3Add(newTranslate, translate, newTranslate)
+
+	vectormath.M4MakeFromM3V3(matrix, m3, newTranslate)
+	n.SetRelativeTransMat(matrix)
+
 }
 
 //Returns the bounds of a box that encompasses the node
