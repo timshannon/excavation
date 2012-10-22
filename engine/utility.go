@@ -17,11 +17,18 @@ var appName string = "excavation"
 // if the path isn't found, it'll be created
 func UserDir() (string, error) {
 	var userDir string
-	curUser, err := user.Current()
-	if err != nil {
-		return "", err
+
+	userDir = os.Getenv("XDG_DATA_HOME")
+	if userDir == "" {
+		curUser, err := user.Current()
+		if err != nil {
+			return "", err
+		}
+		userDir = path.Join(curUser.HomeDir, ".local/share/"+appName)
+	} else {
+		userDir = path.Join(userDir, appName)
 	}
-	userDir = path.Join(curUser.HomeDir, "."+appName)
+
 	if err := os.Chdir(userDir); err != nil {
 		if os.IsNotExist(err) {
 			os.Mkdir(userDir, 0774)

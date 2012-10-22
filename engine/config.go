@@ -71,15 +71,6 @@ func NewControlCfg() (*Config, error) {
 		if os.IsNotExist(err) {
 			//file doesn't exist
 			// create one with default values
-			//TODO: Default controls
-			// Naming will be as follows
-			//  Device_Axis#
-			//  Device_Button#
-			//  Examples:
-			//	Joy12_13
-			//	Key_W
-			//	Mouse_Axis1
-			//	Joy4_Axis3
 			defaultConfigHandler(cfg)
 			if err = cfg.Write(); err != nil {
 				return nil, err

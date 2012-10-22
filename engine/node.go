@@ -59,9 +59,7 @@ func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
 //the function returns the node type Unknown.
 func (n *Node) Type() int {
 	intType := horde3d.GetNodeType(n.H3DNode)
-	if intType == NodeTypeGroup {
-		//TODO: Look up type from attachment
-	}
+	//TODO: Audio and Physics types
 	return intType
 }
 
@@ -174,12 +172,14 @@ func (n *Node) SetLocalTransform(translate, rotate *vectormath.Vector3) {
 //SetTransformRelativeTo sets the transform relative 
 // to another node's position and rotation
 func (n *Node) SetTransformRelativeTo(otherNode *Node,
-	newTranslate, rotate *vectormath.Vector3) {
+	trans, rotate *vectormath.Vector3) {
 
 	matrix := new(vectormath.Matrix4)
 	transform := new(vectormath.Transform3)
 	m3 := new(vectormath.Matrix3)
 	translate := new(vectormath.Vector3)
+	newTranslate := new(vectormath.Vector3)
+	vectormath.V3Copy(newTranslate, trans)
 
 	otherNode.RelativeTransMat(matrix)
 	vectormath.M4GetTranslation(translate, matrix)
