@@ -2,6 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
+	"fmt"
 	"github.com/spate/vectormath"
 )
 
@@ -55,15 +56,16 @@ func updatePlayer(t *engine.Task) {
 
 func handlePlayerInput(i *engine.Input) {
 
+	fmt.Println(i.ControlName())
 	if i.ControlName() == "Forward" {
-		player.velocity.SetZ(float32(i.State) * -1 * playerSpeed)
+		player.velocity.SetZ(float32(i.State) * (-1 * playerSpeed))
 	}
 	if i.ControlName() == "Backward" {
 		player.velocity.SetZ(float32(i.State) * playerSpeed)
 	}
 
 	if i.ControlName() == "StrafeLeft" {
-		player.velocity.SetX(float32(i.State) * -1 * playerSpeed)
+		player.velocity.SetX(float32(i.State) * (-1 * playerSpeed))
 	}
 	if i.ControlName() == "StrafeRight" {
 		player.velocity.SetX(float32(i.State) * playerSpeed)
