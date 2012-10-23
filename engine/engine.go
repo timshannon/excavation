@@ -17,6 +17,8 @@ const (
 var Root *Node
 var cam *Camera
 var running bool
+var frames int
+var startTime float64
 
 func init() {
 	Root = new(Node)
@@ -97,7 +99,9 @@ func StartMainLoop() {
 	//TODO: fix missed onresize call
 	onResize(1024, 768)
 
+	startTime = Time()
 	for running {
+		frames++
 		joyUpdate()
 		runTasks()
 		horde3d.Render(cam.H3DNode)
@@ -122,6 +126,10 @@ func StopMainLoop() {
 func SetMainCam(newCamera *Camera) {
 	//cam.Remove()
 	cam = newCamera
+}
+
+func Fps() float64 {
+	return float64(frames) / (Time() - startTime)
 }
 
 func onResize(w, h int) {
