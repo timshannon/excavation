@@ -7,8 +7,7 @@ import (
 )
 
 type Entity interface {
-	load(node *engine.Node, args map[string]string) //Called entity load
-	Trigger(value float32)                          //Value may not be necessary
+	Add(node *engine.Node, args map[string]string) //Called entity load
 }
 
 var entities map[int]Entity
@@ -42,7 +41,7 @@ func LoadEntity(node *engine.Node, attachmentData string) error {
 		}
 	}
 
-	newEnt.load(node, args)
+	newEnt.Add(node, args)
 
 	entities[int(node.H3DNode)] = newEnt
 
