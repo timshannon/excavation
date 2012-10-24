@@ -2,73 +2,76 @@ package entity
 
 import (
 	"excavation/engine"
-	"fmt"
 	"github.com/spate/vectormath"
+	"math"
 )
 
 const (
-	playerSpeed = 0.5
+	maxSpeed     = 2.0
+	acceleration = 0.25
 )
 
-var player *Player
+var pX, pY, pZ int
 
 type Player struct {
-	node                     *engine.Node
-	translate, rotate, scale *vectormath.Vector3
-	velocity                 *vectormath.Vector3
+	node              *engine.Node
+	translate, rotate *vectormath.Vector3
+
+	lastUpdate                float64
+	curAccX, curAccY, curAccZ float64
 }
 
-func (p *Player) load(node *engine.Node, args map[string]string) {
+func (p *Player) Add(node *engine.Node, args map[string]string) {
 	p.node = node
 
 	engine.SetMainCam(&engine.Camera{p.node})
-	//set main player for input
-	player = p
 
 	p.translate = new(vectormath.Vector3)
 	p.rotate = new(vectormath.Vector3)
-	p.scale = new(vectormath.Vector3)
-	p.velocity = new(vectormath.Vector3)
 
-	//node.Transform(p.translate, p.rotate, p.scale)
-
-	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft")
+	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft", "MoveUp", "MoveDown")
 	engine.AddTask("updatePlayer", updatePlayer, p, 0, 0)
-}
-
-func (p *Player) Trigger(value float32) {
-	//not used
-}
-
-//returns the current active player
-// non input controlled players (i.e. other multiplayer players)
-// will be handled with a different entity
-func MainPlayer() *Player {
-	return player
 }
 
 func updatePlayer(t *engine.Task) {
 	p := t.Data.(*Player)
 	n := p.node
 
-	n.SetLocalTransform(p.velocity, p.rotate)
+	p.curAccX += math.Min((float64(pX) * acceleration), maxSpeed)
+	p.curAccY += math.Min((float64(pY) * acceleration), maxSpeed)
+	p.curAccZ += math.Min((float64(pZ) * acceleration), maxSpeed)
+
+	p.translate.SetX(float32(p.curAccX * (engine.Time() - p.lastUpdate)))
+	p.translate.SetY(float32(p.curAccY * (engine.Time() - p.lastUpdate)))
+	p.translate.SetZ(float32(p.curAccZ * (engine.Time() - p.lastUpdate)))
+
+	n.SetLocalTransform(p.translate, p.rotate)
+
+	p.lastUpdate = engine.Time()
 }
 
 func handlePlayerInput(i *engine.Input) {
+	var modifier int
 
-	fmt.Println(i.ControlName())
-	if i.ControlName() == "Forward" {
-		player.velocity.SetZ(float32(i.State) * (-1 * playerSpeed))
-	}
-	if i.ControlName() == "Backward" {
-		player.velocity.SetZ(float32(i.State) * playerSpeed)
+	if i.State == engine.StatePressed {
+		modifier = 1
+	} else {
+		modifier = -1
 	}
 
-	if i.ControlName() == "StrafeLeft" {
-		player.velocity.SetX(float32(i.State) * (-1 * playerSpeed))
-	}
-	if i.ControlName() == "StrafeRight" {
-		player.velocity.SetX(float32(i.State) * playerSpeed)
+	switch i.ControlName() {
+	case "Forward":
+		pZ += -1 * modifier
+	case "Backward":
+		pZ += 1 * modifier
+	case "StrafeLeft":
+		pX += -1 * modifier
+	case "StrafeRight":
+		pX += 1 * modifier
+	case "MoveUp":
+		pY += 1 * modifier
+	case "MoveDown":
+		pY += -1 * modifier
 	}
 
 }
