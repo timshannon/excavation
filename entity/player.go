@@ -7,18 +7,19 @@ import (
 )
 
 const (
-	maxSpeed     = 2.0
-	acceleration = 0.25
+	maxSpeed     = 75.0
+	acceleration = 1.5
 )
 
-var pX, pY, pZ int
+var inX, inY, inZ int
+var inPitch, inYaw int
 
 type Player struct {
 	node              *engine.Node
 	translate, rotate *vectormath.Vector3
 
 	lastUpdate                float64
-	curAccX, curAccY, curAccZ float64
+	curAccX, curAccY, curAccZ float32
 }
 
 func (p *Player) Add(node *engine.Node, args map[string]string) {
@@ -30,6 +31,7 @@ func (p *Player) Add(node *engine.Node, args map[string]string) {
 	p.rotate = new(vectormath.Vector3)
 
 	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft", "MoveUp", "MoveDown")
+	engine.BindInput(handlePitchYaw, "PitchYaw")
 	engine.AddTask("updatePlayer", updatePlayer, p, 0, 0)
 }
 
@@ -37,17 +39,58 @@ func updatePlayer(t *engine.Task) {
 	p := t.Data.(*Player)
 	n := p.node
 
-	p.curAccX += math.Min((float64(pX) * acceleration), maxSpeed)
-	p.curAccY += math.Min((float64(pY) * acceleration), maxSpeed)
-	p.curAccZ += math.Min((float64(pZ) * acceleration), maxSpeed)
+	if inX == 0 {
+		p.curAccX = deccelerate(p.curAccX)
+	} else {
+		p.curAccX = accelerate(p.curAccX, inX)
+	}
 
-	p.translate.SetX(float32(p.curAccX * (engine.Time() - p.lastUpdate)))
-	p.translate.SetY(float32(p.curAccY * (engine.Time() - p.lastUpdate)))
-	p.translate.SetZ(float32(p.curAccZ * (engine.Time() - p.lastUpdate)))
+	if inY == 0 {
+		p.curAccY = deccelerate(p.curAccY)
+	} else {
+		p.curAccY = accelerate(p.curAccY, inY)
+	}
+
+	if inZ == 0 {
+		p.curAccZ = deccelerate(p.curAccZ)
+	} else {
+		p.curAccZ = accelerate(p.curAccZ, inZ)
+	}
+
+	p.translate.SetX(p.curAccX * float32(engine.Time()-p.lastUpdate))
+	p.translate.SetY(p.curAccY * float32(engine.Time()-p.lastUpdate))
+	p.translate.SetZ(p.curAccZ * float32(engine.Time()-p.lastUpdate))
 
 	n.SetLocalTransform(p.translate, p.rotate)
 
 	p.lastUpdate = engine.Time()
+}
+
+func accelerate(speed float32, modifier int) float32 {
+	speed += (float32(modifier) * acceleration)
+
+	if math.Abs(float64(speed)) > maxSpeed {
+		speed = (maxSpeed * float32(modifier))
+	}
+	return speed
+}
+
+func deccelerate(speed float32) float32 {
+	var modifier float32
+	if speed == 0 {
+		return 0
+	} else if speed > 0 {
+		modifier = 1
+	} else if speed < 0 {
+		modifier = -1
+	}
+
+	speed -= (modifier * acceleration)
+	if (speed * modifier) < 0 {
+		speed = 0
+	}
+
+	return speed
 }
 
 func handlePlayerInput(i *engine.Input) {
@@ -61,17 +104,22 @@ func handlePlayerInput(i *engine.Input) {
 
 	switch i.ControlName() {
 	case "Forward":
-		pZ += -1 * modifier
+		inZ += -1 * modifier
 	case "Backward":
-		pZ += 1 * modifier
+		inZ += 1 * modifier
 	case "StrafeLeft":
-		pX += -1 * modifier
+		inX += -1 * modifier
 	case "StrafeRight":
-		pX += 1 * modifier
+		inX += 1 * modifier
 	case "MoveUp":
-		pY += 1 * modifier
+		inY += 1 * modifier
 	case "MoveDown":
-		pY += -1 * modifier
+		inY += -1 * modifier
 	}
+
+}
+
+func handlePitchYaw(i *engine.Input) {
+	i.MousePos()
 
 }

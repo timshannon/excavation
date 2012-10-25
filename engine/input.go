@@ -38,6 +38,7 @@ var (
 	keyInputs       map[int]*Input
 	joyAxisInputs   map[int]*Input
 	joyBtnInputs    map[int]*Input
+	haltInput       bool
 )
 
 var inputHandlers map[string]InputHandler
@@ -66,6 +67,7 @@ type Input struct {
 	X           int
 	Y           int
 	AxisPos     float32
+	Active      bool
 }
 
 // JoyAxis returns the joystick's current axis value if the input is
@@ -205,6 +207,7 @@ var curJoystick *joystick
 func newInput(cfgString string) *Input {
 	dev := &Device{-1, -1, -1, -1}
 	input := new(Input)
+	input.Active = true
 
 	var prefix string
 	var suffix string
@@ -306,7 +309,7 @@ func addBinding(controlName, cfgString string) {
 // inputhandler for the given input
 func keyCallback(key, state int) {
 	input, ok := keyInputs[key]
-	if ok {
+	if ok && input.Active {
 		input.State = state
 		if function, ok := inputHandlers[input.controlName]; ok {
 			function(input)
@@ -318,7 +321,7 @@ func keyCallback(key, state int) {
 // inputhandler for the given input
 func mouseButtonCallback(button, state int) {
 	input, ok := mouseBtnInputs[button]
-	if ok {
+	if ok && input.Active {
 		input.State = state
 		if function, ok := inputHandlers[input.controlName]; ok {
 			function(input)
@@ -330,7 +333,7 @@ func mouseButtonCallback(button, state int) {
 // inputhandler for the given input
 func mousePosCallback(x, y int) {
 	input, ok := mouseAxisInputs[MouseAxisPos]
-	if ok {
+	if ok && input.Active {
 		input.X = x
 		input.Y = y
 		if function, ok := inputHandlers[input.controlName]; ok {
@@ -341,7 +344,7 @@ func mousePosCallback(x, y int) {
 
 func mouseWheelCallback(delta int) {
 	input, ok := mouseAxisInputs[MouseAxisWheel]
-	if ok {
+	if ok && input.Active {
 		input.X = delta
 		if function, ok := inputHandlers[input.controlName]; ok {
 			function(input)
@@ -357,11 +360,10 @@ func joyUpdate() {
 		var input *Input
 		var ok bool
 		results = glfw.JoystickButtons(curJoystick.index, curJoystick.buttons)
-		//TODO: Joystick input seems to be continual
 
 		for i := 0; i < results; i++ {
 			input, ok = joyBtnInputs[i]
-			if ok {
+			if ok && input.Active {
 				input.State = int(curJoystick.buttons[i])
 				if function, ok := inputHandlers[input.controlName]; ok {
 					function(input)
@@ -381,3 +383,5 @@ func joyUpdate() {
 		}
 	}
 }
+
+//TODO: Disable all inputs when a gui is menu is active

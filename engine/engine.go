@@ -19,6 +19,8 @@ var cam *Camera
 var running bool
 var frames int
 var startTime float64
+var controlCfg *Config
+var cfg *Config
 
 func init() {
 	Root = new(Node)
@@ -84,7 +86,6 @@ func Init(name string) error {
 
 	//add camera
 	cam = AddCamera(Root, "MainCamera", pipeline)
-	//horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
 
 	//Music and Audio
 	initMusic()
@@ -154,4 +155,12 @@ func ClearAll() {
 	horde3d.Clear()
 	//TODO: Clear audio / sound entities
 	//TODO: Clear Physics entities
+}
+
+func Cfg() *Config {
+	return cfg
+}
+
+func ControlCfg() *Config {
+	return controlCfg
 }

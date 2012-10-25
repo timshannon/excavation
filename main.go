@@ -50,7 +50,8 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("WindowHeight", 728)
 		cfg.SetValue("WindowDepth", 24)
 		cfg.SetValue("Fullscreen", false)
-		cfg.SetValue("VSync", 1)
+		cfg.SetValue("VSync", 0)
+		cfg.SetValue("InvertMouse", true)
 	case "controls.cfg":
 		cfg.SetValue("Forward", "Key_W")
 		cfg.SetValue("Backward", "Key_S")
@@ -58,6 +59,7 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("StrafeRight", "Key_D")
 		cfg.SetValue("MoveUp", "Key_E")
 		cfg.SetValue("MoveDown", "Key_Space")
+		cfg.SetValue("PitchYaw", "Mouse_Axis0")
 	}
 
 }
