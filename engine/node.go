@@ -179,6 +179,9 @@ func (n *Node) SetTransformRelativeTo(otherNode *Node,
 	m3 := new(vectormath.Matrix3)
 	translate := new(vectormath.Vector3)
 	newTranslate := new(vectormath.Vector3)
+	rotM3 := new(vectormath.Matrix3)
+
+	vectormath.M3MakeRotationZYX(rotM3, rotate)
 	vectormath.V3Copy(newTranslate, trans)
 
 	otherNode.RelativeTransMat(matrix)
@@ -187,9 +190,11 @@ func (n *Node) SetTransformRelativeTo(otherNode *Node,
 
 	transform.SetUpper3x3(m3)
 	vectormath.T3MulV3(newTranslate, transform, newTranslate)
+	vectormath.M3Mul(rotM3, m3, rotM3)
+
 	vectormath.V3Add(newTranslate, translate, newTranslate)
 
-	vectormath.M4MakeFromM3V3(matrix, m3, newTranslate)
+	vectormath.M4MakeFromM3V3(matrix, rotM3, newTranslate)
 	n.SetRelativeTransMat(matrix)
 
 }

@@ -14,9 +14,10 @@ import (
 )
 
 type Config struct {
-	Name     string
-	FileName string
-	values   map[string]interface{}
+	Name           string
+	FileName       string
+	values         map[string]interface{}
+	onWriteHandler ConfigOnWriteHandler
 }
 
 func NewCfg(fileName string) (*Config, error) {
@@ -164,6 +165,16 @@ func (cfg *Config) Write() error {
 		return err
 	}
 	err = ioutil.WriteFile(cfg.FileName, data, 0644)
+	cfg.onWriteHandler(cfg)
 	return err
 
+}
+
+type ConfigOnWriteHandler func(cfg *Config)
+
+//RegisterOnWriteHandler registers a function to be called when
+// this config file is written.  So that if changes are made, 
+// the consumers of the config can get the latest values
+func (cfg *Config) RegisterOnWriteHandler(handler ConfigOnWriteHandler) {
+	cfg.onWriteHandler = handler
 }

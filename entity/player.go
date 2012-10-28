@@ -12,14 +12,16 @@ const (
 )
 
 var inX, inY, inZ int
-var inPitch, inYaw int
+var vX, vY int
 
 type Player struct {
 	node              *engine.Node
 	translate, rotate *vectormath.Vector3
 
+	invert                    bool
 	lastUpdate                float64
 	curAccX, curAccY, curAccZ float32
+	curVx, curVy              int
 }
 
 func (p *Player) Add(node *engine.Node, args map[string]string) {
@@ -29,6 +31,10 @@ func (p *Player) Add(node *engine.Node, args map[string]string) {
 
 	p.translate = new(vectormath.Vector3)
 	p.rotate = new(vectormath.Vector3)
+
+	//TODO: Handle config changes without having to look up the
+	// setting constantly
+	p.invert = engine.Cfg().Bool("InvertMouse")
 
 	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft", "MoveUp", "MoveDown")
 	engine.BindInput(handlePitchYaw, "PitchYaw")
@@ -60,6 +66,11 @@ func updatePlayer(t *engine.Task) {
 	p.translate.SetX(p.curAccX * float32(engine.Time()-p.lastUpdate))
 	p.translate.SetY(p.curAccY * float32(engine.Time()-p.lastUpdate))
 	p.translate.SetZ(p.curAccZ * float32(engine.Time()-p.lastUpdate))
+
+	//p.rotate.SetX(float32(vX))
+	//p.rotate.SetY(float32(vY))
+
+	p.rotate.SetX(0.01)
 
 	n.SetLocalTransform(p.translate, p.rotate)
 
@@ -120,6 +131,6 @@ func handlePlayerInput(i *engine.Input) {
 }
 
 func handlePitchYaw(i *engine.Input) {
-	i.MousePos()
-
+	//TODO: handle joy and key input
+	vX, vY, _ = i.MousePos()
 }
