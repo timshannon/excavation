@@ -20,7 +20,7 @@ var running bool
 var frames int
 var startTime float64
 var controlCfg *Config
-var cfg *Config
+var standardCfg *Config
 
 func init() {
 	Root = new(Node)
@@ -31,6 +31,7 @@ func Init(name string) error {
 	appName = name
 	//load settings from config file
 	cfg, err := NewStandardCfg()
+
 	if err != nil {
 		return err
 	}
@@ -39,6 +40,7 @@ func Init(name string) error {
 		return err
 	}
 
+	standardCfg = cfg
 	if err = glfw.Init(); err != nil {
 		return err
 	}
@@ -59,6 +61,7 @@ func Init(name string) error {
 
 	glfw.SetSwapInterval(cfg.Int("VSync"))
 	glfw.SetWindowTitle(windowTitle)
+	glfw.Disable(glfw.MouseCursor)
 
 	if !horde3d.Init() {
 		horde3d.DumpMessages()
@@ -66,7 +69,9 @@ func Init(name string) error {
 	}
 
 	//setup input handling
-	controlCfg, err := NewControlCfg()
+	controls, err := NewControlCfg()
+
+	controlCfg = controls
 	if err != nil {
 		return err
 	}
@@ -90,6 +95,7 @@ func Init(name string) error {
 	//Music and Audio
 	initMusic()
 	glfw.SetWindowSizeCallback(onResize)
+
 	return nil
 
 }
@@ -125,7 +131,7 @@ func StopMainLoop() {
 }
 
 func SetMainCam(newCamera *Camera) {
-	//cam.Remove()
+	//cam.Remove() seems to remove all nodes?
 	cam = newCamera
 }
 
@@ -158,7 +164,7 @@ func ClearAll() {
 }
 
 func Cfg() *Config {
-	return cfg
+	return standardCfg
 }
 
 func ControlCfg() *Config {

@@ -52,6 +52,7 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("Fullscreen", false)
 		cfg.SetValue("VSync", 0)
 		cfg.SetValue("InvertMouse", true)
+		cfg.SetValue("MouseSensitivity", 0.3)
 	case "controls.cfg":
 		cfg.SetValue("Forward", "Key_W")
 		cfg.SetValue("Backward", "Key_S")
@@ -60,6 +61,10 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("MoveUp", "Key_E")
 		cfg.SetValue("MoveDown", "Key_Space")
 		cfg.SetValue("PitchYaw", "Mouse_Axis0")
+		cfg.SetValue("PitchUp", "Key_Up")
+		cfg.SetValue("PitchDown", "Key_Down")
+		cfg.SetValue("YawLeft", "Key_Left")
+		cfg.SetValue("YawRight", "Key_Right")
 	}
 
 }
@@ -81,6 +86,7 @@ func loadScene(scene string) {
 		if os.IsNotExist(err) {
 			//TODO: Load Main Menu instead
 			panic("Scene file " + scene + " doesn't exist")
+
 		}
 	}
 	err = sceneRes.Load()

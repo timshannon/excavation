@@ -25,7 +25,7 @@ func initMusic() error {
 // it'll look for the file in the engine's data directory.
 // fadeIn is number of miliseconds to spend fading in
 // 0 is no fade
-func PlayMusicFile(file string, loop bool, fadeIn int) {
+func MusicPlayFile(file string, loop bool, fadeIn int) {
 	//free the last music played
 	// we'll see if this causes uncessary lag before play or
 	// a waste of resources while no music is playing
@@ -51,14 +51,14 @@ func PlayMusicFile(file string, loop bool, fadeIn int) {
 	}
 }
 
-func FadeOutMusic(ms int) {
+func MusicFaceOut(ms int) {
 	mixer.FadeOutMusic(ms)
 }
-func SetMusicVolume(volume int) {
+func MusicSetVolume(volume int) {
 	mixer.VolumeMusic(volume)
 }
 
-func PauseMusic() {
+func MusicPause() {
 	mixer.PauseMusic()
 }
 
