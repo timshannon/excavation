@@ -146,13 +146,13 @@ func (cfg *Config) Bool(name string) bool {
 	return value
 }
 
-func (cfg *Config) Float(name string) float64 {
+func (cfg *Config) Float(name string) float32 {
 	value, ok := cfg.values[name].(float64)
 	if !ok {
 		printMissing(name)
 		return 0.0
 	}
-	return value
+	return float32(value)
 }
 
 func (cfg *Config) SetValue(name string, value interface{}) {
@@ -165,7 +165,7 @@ func (cfg *Config) Write() error {
 		return err
 	}
 	err = ioutil.WriteFile(cfg.FileName, data, 0644)
-	cfg.onWriteHandler(cfg)
+
 	return err
 
 }

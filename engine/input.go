@@ -385,3 +385,4 @@ func joyUpdate() {
 }
 
 //TODO: Disable all inputs when a gui is menu is active
+//TODO: Option to reload all config
