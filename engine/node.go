@@ -29,15 +29,8 @@ const (
 // to vectormath's structs, we should be able to keep gc collection to a minimum
 // Multiple threads shouldnt' be an issue, as Horde3d is singlethreaded. 
 // This may need to change in the future.
-var (
-	tempHordeMat    []float32
-	tempHordeVector []float32
-)
-
-func init() {
-	tempHordeMat = make([]float32, 16)
-	tempHordeVector = make([]float32, 3)
-}
+var tempHordeMat = make([]float32, 16)
+var tempHordeVector = make([]float32, 3)
 
 type Node struct {
 	horde3d.H3DNode
@@ -58,8 +51,9 @@ func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
 //This function returns the type of a specified scene node.  If the node handle is invalid, 
 //the function returns the node type Unknown.
 func (n *Node) Type() int {
+	//TODO: check for Audio and Physics types before making
+	// slower CGO call 
 	intType := horde3d.GetNodeType(n.H3DNode)
-	//TODO: Audio and Physics types
 	return intType
 }
 
@@ -171,6 +165,8 @@ func (n *Node) SetLocalTransform(translate, rotate *vectormath.Vector3) {
 
 //SetTransformRelativeTo sets the transform relative 
 // to another node's position and rotation
+// Note this function creates a lot of temp variables, and may
+// cause GC collection performance issues
 func (n *Node) SetTransformRelativeTo(otherNode *Node,
 	trans, rotate *vectormath.Vector3) {
 
