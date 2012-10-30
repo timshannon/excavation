@@ -18,6 +18,12 @@ var vX, vY int
 type Player struct {
 	node              *engine.Node
 	translate, rotate *vectormath.Vector3
+	matrix            *vectormath.Matrix4
+
+	//Temp movement variables
+	rotationMatrix *vectormath.Matrix3
+	translation    *vectormath.Vector3
+	relM3          *vectormath.Matrix3
 
 	//mouse
 	invert           bool
@@ -36,6 +42,10 @@ func (p *Player) Add(node *engine.Node, args map[string]string) {
 
 	p.translate = new(vectormath.Vector3)
 	p.rotate = new(vectormath.Vector3)
+	p.matrix = new(vectormath.Matrix4)
+	p.rotationMatrix = new(vectormath.Matrix3)
+	p.translation = new(vectormath.Vector3)
+	p.relM3 = new(vectormath.Matrix3)
 
 	p.invert = engine.Cfg().Bool("InvertMouse")
 	p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
@@ -56,7 +66,6 @@ func (p *Player) Add(node *engine.Node, args map[string]string) {
 
 func updatePlayer(t *engine.Task) {
 	p := t.Data.(*Player)
-	n := p.node
 
 	elapsedTime := float32(engine.Time() - p.lastUpdate)
 	p.lastUpdate = engine.Time()
@@ -91,7 +100,8 @@ func updatePlayer(t *engine.Task) {
 
 	p.rotate.SetX(float32(vX-p.curVx) * p.mouseSensitivity)
 
-	n.SetLocalTransform(p.translate, p.rotate)
+	//n.SetLocalTransform(p.translate, p.rotate)
+	p.localTransform()
 
 	p.curVx = vX
 	p.curVy = vY
@@ -122,6 +132,30 @@ func deccelerate(speed, time float32) float32 {
 	}
 
 	return speed
+}
+
+func (p *Player) localTransform() {
+	p.node.RelativeTransMat(p.matrix)
+	vectormath.M4GetTranslation(p.translation, p.matrix)
+	vectormath.M3MakeRotationZYX(p.rotationMatrix, p.rotate)
+	vectormath.M4GetUpper3x3(p.relM3, p.matrix)
+
+	vectormath.M3MulV3(p.translate, p.relM3, p.translate)
+	vectormath.M3Mul(p.rotationMatrix, p.relM3, p.rotationMatrix)
+
+	vectormath.V3Add(p.translate, p.translation, p.translate)
+
+	vectormath.M4MakeFromM3V3(p.matrix, p.rotationMatrix, p.translate)
+	p.node.SetRelativeTransMat(p.matrix)
+
+	zeroVector(p.translate)
+	zeroVector(p.rotate)
+}
+
+func zeroVector(vector *vectormath.Vector3) {
+	vector.SetX(0)
+	vector.SetY(0)
+	vector.SetZ(0)
 }
 
 func handlePlayerInput(i *engine.Input) {
