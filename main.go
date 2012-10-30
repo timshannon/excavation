@@ -39,8 +39,8 @@ func main() {
 		//TODO: Load Main Menu
 	}
 
+	//todo: temp for testing frame independence
 	engine.BindDirectInput(ToggleVSync, "Key_F1")
-	engine.BindDirectInput(ToggleFullScreen, "Key_F11")
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
@@ -57,22 +57,6 @@ func ToggleVSync(input *engine.Input) {
 				vsync = 0
 			}
 			glfw.SetSwapInterval(vsync)
-		}
-	}
-}
-
-var fullScreen int
-
-func ToggleFullScreen(input *engine.Input) {
-	if state, ok := input.ButtonState(); ok {
-		if state == engine.StatePressed {
-			if fullScreen == 0 {
-				fullScreen = 1
-				glfw.Enable(glfw.Fullscreen)
-			} else {
-				fullScreen = 0
-				glfw.Enable(glfw.Windowed)
-			}
 		}
 	}
 }
