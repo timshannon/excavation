@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	maxSpeed     = 75
-	acceleration = 400
+	maxSpeed        = 75
+	acceleration    = 400
+	mouseMultiplier = 0.001 // makes for some saner numbers in the config file
 )
 
 var inX, inY, inZ int
@@ -37,17 +38,20 @@ func (p *Player) Add(node *engine.Node, args map[string]string) {
 	p.rotate = new(vectormath.Vector3)
 
 	p.invert = engine.Cfg().Bool("InvertMouse")
-	p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity")
+	p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
 
 	//test: does this actually work?
 	engine.Cfg().RegisterOnWriteHandler(func(cfg *engine.Config) {
 		p.invert = engine.Cfg().Bool("InvertMouse")
-		p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity")
+		p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
 	})
 
 	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft", "MoveUp", "MoveDown")
 	engine.BindInput(handlePitchYaw, "PitchYaw", "PitchUp", "PitchDown", "YawLeft", "YawRight")
 	engine.AddTask("updatePlayer", updatePlayer, p, 0, 0)
+
+	engine.SetMousePos(0, 0)
+
 }
 
 func updatePlayer(t *engine.Task) {
@@ -79,18 +83,16 @@ func updatePlayer(t *engine.Task) {
 	p.translate.SetY(p.speedY * elapsedTime)
 	p.translate.SetZ(p.speedZ * elapsedTime)
 
-	if p.invert {
-		p.mouseSensitivity *= -1
+	if !p.invert {
+		p.rotate.SetY(float32(vY-p.curVy) * p.mouseSensitivity)
+	} else {
+		p.rotate.SetY(float32(vY-p.curVy) * (p.mouseSensitivity * -1))
 	}
-	//fmt.Println(float32(vX-p.curVx) * p.mouseSpeed)
-	//p.rotate.SetX(float32(vX-p.curVx) * p.mouseSpeed)
-	//p.rotate.SetY(float32(vY-p.curVy) * p.mouseSpeed)
 
-	//p.rotate.SetX(0.01)
-	//p.rotate.SetY(0.01)
-	if p.translate.X() != 0 || p.translate.Y() != 0 || p.translate.Z() != 0 {
-		n.SetLocalTransform(p.translate, p.rotate)
-	}
+	p.rotate.SetX(float32(vX-p.curVx) * p.mouseSensitivity)
+
+	n.SetLocalTransform(p.translate, p.rotate)
+
 	p.curVx = vX
 	p.curVy = vY
 }

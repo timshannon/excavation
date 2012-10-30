@@ -8,6 +8,7 @@ import (
 	"excavation/engine"
 	"excavation/entity"
 	"flag"
+	"github.com/jteeuwen/glfw"
 	"os"
 	"strings"
 )
@@ -38,9 +39,25 @@ func main() {
 		//TODO: Load Main Menu
 	}
 
+	engine.BindDirectInput(ToggleVSync, "Key_F1")
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
+}
+
+var vsync int
+
+func ToggleVSync(input *engine.Input) {
+	if state, ok := input.ButtonState(); ok {
+		if state == engine.StatePressed {
+			if vsync == 0 {
+				vsync = 1
+			} else {
+				vsync = 0
+			}
+			glfw.SetSwapInterval(vsync)
+		}
+	}
 }
 
 func setCfgDefaults(cfg *engine.Config) {

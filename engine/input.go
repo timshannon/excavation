@@ -50,6 +50,7 @@ func init() {
 	joyAxisInputs = make(map[int]*Input)
 	joyBtnInputs = make(map[int]*Input)
 	inputHandlers = make(map[string]InputHandler)
+
 }
 
 type InputHandler func(input *Input)
@@ -382,6 +383,13 @@ func joyUpdate() {
 			}
 		}
 	}
+}
+
+func MousePos() (int, int) {
+	return glfw.MousePos()
+}
+func SetMousePos(x, y int) {
+	glfw.SetMousePos(x, y)
 }
 
 //TODO: Disable all inputs when a gui is menu is active
