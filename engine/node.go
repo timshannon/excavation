@@ -19,9 +19,6 @@ const (
 	NodeTypeLight     = horde3d.NodeTypes_Light
 	NodeTypeCamera    = horde3d.NodeTypes_Camera
 	NodeTypeEmitter   = horde3d.NodeTypes_Emitter
-	//non-horde types
-	NodeTypeAudio = horde3d.NodeTypes_Emitter + 1 + iota
-	NodeTypeRigidBody
 )
 
 //temp variables used to keep the GC from thrashing
@@ -51,8 +48,6 @@ func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
 //This function returns the type of a specified scene node.  If the node handle is invalid, 
 //the function returns the node type Unknown.
 func (n *Node) Type() int {
-	//TODO: check for Audio and Physics types before making
-	// slower CGO call 
 	intType := horde3d.GetNodeType(n.H3DNode)
 	return intType
 }

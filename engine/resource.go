@@ -41,14 +41,15 @@ func LoadAllResources() error {
 	return nil
 }
 
-type ResHandler interface {
-	Type() int
-	Name() string
-	Load() error
-	FullPath() string
-	IsLoaded() bool
-	Remove()
-}
+//might use later with audio
+//type ResHandler interface {
+//Type() int
+//Name() string
+//Load() error
+//FullPath() string
+//IsLoaded() bool
+//Remove()
+//}
 
 type Resource struct {
 	horde3d.H3DRes
@@ -65,8 +66,6 @@ const (
 	ResTypeTexture        = horde3d.ResTypes_Texture
 	ResTypeParticleEffect = horde3d.ResTypes_ParticleEffect
 	ResTypePipeline       = horde3d.ResTypes_Pipeline
-	//non-horde res types
-	ResTypeAudio = horde3d.ResTypes_Pipeline + 1 + iota
 )
 
 func (res *Resource) Type() int { return horde3d.GetResType(res.H3DRes) }
@@ -87,12 +86,15 @@ func (res *Resource) Load() error {
 		}
 
 		if err != nil {
+			addError(err)
 			return err
 		}
 
 		good := horde3d.LoadResource(res.H3DRes, data)
 		if !good {
-			return errors.New("Horde3D was unable to load the resource.")
+			err := errors.New("Horde3D was unable to load the resource " + res.FullPath() + ".")
+			addError(err)
+			return err
 		}
 	}
 
@@ -123,7 +125,9 @@ func NewScene(name string) (*Scene, error) {
 	scene.H3DRes = horde3d.AddResource(horde3d.ResTypes_SceneGraph,
 		name, 0)
 	if scene.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		addError(err)
+		return nil, err
 	}
 
 	return scene, nil
@@ -138,7 +142,9 @@ func NewGeometry(name string) (*Geometry, error) {
 		name, 0)
 
 	if geo.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		addError(err)
+		return nil, err
 	}
 	return geo, nil
 }
@@ -150,7 +156,9 @@ func NewAnimation(name string) (*Animation, error) {
 	anim.H3DRes = horde3d.AddResource(horde3d.ResTypes_Animation,
 		name, 0)
 	if anim.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		addError(err)
+		return nil, err
 	}
 
 	return anim, nil
@@ -175,7 +183,9 @@ func NewParticleEffect(name string) (*ParticleEffect, error) {
 	part.H3DRes = horde3d.AddResource(horde3d.ResTypes_ParticleEffect,
 		name, 0)
 	if part.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		addError(err)
+		return nil, err
 	}
 	return part, nil
 }
@@ -188,7 +198,9 @@ func NewPipeline(name string) (*Pipeline, error) {
 		name, 0)
 
 	if pipeline.H3DRes == 0 {
-		return nil, errors.New("Unable to add resource in Horde3D.")
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		addError(err)
+		return nil, err
 	}
 
 	return pipeline, nil
