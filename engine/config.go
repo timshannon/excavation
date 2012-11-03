@@ -99,14 +99,18 @@ func SetDefaultConfigHandler(function DefaultConfigHandler) {
 //Loads a specific config file at a specific location
 func (cfg *Config) Load() error {
 	if cfg.FileName == "" {
-		return errors.New("No Filename set for Config object")
+		err := errors.New("No Filename set for Config object")
+		addError(err)
+		return err
 	}
 
 	data, err := ioutil.ReadFile(cfg.FileName)
 	if err != nil {
+		addError(err)
 		return err
 	}
 	if err = json.Unmarshal(data, &cfg.values); err != nil {
+		addError(err)
 		return err
 	}
 	return nil

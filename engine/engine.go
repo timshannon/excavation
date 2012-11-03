@@ -94,6 +94,7 @@ func Init(name string) error {
 
 	//Music and Audio
 	initMusic()
+	initAudio(cfg.String("AudioDevice"))
 	glfw.SetWindowSizeCallback(onResize)
 
 	return nil
@@ -111,6 +112,7 @@ func StartMainLoop() {
 		frames++
 		joyUpdate()
 		runTasks()
+		updateAudio()
 		horde3d.Render(cam.H3DNode)
 		horde3d.FinalizeFrame()
 		glfw.SwapBuffers()
@@ -159,7 +161,7 @@ func Time() float64 {
 //Clear clears all rendering, physics, and sound resources, nodes, etc
 func ClearAll() {
 	horde3d.Clear()
-	//TODO: Clear audio / sound entities
+	ClearAllAudio()
 	//TODO: Clear Physics entities
 }
 
