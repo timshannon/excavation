@@ -8,10 +8,10 @@ import (
 
 type Listener struct {
 	openal.Listener
-	node                         *Node
-	position, upOrient, atOrient *openal.Vector
-	matrix                       *vectormath.Matrix4
-	tempVector                   *vectormath.Vector4
+	node               *Node
+	upOrient, atOrient *openal.Vector
+	matrix             *vectormath.Matrix4
+	tempVector         *vectormath.Vector4
 }
 
 var listener *Listener
@@ -23,7 +23,6 @@ var audioNodes []*Audio
 func initAudio(deviceName string) {
 	listener = &Listener{
 		Listener:   openal.Listener{},
-		position:   new(openal.Vector),
 		upOrient:   new(openal.Vector),
 		atOrient:   new(openal.Vector),
 		matrix:     new(vectormath.Matrix4),
@@ -60,21 +59,29 @@ type Audio struct {
 
 //AddAudioNode adds an audio source who's position gets
 // updated based on the passed in node's position
-func AddAudioNode(node *Node, buffer *AudioBuffer) *Audio {
+func AddAudioNode(node *Node, buffer *AudioBuffer, minDistance,
+	maxDistance float32) *Audio {
 	aNode := &Audio{Source: openal.NewSource(),
 		node: node,
 	}
 	aNode.node = node
 	aNode.SetBuffer(buffer.Buffer)
 
+	aNode.SetReferenceDistance(minDistance)
+	aNode.SetMaxDistance(maxDistance)
+
 	audioNodes = append(audioNodes, aNode)
 	return aNode
 }
 
 //AddStaticAudio Adds an audio source that doesn't move
-func AddStaticAudio(position *vectormath.Vector3, buffer *AudioBuffer) *Audio {
+func AddStaticAudio(position *vectormath.Vector3, buffer *AudioBuffer,
+	minDistance, maxDistance float32) *Audio {
 	aNode := &Audio{Source: openal.NewSource()}
 	aNode.SetBuffer(buffer.Buffer)
+
+	aNode.SetReferenceDistance(minDistance)
+	aNode.SetMaxDistance(maxDistance)
 
 	aNode.Set3f(openal.AlPosition,
 		position.X(), position.Y(), position.Z())
@@ -131,10 +138,8 @@ func updateAudio() {
 func (l *Listener) updatePositionOrientation() {
 	l.node.AbsoluteTransMat(listener.matrix)
 
-	l.position.X = l.matrix.GetElem(3, 0)
-	l.position.Y = l.matrix.GetElem(3, 1)
-	l.position.Z = l.matrix.GetElem(3, 2)
-	l.SetPosition(listener.position)
+	l.Set3f(openal.AlPosition, l.matrix.GetElem(3, 0),
+		l.matrix.GetElem(3, 1), l.matrix.GetElem(3, 2))
 
 	//forward
 	l.tempVector.SetX(0)

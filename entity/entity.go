@@ -2,19 +2,19 @@ package entity
 
 import (
 	"encoding/xml"
+	"errors"
 	"excavation/engine"
+	"strconv"
 	"strings"
 )
 
 type Entity interface {
-	Add(node *engine.Node, args map[string]string) //Called entity load
+	Add(node *engine.Node, args EntityArgs)
 }
 
-var entities map[int]Entity
+type EntityArgs map[string]string
 
-func init() {
-	entities = make(map[int]Entity)
-}
+var entities = make(map[int]Entity)
 
 func LoadEntity(node *engine.Node, attachmentData string) error {
 
@@ -28,7 +28,7 @@ func LoadEntity(node *engine.Node, attachmentData string) error {
 	}
 
 	attr := element.(xml.StartElement).Attr
-	args := make(map[string]string)
+	args := make(EntityArgs)
 
 	for i := range attr {
 		if strings.ToLower(attr[i].Name.Local) == "type" {
@@ -54,4 +54,42 @@ func EntityFromNode(node engine.Node) (Entity, bool) {
 	return entity, ok
 }
 
-//getArg
+func (e EntityArgs) Bool(argName string) bool {
+	value, ok := e[argName]
+	if !ok {
+		engine.RaiseError(errors.New("Entity has no argument of name " + argName))
+		return false
+	}
+
+	switch strings.ToLower(value) {
+	case "true":
+		return true
+	case "1":
+		return true
+	}
+	return false
+}
+
+func (e EntityArgs) Float(argName string) float32 {
+	value, ok := e[argName]
+	if !ok {
+		engine.RaiseError(errors.New("Entity has no argument of name " + argName))
+		return 0
+	}
+
+	fValue, err := strconv.ParseFloat(value, 32)
+	if err != nil {
+		return 0
+	}
+	return float32(fValue)
+}
+
+func (e EntityArgs) String(argName string) string {
+	value, ok := e[argName]
+	if !ok {
+		engine.RaiseError(errors.New("Entity has no argument of name " + argName))
+		return ""
+	}
+
+	return value
+}
