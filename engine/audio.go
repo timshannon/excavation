@@ -11,8 +11,7 @@ type Listener struct {
 	listener                     openal.Listener
 	position, upOrient, atOrient *openal.Vector
 	matrix                       *vectormath.Matrix4
-	mat3                         *vectormath.Matrix3
-	tempVector                   *vectormath.Vector3
+	tempVector                   *vectormath.Vector4
 }
 
 var listener *Listener
@@ -27,8 +26,7 @@ func initAudio(deviceName string) {
 	listener.position = new(openal.Vector)
 	listener.upOrient = new(openal.Vector)
 	listener.atOrient = new(openal.Vector)
-	listener.tempVector = new(vectormath.Vector3)
-	listener.mat3 = new(vectormath.Matrix3)
+	listener.tempVector = new(vectormath.Vector4)
 	listener.matrix = new(vectormath.Matrix4)
 
 	openalDevice = openal.OpenDevice(deviceName)
@@ -152,29 +150,27 @@ func (l *Listener) updatePositionOrientation() {
 	l.position.Z = l.matrix.GetElem(3, 2)
 	l.listener.SetPosition(listener.position)
 
-	vectormath.M4GetUpper3x3(l.mat3, l.matrix)
-
 	//forward
 	l.tempVector.SetX(0)
 	l.tempVector.SetY(0)
 	l.tempVector.SetZ(-1)
-	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.mat3)
+	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.matrix)
 
 	//up
 	l.tempVector.SetX(0)
 	l.tempVector.SetY(1)
 	l.tempVector.SetZ(0)
-	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.mat3)
+	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.matrix)
 
 	l.listener.SetOrientation(listener.atOrient, listener.upOrient)
 }
 
-func setOpenAlRelativeVector(alVec *openal.Vector, v3 *vectormath.Vector3, mat3 *vectormath.Matrix3) {
-	vectormath.M3MulV3(v3, mat3, v3)
-	vectormath.V3Normalize(v3, v3)
+func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vectormath.Vector4, matrix *vectormath.Matrix4) {
+	vectormath.M4MulV4(v4, matrix, v4)
+	vectormath.V4Normalize(v4, v4)
 
-	alVec.X = v3.X()
-	alVec.Y = v3.Y()
-	alVec.Z = v3.Z()
+	alVec.X = v4.X()
+	alVec.Y = v4.Y()
+	alVec.Z = v4.Z()
 
 }
