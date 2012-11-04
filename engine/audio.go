@@ -1,15 +1,18 @@
 package engine
 
 import (
-	"code.google.com/p/gohorde/horde3d"
 	"github.com/spate/vectormath"
 	"github.com/timshannon/go-openal/openal"
-	"io/ioutil"
+	"path"
 )
 
 type Listener struct {
-	node     *Node
-	listener openal.Listener
+	node                         *Node
+	listener                     openal.Listener
+	position, upOrient, atOrient *openal.Vector
+	matrix                       *vectormath.Matrix4
+	mat3                         *vectormath.Matrix3
+	tempVector                   *vectormath.Vector3
 }
 
 var listener *Listener
@@ -21,21 +24,33 @@ var audioNodes []*Audio
 func initAudio(deviceName string) {
 	listener = new(Listener)
 	listener.listener = openal.Listener{}
+	listener.position = new(openal.Vector)
+	listener.upOrient = new(openal.Vector)
+	listener.atOrient = new(openal.Vector)
+	listener.tempVector = new(vectormath.Vector3)
+	listener.mat3 = new(vectormath.Matrix3)
+	listener.matrix = new(vectormath.Matrix4)
+
 	openalDevice = openal.OpenDevice(deviceName)
 	openalContext = openalDevice.CreateContext()
+	openalContext.Activate()
 	audioNodes = make([]*Audio, 0, 10)
 }
 
-func (l Listener) SetNode(node *Node) {
+func AudioListener() *Listener {
+	return listener
+}
+
+func (l *Listener) SetNode(node *Node) {
 	l.node = node
 }
 
 func ClearAllAudio() {
-	for i := range audioNodes {
-		openal.DeleteSource(audioNodes[i].source)
-	}
+	//TODO: destroy clears sources, but what
+	// about buffers?
 	openalContext.Destroy()
 	openalContext = openalDevice.CreateContext()
+	openalContext.Activate()
 
 }
 
@@ -100,34 +115,66 @@ func NewAudioBuffer(file string) *AudioBuffer {
 }
 
 func (b *AudioBuffer) Load() error {
-	data, err := ioutil.ReadFile(b.file)
+	data, err := loadEngineData(path.Join(path.Join(dataDir, "sounds"), b.file))
 
 	if err != nil {
-		addError(err)
+		RaiseError(err)
 		return err
 	}
 
 	//TODO: Get wave file info
 	//Mono only?  rate from config?
 	//TODO: Streaming - Stream based on an arbitrary size
-	// or let the user decide?
+	// or let the user decide? Config option?
 	b.buffer.SetData(openal.FormatMono16, data, 44100)
 	return nil
 }
 
 func updateAudio() {
-	var x, y, z, rx, ry, rz float32
 	//TODO: Track velocity
-
-	horde3d.GetNodeTransform(listener.node.H3DNode, &x, &y, &z,
-		&rx, &ry, &rz, nil, nil, nil)
-	listener.listener.Set3f(openal.AlPosition, x, y, z)
-	listener.listener.Set3f(openal.AlDirection, rx, ry, rz)
-
-	for i := range audioNodes {
-		horde3d.GetNodeTransform(audioNodes[i].node.H3DNode, &x, &y, &z,
-			&rx, &ry, &rz, nil, nil, nil)
-		audioNodes[i].source.Set3f(openal.AlPosition, x, y, z)
-		audioNodes[i].source.Set3f(openal.AlDirection, rx, ry, rz)
+	if listener.node == nil {
+		return
 	}
+
+	listener.updatePositionOrientation()
+	//for i := range audioNodes {
+	//horde3d.GetNodeTransform(audioNodes[i].node.H3DNode, &x, &y, &z,
+	//&rx, &ry, &rz, nil, nil, nil)
+	//audioNodes[i].source.Set3f(openal.AlPosition, x, y, z)
+	//audioNodes[i].source.Set3f(openal.AlDirection, rx, ry, rz)
+}
+
+func (l *Listener) updatePositionOrientation() {
+	l.node.AbsoluteTransMat(listener.matrix)
+
+	l.position.X = l.matrix.GetElem(3, 0)
+	l.position.Y = l.matrix.GetElem(3, 1)
+	l.position.Z = l.matrix.GetElem(3, 2)
+	l.listener.SetPosition(listener.position)
+
+	vectormath.M4GetUpper3x3(l.mat3, l.matrix)
+
+	//forward
+	l.tempVector.SetX(0)
+	l.tempVector.SetY(0)
+	l.tempVector.SetZ(-1)
+	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.mat3)
+
+	//up
+	l.tempVector.SetX(0)
+	l.tempVector.SetY(1)
+	l.tempVector.SetZ(0)
+	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.mat3)
+
+	l.listener.SetOrientation(listener.atOrient, listener.upOrient)
+}
+
+func setOpenAlRelativeVector(alVec *openal.Vector, v3 *vectormath.Vector3, mat3 *vectormath.Matrix3) {
+	vectormath.M3MulV3(v3, mat3, v3)
+	vectormath.V3Normalize(v3, v3)
+
+	alVec.X = v3.X()
+	alVec.Y = v3.Y()
+	alVec.Z = v3.Z()
+
 }

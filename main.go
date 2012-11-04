@@ -8,6 +8,7 @@ import (
 	"excavation/engine"
 	"excavation/entity"
 	"flag"
+	"fmt"
 	"github.com/jteeuwen/glfw"
 	"os"
 	"strings"
@@ -28,6 +29,7 @@ func init() {
 func main() {
 
 	engine.SetDefaultConfigHandler(setCfgDefaults)
+	engine.SetErrorHandler(errHandler)
 
 	if err := engine.Init("excavation"); err != nil {
 		panic("Error starting Excavation: " + err.Error())
@@ -44,6 +46,10 @@ func main() {
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
+}
+
+func errHandler(err error) {
+	fmt.Println(err)
 }
 
 var vsync int
@@ -71,6 +77,7 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("VSync", 0)
 		cfg.SetValue("InvertMouse", true)
 		cfg.SetValue("MouseSensitivity", 0.3)
+		cfg.SetValue("AudioDevice", "")
 	case "controls.cfg":
 		cfg.SetValue("Forward", "Key_W")
 		cfg.SetValue("Backward", "Key_S")

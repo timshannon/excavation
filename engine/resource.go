@@ -79,21 +79,14 @@ func (res *Resource) Name() string { return horde3d.GetResName(res.H3DRes) }
 // try to load it from the data file
 func (res *Resource) Load() error {
 	if !res.IsLoaded() {
-		data, err := ioutil.ReadFile(res.FullPath())
-
-		if os.IsNotExist(err) {
-			//TODO: load from tar.gz data file
-		}
-
+		data, err := loadEngineData(res.FullPath())
 		if err != nil {
-			addError(err)
 			return err
 		}
-
 		good := horde3d.LoadResource(res.H3DRes, data)
 		if !good {
 			err := errors.New("Horde3D was unable to load the resource " + res.FullPath() + ".")
-			addError(err)
+			RaiseError(err)
 			return err
 		}
 	}
@@ -102,8 +95,25 @@ func (res *Resource) Load() error {
 
 }
 
+func loadEngineData(resourcePath string) ([]byte, error) {
+	data, err := ioutil.ReadFile(resourcePath)
+
+	if os.IsNotExist(err) {
+		err = nil
+		//TODO: load from tar.gz data file
+		//remove respath root
+	}
+
+	if err != nil {
+		RaiseError(err)
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (res *Resource) FullPath() string {
-	return path.Join(path.Join(dataDir, res.Name()))
+	return path.Join(dataDir, res.Name())
 }
 
 func (res *Resource) Clone(cloneName string) *Resource {
@@ -126,7 +136,7 @@ func NewScene(name string) (*Scene, error) {
 		name, 0)
 	if scene.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
-		addError(err)
+		RaiseError(err)
 		return nil, err
 	}
 
@@ -143,7 +153,7 @@ func NewGeometry(name string) (*Geometry, error) {
 
 	if geo.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
-		addError(err)
+		RaiseError(err)
 		return nil, err
 	}
 	return geo, nil
@@ -157,7 +167,7 @@ func NewAnimation(name string) (*Animation, error) {
 		name, 0)
 	if anim.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
-		addError(err)
+		RaiseError(err)
 		return nil, err
 	}
 
@@ -184,7 +194,7 @@ func NewParticleEffect(name string) (*ParticleEffect, error) {
 		name, 0)
 	if part.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
-		addError(err)
+		RaiseError(err)
 		return nil, err
 	}
 	return part, nil
@@ -199,7 +209,7 @@ func NewPipeline(name string) (*Pipeline, error) {
 
 	if pipeline.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
-		addError(err)
+		RaiseError(err)
 		return nil, err
 	}
 

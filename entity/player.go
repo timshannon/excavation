@@ -56,7 +56,11 @@ func (p *Player) Add(node *engine.Node, args map[string]string) {
 		p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
 	})
 
-	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft", "MoveUp", "MoveDown")
+	l := engine.AudioListener()
+	l.SetNode(p.node)
+
+	engine.BindInput(handlePlayerInput, "Forward", "Backward", "StrafeRight", "StrafeLeft",
+		"MoveUp", "MoveDown")
 	engine.BindInput(handlePitchYaw, "PitchYaw", "PitchUp", "PitchDown", "YawLeft", "YawRight")
 	engine.AddTask("updatePlayer", updatePlayer, p, 0, 0)
 

@@ -14,11 +14,11 @@ var errorHandler ErrorHandler
 
 type ErrorHandler func(e error)
 
-func RegisterErrorHandler(f ErrorHandler) {
-	errorHandler = errorHandler
+func SetErrorHandler(f ErrorHandler) {
+	errorHandler = f
 }
 
-func addError(e error) {
+func RaiseError(e error) {
 	if errorHandler != nil {
 		errorHandler(e)
 	}
