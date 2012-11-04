@@ -53,3 +53,5 @@ func EntityFromNode(node engine.Node) (Entity, bool) {
 	entity, ok := entities[int(node.H3DNode)]
 	return entity, ok
 }
+
+//getArg

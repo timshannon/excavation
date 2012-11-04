@@ -100,17 +100,17 @@ func SetDefaultConfigHandler(function DefaultConfigHandler) {
 func (cfg *Config) Load() error {
 	if cfg.FileName == "" {
 		err := errors.New("No Filename set for Config object")
-		addError(err)
+		RaiseError(err)
 		return err
 	}
 
 	data, err := ioutil.ReadFile(cfg.FileName)
 	if err != nil {
-		addError(err)
+		RaiseError(err)
 		return err
 	}
 	if err = json.Unmarshal(data, &cfg.values); err != nil {
-		addError(err)
+		RaiseError(err)
 		return err
 	}
 	return nil
