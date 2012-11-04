@@ -7,7 +7,6 @@ package engine
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -121,7 +120,7 @@ func (cfg *Config) Value(name string) interface{} {
 }
 
 func printMissing(name string) {
-	fmt.Println("Config entry " + name + " does not exist. Using default.")
+	RaiseError(errors.New("Config entry " + name + " does not exist. Using default."))
 }
 func (cfg *Config) Int(name string) int {
 	value, ok := cfg.values[name].(float64)

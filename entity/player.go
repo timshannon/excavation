@@ -35,7 +35,7 @@ type Player struct {
 	curVx, curVy           int
 }
 
-func (p *Player) Add(node *engine.Node, args map[string]string) {
+func (p *Player) Add(node *engine.Node, args EntityArgs) {
 	p.node = node
 
 	engine.SetMainCam(&engine.Camera{p.node})
