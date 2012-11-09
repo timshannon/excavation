@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/spate/vectormath"
+	"github.com/timshannon/vectormath"
 )
 
 func sliceToMatrix4(m *vectormath.Matrix4, slice []float32) {

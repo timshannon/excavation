@@ -2,7 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
-	"github.com/spate/vectormath"
+	"github.com/timshannon/vectormath"
 )
 
 type AudioStatic struct {
