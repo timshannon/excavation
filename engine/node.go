@@ -7,7 +7,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	"github.com/spate/vectormath"
+	"github.com/timshannon/vectormath"
 )
 
 const (
@@ -130,9 +130,9 @@ func (n *Node) Scale(result *vectormath.Vector3) {
 //specified scene node object.  The coordinates are in local space and 
 //contain the transformation of the node relative to its parent.
 func (n *Node) SetTransform(translate, rotate, scale *vectormath.Vector3) {
-	horde3d.SetNodeTransform(n.H3DNode, translate.X(), translate.Y(), translate.Z(),
-		rotate.X(), rotate.Y(), rotate.Z(),
-		scale.X(), scale.Y(), scale.Z())
+	horde3d.SetNodeTransform(n.H3DNode, translate.X, translate.Y, translate.Z,
+		rotate.X, rotate.Y, rotate.Z,
+		scale.X, scale.Y, scale.Z)
 }
 
 //Gets the relative transformation matrix of the node
@@ -195,12 +195,12 @@ func (n *Node) BoundingBox(min, max *vectormath.Vector3) {
 	var minX, minY, minZ, maxX, maxY, maxZ float32
 	horde3d.GetNodeAABB(n.H3DNode, &minX, &minY, &minZ, &maxX, &maxY, &maxZ)
 
-	min.SetX(minX)
-	min.SetY(minY)
-	min.SetZ(minZ)
-	max.SetX(maxX)
-	max.SetY(maxY)
-	max.SetZ(maxZ)
+	min.X = minX
+	min.Y = minY
+	min.Z = minZ
+	max.X = maxX
+	max.Y = maxY
+	max.Z = maxZ
 }
 
 //FindChild: This function loops recursively over all children of startNode and adds 
@@ -287,8 +287,8 @@ type CastRayResult struct {
 //which also defines its length.  Currently this function is limited to returning intersections with Meshes.  
 //For Meshes, the base LOD (LOD0) is always used for performing the ray-triangle intersection tests.
 func (n *Node) CastRay(results []*CastRayResult, origin, direction *vectormath.Vector3) {
-	size := horde3d.CastRay(n.H3DNode, origin.X(), origin.Y(), origin.Z(),
-		direction.X(), direction.Y(), direction.Z(), len(results))
+	size := horde3d.CastRay(n.H3DNode, origin.X, origin.Y, origin.Z,
+		direction.X, direction.Y, direction.Z, len(results))
 
 	results = results[:size]
 	for i := range results {
@@ -715,13 +715,13 @@ func (e *Emitter) SetSpreadAngle(angle float32) {
 }
 
 func (e *Emitter) Force(result *vectormath.Vector3) {
-	result.SetX(horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0))
-	result.SetY(horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1))
-	result.SetZ(horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2))
+	result.X = horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0)
+	result.Y = horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1)
+	result.Z = horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2)
 }
 
 func (e *Emitter) SetForce(force *vectormath.Vector3) {
-	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0, force.X())
-	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1, force.Y())
-	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2, force.Z())
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0, force.X)
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1, force.Y)
+	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2, force.Z)
 }

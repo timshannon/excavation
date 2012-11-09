@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/spate/vectormath"
 	"github.com/timshannon/go-openal/openal"
+	"github.com/timshannon/vectormath"
 	"path"
 )
 
@@ -18,6 +18,7 @@ var listener *Listener
 var openalDevice *openal.Device
 var openalContext *openal.Context
 
+//TODO: Hard limit on # of sources 32? 64? config
 var audioNodes []*Audio
 
 func initAudio(deviceName string) {
@@ -31,6 +32,7 @@ func initAudio(deviceName string) {
 
 	openalDevice = openal.OpenDevice(deviceName)
 	openalContext = openalDevice.CreateContext()
+	openal.SetDistanceModel(openal.LinearDistanceClamped)
 	openalContext.Activate()
 	audioNodes = make([]*Audio, 0, 10)
 }
@@ -84,7 +86,7 @@ func AddStaticAudio(position *vectormath.Vector3, buffer *AudioBuffer,
 	aNode.SetMaxDistance(maxDistance)
 
 	aNode.Set3f(openal.AlPosition,
-		position.X(), position.Y(), position.Z())
+		position.X, position.Y, position.Z)
 
 	return aNode
 
@@ -127,6 +129,8 @@ func updateAudio() {
 		return
 	}
 
+	//TODO: Option to track occlusion.  If source is
+	// occluded, muffle the sound
 	listener.updatePositionOrientation()
 	//for i := range audioNodes {
 	//horde3d.GetNodeTransform(audioNodes[i].node.H3DNode, &x, &y, &z,
@@ -136,21 +140,22 @@ func updateAudio() {
 }
 
 func (l *Listener) updatePositionOrientation() {
+	//TODO: Move to Player controller
 	l.node.AbsoluteTransMat(listener.matrix)
 
 	l.Set3f(openal.AlPosition, l.matrix.GetElem(3, 0),
 		l.matrix.GetElem(3, 1), l.matrix.GetElem(3, 2))
 
 	//forward
-	l.tempVector.SetX(0)
-	l.tempVector.SetY(0)
-	l.tempVector.SetZ(-1)
+	l.tempVector.X = 0
+	l.tempVector.Y = 0
+	l.tempVector.Z = -1
 	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.matrix)
 
 	//up
-	l.tempVector.SetX(0)
-	l.tempVector.SetY(1)
-	l.tempVector.SetZ(0)
+	l.tempVector.X = 0
+	l.tempVector.Y = 1
+	l.tempVector.Z = 0
 	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.matrix)
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
@@ -160,8 +165,8 @@ func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vectormath.Vector4, matri
 	vectormath.M4MulV4(v4, matrix, v4)
 	vectormath.V4Normalize(v4, v4)
 
-	alVec.X = v4.X()
-	alVec.Y = v4.Y()
-	alVec.Z = v4.Z()
+	alVec.X = v4.X
+	alVec.Y = v4.Y
+	alVec.Z = v4.Z
 
 }

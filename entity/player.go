@@ -2,7 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
-	"github.com/spate/vectormath"
+	"github.com/timshannon/vectormath"
 	"math"
 )
 
@@ -92,17 +92,17 @@ func updatePlayer(t *engine.Task) {
 		p.speedZ = accelerate(p.speedZ, elapsedTime, inZ)
 	}
 
-	p.translate.SetX(p.speedX * elapsedTime)
-	p.translate.SetY(p.speedY * elapsedTime)
-	p.translate.SetZ(p.speedZ * elapsedTime)
+	p.translate.X = (p.speedX * elapsedTime)
+	p.translate.Y = (p.speedY * elapsedTime)
+	p.translate.Z = (p.speedZ * elapsedTime)
 
 	if !p.invert {
-		p.rotate.SetY(float32(vY-p.curVy) * p.mouseSensitivity)
+		p.rotate.Y = (float32(vY-p.curVy) * p.mouseSensitivity)
 	} else {
-		p.rotate.SetY(float32(vY-p.curVy) * (p.mouseSensitivity * -1))
+		p.rotate.Y = (float32(vY-p.curVy) * (p.mouseSensitivity * -1))
 	}
 
-	p.rotate.SetX(float32(vX-p.curVx) * p.mouseSensitivity)
+	p.rotate.X = (float32(vX-p.curVx) * p.mouseSensitivity)
 
 	//n.SetLocalTransform(p.translate, p.rotate)
 	p.localTransform()
@@ -157,9 +157,9 @@ func (p *Player) localTransform() {
 }
 
 func zeroVector(vector *vectormath.Vector3) {
-	vector.SetX(0)
-	vector.SetY(0)
-	vector.SetZ(0)
+	vector.X = 0
+	vector.Y = 0
+	vector.Z = 0
 }
 
 func handlePlayerInput(i *engine.Input) {
