@@ -7,7 +7,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	"github.com/timshannon/vectormath"
+	vmath "github.com/timshannon/vectormath"
 )
 
 const (
@@ -90,70 +90,70 @@ func (n *Node) CheckTransFlag(reset bool) bool {
 
 //This function gets the translation, rotation and scale of a specified scene node object. 
 // The coordinates are in local space and contain the transformation of the node relative to its parent.
-func (n *Node) Transform(translate, rotate, scale *vectormath.Vector3) {
+func (n *Node) Transform(translate, rotate, scale *vmath.Vector3) {
 	var tx, ty, tz float32
 	var rx, ry, rz float32
 	var sx, sy, sz float32
 	horde3d.GetNodeTransform(n.H3DNode, &tx, &ty, &tz,
 		&rx, &ry, &rz, &sx, &sy, &sz)
 
-	vectormath.V3MakeFromElems(translate, tx, ty, tz)
-	vectormath.V3MakeFromElems(rotate, rx, ry, rz)
-	vectormath.V3MakeFromElems(scale, sx, sy, sz)
+	vmath.V3MakeFromElems(translate, tx, ty, tz)
+	vmath.V3MakeFromElems(rotate, rx, ry, rz)
+	vmath.V3MakeFromElems(scale, sx, sy, sz)
 }
 
-func (n *Node) Translate(result *vectormath.Vector3) {
+func (n *Node) Translate(result *vmath.Vector3) {
 	var tx, ty, tz float32
 
 	horde3d.GetNodeTransform(n.H3DNode, &tx, &ty, &tz,
 		nil, nil, nil, nil, nil, nil)
-	vectormath.V3MakeFromElems(result, tx, ty, tz)
+	vmath.V3MakeFromElems(result, tx, ty, tz)
 }
 
-func (n *Node) Rotate(result *vectormath.Vector3) {
+func (n *Node) Rotate(result *vmath.Vector3) {
 	var rx, ry, rz float32
 
 	horde3d.GetNodeTransform(n.H3DNode, nil, nil, nil,
 		&rx, &ry, &rz, nil, nil, nil)
-	vectormath.V3MakeFromElems(result, rx, ry, rz)
+	vmath.V3MakeFromElems(result, rx, ry, rz)
 }
 
-func (n *Node) Scale(result *vectormath.Vector3) {
+func (n *Node) Scale(result *vmath.Vector3) {
 	var sx, sy, sz float32
 
 	horde3d.GetNodeTransform(n.H3DNode, nil, nil, nil,
 		nil, nil, nil, &sx, &sy, &sz)
-	vectormath.V3MakeFromElems(result, sx, sy, sz)
+	vmath.V3MakeFromElems(result, sx, sy, sz)
 }
 
 //This function sets the relative translation, rotation and scale of a 
 //specified scene node object.  The coordinates are in local space and 
 //contain the transformation of the node relative to its parent.
-func (n *Node) SetTransform(translate, rotate, scale *vectormath.Vector3) {
+func (n *Node) SetTransform(translate, rotate, scale *vmath.Vector3) {
 	horde3d.SetNodeTransform(n.H3DNode, translate.X, translate.Y, translate.Z,
 		rotate.X, rotate.Y, rotate.Z,
 		scale.X, scale.Y, scale.Z)
 }
 
 //Gets the relative transformation matrix of the node
-func (n *Node) RelativeTransMat(result *vectormath.Matrix4) {
+func (n *Node) RelativeTransMat(result *vmath.Matrix4) {
 	horde3d.GetNodeTransMats(n.H3DNode, tempHordeMat, nil)
-	sliceToMatrix4(result, tempHordeMat)
+	vmath.SliceToM4(result, tempHordeMat)
 }
 
 //Gets the absolute transformation matrix of the node
-func (n *Node) AbsoluteTransMat(result *vectormath.Matrix4) {
+func (n *Node) AbsoluteTransMat(result *vmath.Matrix4) {
 	horde3d.GetNodeTransMats(n.H3DNode, nil, tempHordeMat)
-	sliceToMatrix4(result, tempHordeMat)
+	vmath.SliceToM4(result, tempHordeMat)
 }
 
 //Sets the relative transformation matrix of the node
-func (n *Node) SetRelativeTransMat(matrix *vectormath.Matrix4) {
-	matrix4ToSlice(tempHordeMat, matrix)
+func (n *Node) SetRelativeTransMat(matrix *vmath.Matrix4) {
+	vmath.M4ToSlice(tempHordeMat, matrix)
 	horde3d.SetNodeTransMat(n.H3DNode, tempHordeMat)
 }
 
-func (n *Node) SetLocalTransform(translate, rotate *vectormath.Vector3) {
+func (n *Node) SetLocalTransform(translate, rotate *vmath.Vector3) {
 	//set transform relative to itself
 	n.SetTransformRelativeTo(n, translate, rotate)
 }
@@ -163,35 +163,35 @@ func (n *Node) SetLocalTransform(translate, rotate *vectormath.Vector3) {
 // Note this function creates a lot of temp variables, and may
 // cause GC collection performance issues
 func (n *Node) SetTransformRelativeTo(otherNode *Node,
-	trans, rotate *vectormath.Vector3) {
+	trans, rotate *vmath.Vector3) {
 
-	matrix := new(vectormath.Matrix4)
-	transform := new(vectormath.Transform3)
-	m3 := new(vectormath.Matrix3)
-	translate := new(vectormath.Vector3)
-	newTranslate := new(vectormath.Vector3)
-	rotM3 := new(vectormath.Matrix3)
+	matrix := new(vmath.Matrix4)
+	transform := new(vmath.Transform3)
+	m3 := new(vmath.Matrix3)
+	translate := new(vmath.Vector3)
+	newTranslate := new(vmath.Vector3)
+	rotM3 := new(vmath.Matrix3)
 
-	vectormath.M3MakeRotationZYX(rotM3, rotate)
-	vectormath.V3Copy(newTranslate, trans)
+	vmath.M3MakeRotationZYX(rotM3, rotate)
+	vmath.V3Copy(newTranslate, trans)
 
 	otherNode.RelativeTransMat(matrix)
-	vectormath.M4GetTranslation(translate, matrix)
-	vectormath.M4GetUpper3x3(m3, matrix)
+	vmath.M4GetTranslation(translate, matrix)
+	vmath.M4GetUpper3x3(m3, matrix)
 
 	transform.SetUpper3x3(m3)
-	vectormath.T3MulV3(newTranslate, transform, newTranslate)
-	vectormath.M3Mul(rotM3, m3, rotM3)
+	vmath.T3MulV3(newTranslate, transform, newTranslate)
+	vmath.M3Mul(rotM3, m3, rotM3)
 
-	vectormath.V3Add(newTranslate, translate, newTranslate)
+	vmath.V3Add(newTranslate, translate, newTranslate)
 
-	vectormath.M4MakeFromM3V3(matrix, rotM3, newTranslate)
+	vmath.M4MakeFromM3V3(matrix, rotM3, newTranslate)
 	n.SetRelativeTransMat(matrix)
 
 }
 
 //Returns the bounds of a box that encompasses the node
-func (n *Node) BoundingBox(min, max *vectormath.Vector3) {
+func (n *Node) BoundingBox(min, max *vmath.Vector3) {
 	var minX, minY, minZ, maxX, maxY, maxZ float32
 	horde3d.GetNodeAABB(n.H3DNode, &minX, &minY, &minZ, &maxX, &maxY, &maxZ)
 
@@ -278,7 +278,7 @@ func (n *Node) IsSame(other *Node) bool {
 type CastRayResult struct {
 	ResultNode   *Node
 	Distance     *float32
-	Intersection *vectormath.Vector3
+	Intersection *vmath.Vector3
 }
 
 //This function checks recursively if the specified ray intersects the specified node or one of its children.  
@@ -286,7 +286,7 @@ type CastRayResult struct {
 //The ray is a line segment and is specified by a starting point (the origin) and a finite direction vector 
 //which also defines its length.  Currently this function is limited to returning intersections with Meshes.  
 //For Meshes, the base LOD (LOD0) is always used for performing the ray-triangle intersection tests.
-func (n *Node) CastRay(results []*CastRayResult, origin, direction *vectormath.Vector3) {
+func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector3) {
 	size := horde3d.CastRay(n.H3DNode, origin.X, origin.Y, origin.Z,
 		direction.X, direction.Y, direction.Z, len(results))
 
@@ -295,8 +295,8 @@ func (n *Node) CastRay(results []*CastRayResult, origin, direction *vectormath.V
 		results[i].ResultNode = new(Node)
 		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, results[i].Distance,
 			tempHordeVector)
-		newVec := &vectormath.Vector3{}
-		sliceToVector3(newVec, tempHordeVector)
+		newVec := &vmath.Vector3{}
+		vmath.SliceToV3(newVec, tempHordeVector)
 		results[i].Intersection = newVec
 	}
 }
@@ -532,9 +532,9 @@ func (c *Camera) SetupView(FOV, aspect, nearDist, farDist float32) {
 	horde3d.SetupCameraView(c.H3DNode, FOV, aspect, nearDist, farDist)
 }
 
-func (c *Camera) ProjectionMatrix(result *vectormath.Matrix4) {
+func (c *Camera) ProjectionMatrix(result *vmath.Matrix4) {
 	horde3d.GetCameraProjMat(c.H3DNode, tempHordeMat)
-	sliceToMatrix4(result, tempHordeMat)
+	vmath.SliceToM4(result, tempHordeMat)
 }
 
 func (c *Camera) Pipeline() *Pipeline {
@@ -714,13 +714,13 @@ func (e *Emitter) SetSpreadAngle(angle float32) {
 	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_SpreadAngleF, 0, angle)
 }
 
-func (e *Emitter) Force(result *vectormath.Vector3) {
+func (e *Emitter) Force(result *vmath.Vector3) {
 	result.X = horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0)
 	result.Y = horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1)
 	result.Z = horde3d.GetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2)
 }
 
-func (e *Emitter) SetForce(force *vectormath.Vector3) {
+func (e *Emitter) SetForce(force *vmath.Vector3) {
 	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 0, force.X)
 	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 1, force.Y)
 	horde3d.SetNodeParamF(e.H3DNode, horde3d.Emitter_ForceF3, 2, force.Z)

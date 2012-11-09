@@ -78,6 +78,7 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("InvertMouse", true)
 		cfg.SetValue("MouseSensitivity", 0.3)
 		cfg.SetValue("AudioDevice", "")
+		cfg.SetValue("MaxAudioSources", 16)
 	case "controls.cfg":
 		cfg.SetValue("Forward", "Key_W")
 		cfg.SetValue("Backward", "Key_S")
