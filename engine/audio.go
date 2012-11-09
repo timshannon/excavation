@@ -16,7 +16,6 @@ type Listener struct {
 	openal.Listener
 	node               *Node
 	upOrient, atOrient *openal.Vector
-	matrix             *vmath.Matrix4
 	tempVector         *vmath.Vector4
 }
 
@@ -34,7 +33,6 @@ func initAudio(deviceName string, maxSources int) {
 		Listener:   openal.Listener{},
 		upOrient:   new(openal.Vector),
 		atOrient:   new(openal.Vector),
-		matrix:     new(vmath.Matrix4),
 		tempVector: new(vmath.Vector4),
 	}
 	maxAudioSources = maxSources
@@ -153,22 +151,22 @@ func updateAudio() {
 
 func (l *Listener) updatePositionOrientation() {
 	//TODO: Move to Player controller?
-	l.node.AbsoluteTransMat(listener.matrix)
 
-	l.Set3f(openal.AlPosition, l.matrix.GetElem(3, 0),
-		l.matrix.GetElem(3, 1), l.matrix.GetElem(3, 2))
+	l.Set3f(openal.AlPosition, l.node.AbsoluteTransMat().GetElem(3, 0),
+		l.node.AbsoluteTransMat().GetElem(3, 1),
+		l.node.AbsoluteTransMat().GetElem(3, 2))
 
 	//forward
 	l.tempVector.X = 0
 	l.tempVector.Y = 0
 	l.tempVector.Z = -1
-	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.matrix)
+	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.node.AbsoluteTransMat())
 
 	//up
 	l.tempVector.X = 0
 	l.tempVector.Y = 1
 	l.tempVector.Z = 0
-	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.matrix)
+	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.node.AbsoluteTransMat())
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
 }

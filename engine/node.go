@@ -26,16 +26,29 @@ const (
 // to vectormath's structs, we should be able to keep gc collection to a minimum
 // Multiple threads shouldnt' be an issue, as Horde3d is singlethreaded. 
 // This may need to change in the future.
-var tempHordeMat = make([]float32, 16)
+var tempRelMat = make([]float32, 16)
+var tempAbsMat = make([]float32, 16)
 var tempHordeVector = make([]float32, 3)
 
 type Node struct {
 	horde3d.H3DNode
+	relMat      *vmath.Matrix4
+	absMat      *vmath.Matrix4
+	updateFrame int
+}
+
+func newNode() *Node {
+	node := &Node{
+		relMat: new(vmath.Matrix4),
+		absMat: new(vmath.Matrix4),
+	}
+
+	return node
 }
 
 //Adds nodes from a SceneGraph resource to the scene.
 func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
-	node := new(Node)
+	node := newNode()
 	node.H3DNode = horde3d.AddNodes(parent.H3DNode, sceneResource.H3DRes)
 
 	if node.H3DNode == 0 {
@@ -54,7 +67,7 @@ func (n *Node) Type() int {
 
 //Returns the parent of a scene node.
 func (n *Node) Parent() *Node {
-	parent := new(Node)
+	parent := newNode()
 	parent.H3DNode = horde3d.GetNodeParent(n.H3DNode)
 	return parent
 }
@@ -69,7 +82,7 @@ func (n *Node) Children() []*Node {
 	for i := 0; hNode != 0; i++ {
 		hNode = horde3d.GetNodeChild(n.H3DNode, i)
 		if hNode != 0 {
-			children = append(children, &Node{hNode})
+			children = append(children, &Node{H3DNode: hNode})
 		}
 	}
 	return children
@@ -135,22 +148,36 @@ func (n *Node) SetTransform(translate, rotate, scale *vmath.Vector3) {
 		scale.X, scale.Y, scale.Z)
 }
 
+func (n *Node) updateTransMats() {
+	//only jump into cgo code if the matrices haven't
+	// been updated for this frame
+	if n.updateFrame != frames {
+		horde3d.GetNodeTransMats(n.H3DNode, tempRelMat, tempAbsMat)
+		vmath.SliceToM4(n.relMat, tempRelMat)
+		vmath.SliceToM4(n.absMat, tempAbsMat)
+		n.updateFrame = frames
+	}
+}
+
 //Gets the relative transformation matrix of the node
-func (n *Node) RelativeTransMat(result *vmath.Matrix4) {
-	horde3d.GetNodeTransMats(n.H3DNode, tempHordeMat, nil)
-	vmath.SliceToM4(result, tempHordeMat)
+func (n *Node) RelativeTransMat() *vmath.Matrix4 {
+	n.updateTransMats()
+	return n.relMat
 }
 
 //Gets the absolute transformation matrix of the node
-func (n *Node) AbsoluteTransMat(result *vmath.Matrix4) {
-	horde3d.GetNodeTransMats(n.H3DNode, nil, tempHordeMat)
-	vmath.SliceToM4(result, tempHordeMat)
+func (n *Node) AbsoluteTransMat() *vmath.Matrix4 {
+	n.updateTransMats()
+	return n.absMat
 }
 
 //Sets the relative transformation matrix of the node
 func (n *Node) SetRelativeTransMat(matrix *vmath.Matrix4) {
-	vmath.M4ToSlice(tempHordeMat, matrix)
-	horde3d.SetNodeTransMat(n.H3DNode, tempHordeMat)
+	//reset update frame so that changes to local matrix
+	// will be refreshed from c code
+	n.updateFrame = 0
+	vmath.M4ToSlice(tempRelMat, matrix)
+	horde3d.SetNodeTransMat(n.H3DNode, tempRelMat)
 }
 
 func (n *Node) SetLocalTransform(translate, rotate *vmath.Vector3) {
@@ -165,7 +192,7 @@ func (n *Node) SetLocalTransform(translate, rotate *vmath.Vector3) {
 func (n *Node) SetTransformRelativeTo(otherNode *Node,
 	trans, rotate *vmath.Vector3) {
 
-	matrix := new(vmath.Matrix4)
+	var matrix *vmath.Matrix4
 	transform := new(vmath.Transform3)
 	m3 := new(vmath.Matrix3)
 	translate := new(vmath.Vector3)
@@ -175,7 +202,7 @@ func (n *Node) SetTransformRelativeTo(otherNode *Node,
 	vmath.M3MakeRotationZYX(rotM3, rotate)
 	vmath.V3Copy(newTranslate, trans)
 
-	otherNode.RelativeTransMat(matrix)
+	matrix = otherNode.RelativeTransMat()
 	vmath.M4GetTranslation(translate, matrix)
 	vmath.M4GetUpper3x3(m3, matrix)
 
@@ -292,7 +319,7 @@ func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector
 
 	results = results[:size]
 	for i := range results {
-		results[i].ResultNode = new(Node)
+		results[i].ResultNode = newNode()
 		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, results[i].Distance,
 			tempHordeVector)
 		newVec := &vmath.Vector3{}
@@ -315,7 +342,7 @@ type Group struct{ *Node }
 
 //Adds a new group node
 func AddGroup(parent *Node, name string) (*Group, error) {
-	group := &Group{new(Node)}
+	group := &Group{newNode()}
 	group.H3DNode = horde3d.AddGroupNode(parent.H3DNode, name)
 	if group.H3DNode == 0 {
 		return nil, errors.New("Error adding group node")
@@ -327,7 +354,7 @@ type Model struct{ *Node }
 
 //Adds a new model
 func AddModel(parent *Node, name string, geometry *Geometry) (*Model, error) {
-	model := &Model{new(Node)}
+	model := &Model{newNode()}
 	model.H3DNode = horde3d.AddModelNode(parent.H3DNode, name, geometry.H3DRes)
 	if model.H3DNode == 0 {
 		return nil, errors.New("Error adding Model")
@@ -392,7 +419,7 @@ type Mesh struct{ *Node }
 
 func AddMesh(parent *Node, name string, material *Material, batchStart, batchCount,
 	vertRStart, vertREnd int) (*Mesh, error) {
-	mesh := &Mesh{new(Node)}
+	mesh := &Mesh{newNode()}
 	mesh.H3DNode = horde3d.AddMeshNode(parent.H3DNode, name, material.H3DRes, batchStart,
 		batchCount, vertRStart, vertREnd)
 	if mesh.H3DNode == 0 {
@@ -424,7 +451,7 @@ func (m *Mesh) SetLODLevel(level int) {
 type Joint struct{ *Node }
 
 func AddJoint(parent *Node, name string, jointIndex int) (*Joint, error) {
-	joint := &Joint{new(Node)}
+	joint := &Joint{newNode()}
 	joint.H3DNode = horde3d.AddJointNode(parent.H3DNode, name, jointIndex)
 	if joint.H3DNode == 0 {
 		return nil, errors.New("Error adding Joint")
@@ -438,7 +465,7 @@ type Light struct{ *Node }
 
 func AddLight(parent *Node, name string, material *Material, lightingContext string,
 	shadowContext string) *Light {
-	light := &Light{new(Node)}
+	light := &Light{newNode()}
 	light.H3DNode = horde3d.AddLightNode(parent.H3DNode, name, material.H3DRes,
 		lightingContext, shadowContext)
 	return light
@@ -523,7 +550,7 @@ func (l *Light) SetShadowContext(context string) {
 type Camera struct{ *Node }
 
 func AddCamera(parent *Node, name string, pipeline *Pipeline) *Camera {
-	camera := &Camera{new(Node)}
+	camera := &Camera{newNode()}
 	camera.H3DNode = horde3d.AddCameraNode(parent.H3DNode, name, pipeline.H3DRes)
 	return camera
 }
@@ -533,8 +560,8 @@ func (c *Camera) SetupView(FOV, aspect, nearDist, farDist float32) {
 }
 
 func (c *Camera) ProjectionMatrix(result *vmath.Matrix4) {
-	horde3d.GetCameraProjMat(c.H3DNode, tempHordeMat)
-	vmath.SliceToM4(result, tempHordeMat)
+	horde3d.GetCameraProjMat(c.H3DNode, tempRelMat)
+	vmath.SliceToM4(result, tempRelMat)
 }
 
 func (c *Camera) Pipeline() *Pipeline {
@@ -639,7 +666,7 @@ type Emitter struct{ *Node }
 
 func AddEmitter(parent *Node, name string, material *Material, particleEffect *ParticleEffect,
 	maxParticleCount int, respawnCount int) *Emitter {
-	emitter := &Emitter{new(Node)}
+	emitter := &Emitter{newNode()}
 	emitter.H3DNode = horde3d.AddEmitterNode(parent.H3DNode, name, material.H3DRes,
 		particleEffect.H3DRes, maxParticleCount, respawnCount)
 

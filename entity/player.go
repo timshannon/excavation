@@ -18,11 +18,10 @@ var vX, vY int
 type Player struct {
 	node              *engine.Node
 	translate, rotate *vmath.Vector3
-	matrix            *vmath.Matrix4
 
 	//Temp movement variables
 	rotationMatrix *vmath.Matrix3
-	translation    *vmath.Vector3
+	curTranslate   *vmath.Vector3
 	relM3          *vmath.Matrix3
 
 	//mouse
@@ -42,9 +41,8 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 
 	p.translate = new(vmath.Vector3)
 	p.rotate = new(vmath.Vector3)
-	p.matrix = new(vmath.Matrix4)
 	p.rotationMatrix = new(vmath.Matrix3)
-	p.translation = new(vmath.Vector3)
+	p.curTranslate = new(vmath.Vector3)
 	p.relM3 = new(vmath.Matrix3)
 
 	p.invert = engine.Cfg().Bool("InvertMouse")
@@ -104,7 +102,6 @@ func updatePlayer(t *engine.Task) {
 
 	p.rotate.X = (float32(vX-p.curVx) * p.mouseSensitivity)
 
-	//n.SetLocalTransform(p.translate, p.rotate)
 	p.localTransform()
 
 	p.curVx = vX
@@ -139,18 +136,18 @@ func deccelerate(speed, time float32) float32 {
 }
 
 func (p *Player) localTransform() {
-	p.node.RelativeTransMat(p.matrix)
-	vmath.M4GetTranslation(p.translation, p.matrix)
+	matrix := p.node.RelativeTransMat()
+	matrix.Translation(p.curTranslate)
 	vmath.M3MakeRotationZYX(p.rotationMatrix, p.rotate)
-	vmath.M4GetUpper3x3(p.relM3, p.matrix)
+	matrix.Upper3x3(p.relM3)
 
 	vmath.M3MulV3(p.translate, p.relM3, p.translate)
 	vmath.M3Mul(p.rotationMatrix, p.relM3, p.rotationMatrix)
 
-	vmath.V3Add(p.translate, p.translation, p.translate)
+	vmath.V3Add(p.translate, p.curTranslate, p.translate)
 
-	vmath.M4MakeFromM3V3(p.matrix, p.rotationMatrix, p.translate)
-	p.node.SetRelativeTransMat(p.matrix)
+	vmath.M4MakeFromM3V3(matrix, p.rotationMatrix, p.translate)
+	p.node.SetRelativeTransMat(matrix)
 
 	zeroVector(p.translate)
 	zeroVector(p.rotate)
