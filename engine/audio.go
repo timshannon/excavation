@@ -16,7 +16,8 @@ type Listener struct {
 	openal.Listener
 	node               *Node
 	upOrient, atOrient *openal.Vector
-	tempVector         *vmath.Vector4
+	tempVec            *vmath.Vector4
+	prevTime           float32
 }
 
 var listener *Listener
@@ -30,10 +31,10 @@ var audioNodes []*Audio
 
 func initAudio(deviceName string, maxSources int) {
 	listener = &Listener{
-		Listener:   openal.Listener{},
-		upOrient:   new(openal.Vector),
-		atOrient:   new(openal.Vector),
-		tempVector: new(vmath.Vector4),
+		Listener: openal.Listener{},
+		upOrient: new(openal.Vector),
+		atOrient: new(openal.Vector),
+		tempVec:  new(vmath.Vector4),
 	}
 	maxAudioSources = maxSources
 
@@ -62,6 +63,12 @@ func ClearAllAudio() {
 
 }
 
+/*TODO: Remove source from audio type
+add buffer into audio type
+Audio is the sound not the player
+use a fixed pool of sources and set their position
+according to the highest priority audio objects
+*/
 type Audio struct {
 	openal.Source
 	node    *Node
@@ -136,7 +143,6 @@ func (b *AudioBuffer) Load() error {
 }
 
 func updateAudio() {
-	//TODO: Track velocity
 	if listener.node == nil {
 		return
 	}
@@ -163,20 +169,23 @@ func updateAudio() {
 }
 
 func (l *Listener) updatePositionOrientation() {
+	//TODO: Track velocity
+
 	l.Set3f(openal.AlPosition, l.node.AbsoluteTransMat().GetElem(3, 0),
 		l.node.AbsoluteTransMat().GetElem(3, 1),
 		l.node.AbsoluteTransMat().GetElem(3, 2))
 
 	//forward
-	vmath.V4MakeZAxis(l.tempVector)
-	l.tempVector.Z = -1 //horde has flipped z
-	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.node.AbsoluteTransMat())
+	vmath.V4MakeZAxis(l.tempVec)
+	l.tempVec.Z = -1 //horde has flipped z
+	setOpenAlRelativeVector(l.atOrient, l.tempVec, l.node.AbsoluteTransMat())
 
 	//up
-	vmath.V4MakeYAxis(l.tempVector)
-	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.node.AbsoluteTransMat())
+	vmath.V4MakeYAxis(l.tempVec)
+	setOpenAlRelativeVector(l.upOrient, l.tempVec, l.node.AbsoluteTransMat())
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
+
 }
 
 func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vmath.Vector4, matrix *vmath.Matrix4) {
