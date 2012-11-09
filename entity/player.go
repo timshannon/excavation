@@ -37,7 +37,7 @@ type Player struct {
 func (p *Player) Add(node *engine.Node, args EntityArgs) {
 	p.node = node
 
-	engine.SetMainCam(&engine.Camera{p.node})
+	engine.MainCam = &engine.Camera{p.node}
 
 	p.translate = new(vmath.Vector3)
 	p.rotate = new(vmath.Vector3)

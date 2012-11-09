@@ -64,7 +64,8 @@ func ClearAllAudio() {
 
 type Audio struct {
 	openal.Source
-	node *Node
+	node    *Node
+	Occlude bool
 }
 
 //AddAudioNode adds an audio source who's position gets
@@ -93,6 +94,7 @@ func AddStaticAudio(position *vmath.Vector3, buffer *AudioBuffer,
 
 	aNode.SetReferenceDistance(minDistance)
 	aNode.SetMaxDistance(maxDistance)
+	aNode.SetRolloffFactor(audioRollOffDefault)
 
 	aNode.Set3f(openal.AlPosition,
 		position.X, position.Y, position.Z)
@@ -129,6 +131,7 @@ func (b *AudioBuffer) Load() error {
 	//TODO: Streaming - Stream based on an arbitrary size
 	// or let the user decide? Config option?
 	b.SetData(openal.FormatMono16, data, 44100)
+	b.loaded = true
 	return nil
 }
 
@@ -139,9 +142,19 @@ func updateAudio() {
 	}
 
 	//TODO: Option to track occlusion.  If source is
-	// occluded, muffle the sound
-	//
+	// occluded, muffle the sound 
+	/*source := audioNodes[0]
+	if source.Occlude {
+		if source.node.IsVisible(MainCam, true, false) {
+			source.SetRolloffFactor(audioRollOffOccluded)
+
+		else {
+			source.SetRolloffFactor(audioRollOffDefault)
+		}
+	}
+	*/
 	listener.updatePositionOrientation()
+
 	//for i := range audioNodes {
 	//horde3d.GetNodeTransform(audioNodes[i].node.H3DNode, &x, &y, &z,
 	//&rx, &ry, &rz, nil, nil, nil)
@@ -150,22 +163,17 @@ func updateAudio() {
 }
 
 func (l *Listener) updatePositionOrientation() {
-	//TODO: Move to Player controller?
-
 	l.Set3f(openal.AlPosition, l.node.AbsoluteTransMat().GetElem(3, 0),
 		l.node.AbsoluteTransMat().GetElem(3, 1),
 		l.node.AbsoluteTransMat().GetElem(3, 2))
 
 	//forward
-	l.tempVector.X = 0
-	l.tempVector.Y = 0
-	l.tempVector.Z = -1
+	vmath.V4MakeZAxis(l.tempVector)
+	l.tempVector.Z = -1 //horde has flipped z
 	setOpenAlRelativeVector(l.atOrient, l.tempVector, l.node.AbsoluteTransMat())
 
 	//up
-	l.tempVector.X = 0
-	l.tempVector.Y = 1
-	l.tempVector.Z = 0
+	vmath.V4MakeYAxis(l.tempVector)
 	setOpenAlRelativeVector(l.upOrient, l.tempVector, l.node.AbsoluteTransMat())
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
