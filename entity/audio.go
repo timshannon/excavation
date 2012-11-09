@@ -2,7 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
-	"github.com/timshannon/vectormath"
+	vmath "github.com/timshannon/vectormath"
 )
 
 type AudioStatic struct {
@@ -11,7 +11,7 @@ type AudioStatic struct {
 }
 
 func (a *AudioStatic) Add(node *engine.Node, args EntityArgs) {
-	position := new(vectormath.Vector3)
+	position := new(vmath.Vector3)
 	node.Translate(position)
 	a.buffer = engine.NewAudioBuffer(args.String("file"))
 	a.buffer.Load()

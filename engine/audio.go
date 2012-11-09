@@ -2,39 +2,48 @@ package engine
 
 import (
 	"github.com/timshannon/go-openal/openal"
-	"github.com/timshannon/vectormath"
+	vmath "github.com/timshannon/vectormath"
 	"path"
+)
+
+const (
+	audioRollOffDefault = 0.5
+	//If Audio Node is occulded, sound drops off quicker
+	audioRollOffOccluded = 4
 )
 
 type Listener struct {
 	openal.Listener
 	node               *Node
 	upOrient, atOrient *openal.Vector
-	matrix             *vectormath.Matrix4
-	tempVector         *vectormath.Vector4
+	matrix             *vmath.Matrix4
+	tempVector         *vmath.Vector4
 }
 
 var listener *Listener
 var openalDevice *openal.Device
 var openalContext *openal.Context
+var maxAudioSources int
 
-//TODO: Hard limit on # of sources 32? 64? config
 var audioNodes []*Audio
 
-func initAudio(deviceName string) {
+//TODO: Audio Node priority, and inactivating audio nodes
+
+func initAudio(deviceName string, maxSources int) {
 	listener = &Listener{
 		Listener:   openal.Listener{},
 		upOrient:   new(openal.Vector),
 		atOrient:   new(openal.Vector),
-		matrix:     new(vectormath.Matrix4),
-		tempVector: new(vectormath.Vector4),
+		matrix:     new(vmath.Matrix4),
+		tempVector: new(vmath.Vector4),
 	}
+	maxAudioSources = maxSources
 
 	openalDevice = openal.OpenDevice(deviceName)
 	openalContext = openalDevice.CreateContext()
-	openal.SetDistanceModel(openal.LinearDistanceClamped)
+	openal.SetDistanceModel(openal.InverseDistanceClamped)
 	openalContext.Activate()
-	audioNodes = make([]*Audio, 0, 10)
+	audioNodes = make([]*Audio, 0, maxAudioSources)
 }
 
 func AudioListener() *Listener {
@@ -48,6 +57,7 @@ func (l *Listener) SetNode(node *Node) {
 func ClearAllAudio() {
 	//TODO: destroy clears sources, but what
 	// about buffers?
+	audioNodes = make([]*Audio, 0, maxAudioSources)
 	openalContext.Destroy()
 	openalContext = openalDevice.CreateContext()
 	openalContext.Activate()
@@ -71,13 +81,14 @@ func AddAudioNode(node *Node, buffer *AudioBuffer, minDistance,
 
 	aNode.SetReferenceDistance(minDistance)
 	aNode.SetMaxDistance(maxDistance)
+	aNode.SetRolloffFactor(audioRollOffDefault)
 
 	audioNodes = append(audioNodes, aNode)
 	return aNode
 }
 
 //AddStaticAudio Adds an audio source that doesn't move
-func AddStaticAudio(position *vectormath.Vector3, buffer *AudioBuffer,
+func AddStaticAudio(position *vmath.Vector3, buffer *AudioBuffer,
 	minDistance, maxDistance float32) *Audio {
 	aNode := &Audio{Source: openal.NewSource()}
 	aNode.SetBuffer(buffer.Buffer)
@@ -131,6 +142,7 @@ func updateAudio() {
 
 	//TODO: Option to track occlusion.  If source is
 	// occluded, muffle the sound
+	//
 	listener.updatePositionOrientation()
 	//for i := range audioNodes {
 	//horde3d.GetNodeTransform(audioNodes[i].node.H3DNode, &x, &y, &z,
@@ -140,7 +152,7 @@ func updateAudio() {
 }
 
 func (l *Listener) updatePositionOrientation() {
-	//TODO: Move to Player controller
+	//TODO: Move to Player controller?
 	l.node.AbsoluteTransMat(listener.matrix)
 
 	l.Set3f(openal.AlPosition, l.matrix.GetElem(3, 0),
@@ -161,9 +173,9 @@ func (l *Listener) updatePositionOrientation() {
 	l.SetOrientation(listener.atOrient, listener.upOrient)
 }
 
-func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vectormath.Vector4, matrix *vectormath.Matrix4) {
-	vectormath.M4MulV4(v4, matrix, v4)
-	vectormath.V4Normalize(v4, v4)
+func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vmath.Vector4, matrix *vmath.Matrix4) {
+	vmath.M4MulV4(v4, matrix, v4)
+	v4.Normalize()
 
 	alVec.X = v4.X
 	alVec.Y = v4.Y

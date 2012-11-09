@@ -14,6 +14,8 @@ const (
 	windowTitle = "Excavation"
 )
 
+//1 engine unit = 1 meter
+
 var Root *Node
 var cam *Camera
 var running bool
@@ -94,7 +96,7 @@ func Init(name string) error {
 
 	//Music and Audio
 	initMusic()
-	initAudio(cfg.String("AudioDevice"))
+	initAudio(cfg.String("AudioDevice"), cfg.Int("MaxAudioSources"))
 	glfw.SetWindowSizeCallback(onResize)
 
 	return nil

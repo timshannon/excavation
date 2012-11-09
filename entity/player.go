@@ -2,7 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
-	"github.com/timshannon/vectormath"
+	vmath "github.com/timshannon/vectormath"
 	"math"
 )
 
@@ -17,13 +17,13 @@ var vX, vY int
 
 type Player struct {
 	node              *engine.Node
-	translate, rotate *vectormath.Vector3
-	matrix            *vectormath.Matrix4
+	translate, rotate *vmath.Vector3
+	matrix            *vmath.Matrix4
 
 	//Temp movement variables
-	rotationMatrix *vectormath.Matrix3
-	translation    *vectormath.Vector3
-	relM3          *vectormath.Matrix3
+	rotationMatrix *vmath.Matrix3
+	translation    *vmath.Vector3
+	relM3          *vmath.Matrix3
 
 	//mouse
 	invert           bool
@@ -40,12 +40,12 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 
 	engine.SetMainCam(&engine.Camera{p.node})
 
-	p.translate = new(vectormath.Vector3)
-	p.rotate = new(vectormath.Vector3)
-	p.matrix = new(vectormath.Matrix4)
-	p.rotationMatrix = new(vectormath.Matrix3)
-	p.translation = new(vectormath.Vector3)
-	p.relM3 = new(vectormath.Matrix3)
+	p.translate = new(vmath.Vector3)
+	p.rotate = new(vmath.Vector3)
+	p.matrix = new(vmath.Matrix4)
+	p.rotationMatrix = new(vmath.Matrix3)
+	p.translation = new(vmath.Vector3)
+	p.relM3 = new(vmath.Matrix3)
 
 	p.invert = engine.Cfg().Bool("InvertMouse")
 	p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
@@ -140,23 +140,23 @@ func deccelerate(speed, time float32) float32 {
 
 func (p *Player) localTransform() {
 	p.node.RelativeTransMat(p.matrix)
-	vectormath.M4GetTranslation(p.translation, p.matrix)
-	vectormath.M3MakeRotationZYX(p.rotationMatrix, p.rotate)
-	vectormath.M4GetUpper3x3(p.relM3, p.matrix)
+	vmath.M4GetTranslation(p.translation, p.matrix)
+	vmath.M3MakeRotationZYX(p.rotationMatrix, p.rotate)
+	vmath.M4GetUpper3x3(p.relM3, p.matrix)
 
-	vectormath.M3MulV3(p.translate, p.relM3, p.translate)
-	vectormath.M3Mul(p.rotationMatrix, p.relM3, p.rotationMatrix)
+	vmath.M3MulV3(p.translate, p.relM3, p.translate)
+	vmath.M3Mul(p.rotationMatrix, p.relM3, p.rotationMatrix)
 
-	vectormath.V3Add(p.translate, p.translation, p.translate)
+	vmath.V3Add(p.translate, p.translation, p.translate)
 
-	vectormath.M4MakeFromM3V3(p.matrix, p.rotationMatrix, p.translate)
+	vmath.M4MakeFromM3V3(p.matrix, p.rotationMatrix, p.translate)
 	p.node.SetRelativeTransMat(p.matrix)
 
 	zeroVector(p.translate)
 	zeroVector(p.rotate)
 }
 
-func zeroVector(vector *vectormath.Vector3) {
+func zeroVector(vector *vmath.Vector3) {
 	vector.X = 0
 	vector.Y = 0
 	vector.Z = 0
