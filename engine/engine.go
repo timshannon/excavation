@@ -17,7 +17,7 @@ const (
 //1 engine unit = 1 meter
 
 var Root *Node
-var cam *Camera
+var MainCam *Camera
 var running bool
 var frames int
 var startTime float64
@@ -92,7 +92,7 @@ func Init(name string) error {
 	}
 
 	//add camera
-	cam = AddCamera(Root, "MainCamera", pipeline)
+	MainCam = AddCamera(Root, "MainCamera", pipeline)
 
 	//Music and Audio
 	initMusic()
@@ -115,7 +115,7 @@ func StartMainLoop() {
 		joyUpdate()
 		runTasks()
 		updateAudio()
-		horde3d.Render(cam.H3DNode)
+		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
 		glfw.SwapBuffers()
 
@@ -134,11 +134,6 @@ func StopMainLoop() {
 	running = false
 }
 
-func SetMainCam(newCamera *Camera) {
-	//cam.Remove() seems to remove all nodes?
-	cam = newCamera
-}
-
 func Fps() float64 {
 	return float64(frames) / (Time() - startTime)
 }
@@ -148,11 +143,11 @@ func onResize(w, h int) {
 		h = 1
 	}
 
-	cam.SetViewport(0, 0, w, h)
+	MainCam.SetViewport(0, 0, w, h)
 
 	//TODO: Set clip distance? Config?
-	cam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
-	cam.Pipeline().ResizeBuffers(w, h)
+	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
+	MainCam.Pipeline().ResizeBuffers(w, h)
 
 }
 
