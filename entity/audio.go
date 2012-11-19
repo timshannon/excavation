@@ -2,24 +2,17 @@ package entity
 
 import (
 	"excavation/engine"
-	vmath "github.com/timshannon/vectormath"
 )
 
 type AudioStatic struct {
-	audio  *engine.Audio
-	buffer *engine.AudioBuffer
+	audio *engine.Audio
 }
 
 func (a *AudioStatic) Add(node *engine.Node, args EntityArgs) {
-	position := new(vmath.Vector3)
-	node.Translate(position)
-	a.buffer = engine.NewAudioBuffer(args.String("file"))
-	a.buffer.Load()
+	a.audio = engine.AddAudioNode(node, args.String("file"), args.Float("minDistance"),
+		args.Float("maxDistance"), 10)
 
-	a.audio = engine.AddStaticAudio(position, a.buffer, args.Float("minDistance"),
-		args.Float("maxDistance"))
-
-	a.audio.Play()
-	a.audio.SetLooping(args.Bool("loop"))
-
+	a.audio.Load()
+	//a.audio.Play()
+	a.audio.Looping = args.Bool("loop")
 }
