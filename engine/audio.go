@@ -26,6 +26,7 @@ var openalContext *openal.Context
 var maxAudioSources int
 
 var audioNodes []*Audio
+var sources []*audioSource
 
 //TODO: Audio Node priority, and inactivating audio nodes
 
@@ -42,6 +43,7 @@ func initAudio(deviceName string, maxSources int) {
 	openalContext = openalDevice.CreateContext()
 	openal.SetDistanceModel(openal.InverseDistanceClamped)
 	openalContext.Activate()
+	sources = make([]*audioSource, 0, maxAudioSources)
 	audioNodes = make([]*Audio, 0, maxAudioSources)
 }
 
@@ -54,8 +56,7 @@ func (l *Listener) SetNode(node *Node) {
 }
 
 func ClearAllAudio() {
-	//TODO: destroy clears sources, but what
-	// about buffers?
+	//TODO: clear buffers
 	audioNodes = make([]*Audio, 0, maxAudioSources)
 	openalContext.Destroy()
 	openalContext = openalDevice.CreateContext()
@@ -63,70 +64,67 @@ func ClearAllAudio() {
 
 }
 
-/*TODO: Remove source from audio type
-add buffer into audio type
-Audio is the sound not the player
-use a fixed pool of sources and set their position
-according to the highest priority audio objects
-*/
-type Audio struct {
+type audioSource struct {
 	openal.Source
-	node    *Node
-	Occlude bool
+	audio *Audio
+}
+
+type Audio struct {
+	openal.Buffer
+	node        *Node
+	Priority    int
+	file        string
+	loaded      bool
+	Occlude     bool
+	Looping     bool
+	minDistance float32
+	maxDistance float32
+	active      bool
+}
+
+//TODO: Add option for static audio
+// so we don't have to take time updating position
+
+func playAudioNode(audioNode *Audio) {
+	if len(sources) < maxAudioSources {
+		newSource := &audioSource{Source: openal.NewSource(),
+			audio: audioNode}
+		newSource.update()
+		newSource.SetRolloffFactor(audioRollOffDefault)
+
+		sources = append(sources, newSource)
+	} else {
+		//evaluate priorities
+	}
+}
+
+func (s *audioSource) update() {
+	s.SetLooping(s.audio.Looping)
+	s.SetMaxDistance(s.audio.maxDistance)
+	s.SetReferenceDistance(s.audio.minDistance)
 }
 
 //AddAudioNode adds an audio source who's position gets
 // updated based on the passed in node's position
-func AddAudioNode(node *Node, buffer *AudioBuffer, minDistance,
-	maxDistance float32) *Audio {
-	aNode := &Audio{Source: openal.NewSource(),
-		node: node,
+func AddAudioNode(node *Node, audioFile string, minDistance,
+	maxDistance float32, priority int) *Audio {
+	aNode := &Audio{Buffer: openal.NewBuffer(),
+		file:     audioFile,
+		node:     node,
+		Priority: priority,
+		Occlude:  false,
+		loaded:   false,
 	}
-	aNode.node = node
-	aNode.SetBuffer(buffer.Buffer)
 
-	aNode.SetReferenceDistance(minDistance)
-	aNode.SetMaxDistance(maxDistance)
-	aNode.SetRolloffFactor(audioRollOffDefault)
+	aNode.minDistance = minDistance
+	aNode.maxDistance = maxDistance
 
 	audioNodes = append(audioNodes, aNode)
 	return aNode
 }
 
-//AddStaticAudio Adds an audio source that doesn't move
-func AddStaticAudio(position *vmath.Vector3, buffer *AudioBuffer,
-	minDistance, maxDistance float32) *Audio {
-	aNode := &Audio{Source: openal.NewSource()}
-	aNode.SetBuffer(buffer.Buffer)
-
-	aNode.SetReferenceDistance(minDistance)
-	aNode.SetMaxDistance(maxDistance)
-	aNode.SetRolloffFactor(audioRollOffDefault)
-
-	aNode.Set3f(openal.AlPosition,
-		position.X, position.Y, position.Z)
-
-	return aNode
-
-}
-
-type AudioBuffer struct {
-	openal.Buffer
-	file   string
-	loaded bool
-}
-
-func NewAudioBuffer(file string) *AudioBuffer {
-	abuffer := &AudioBuffer{Buffer: openal.NewBuffer(),
-		file:   file,
-		loaded: false,
-	}
-
-	return abuffer
-}
-
-func (b *AudioBuffer) Load() error {
-	data, err := loadEngineData(path.Join(path.Join(dataDir, "sounds"), b.file))
+func (a *Audio) Load() error {
+	data, err := loadEngineData(path.Join(path.Join(dataDir, "sounds"), a.file))
 
 	if err != nil {
 		RaiseError(err)
@@ -137,8 +135,8 @@ func (b *AudioBuffer) Load() error {
 	//Mono only?  rate from config?
 	//TODO: Streaming - Stream based on an arbitrary size
 	// or let the user decide? Config option?
-	b.SetData(openal.FormatMono16, data, 44100)
-	b.loaded = true
+	a.SetData(openal.FormatMono16, data, 44100)
+	a.loaded = true
 	return nil
 }
 
