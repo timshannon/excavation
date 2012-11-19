@@ -119,13 +119,39 @@ func (cfg *Config) Value(name string) interface{} {
 	return cfg.values[name]
 }
 
-func printMissing(name string) {
-	RaiseError(errors.New("Config entry " + name + " does not exist. Using default."))
+//DefaultValueHandler is a function  you can define to
+// return the a default value if a given configuration entry isn't found
+// in a config file.  It allows you to set sane defaults
+type DefaultValueHandler func(name string) interface{}
+
+var defaultValueHandlers = make([]DefaultValueHandler, 10)
+
+//SetDefaultConfigHandler lets the game code define the
+// defaults that should be written if a config file doesn't exist
+func SetDefaultValueHandler(function DefaultValueHandler) {
+	defaultValueHandlers = append(defaultValueHandlers, function)
 }
+
+func handleMissing(name string) (value interface{}) {
+	RaiseError(errors.New("Config entry " + name + " does not exist. Using default."))
+	for i := range defaultValueHandlers {
+		value = defaultValueHandlers[i]
+		if value != nil {
+			return value
+		}
+	}
+
+	return nil
+}
+
 func (cfg *Config) Int(name string) int {
 	value, ok := cfg.values[name].(float64)
 	if !ok {
-		printMissing(name)
+		value := handleMissing(name)
+		if value != nil {
+			return value.(int)
+		}
+
 		return 0
 	}
 	return int(value)
@@ -134,7 +160,10 @@ func (cfg *Config) Int(name string) int {
 func (cfg *Config) String(name string) string {
 	value, ok := cfg.values[name].(string)
 	if !ok {
-		printMissing(name)
+		value := handleMissing(name)
+		if value != nil {
+			return value.(string)
+		}
 		return ""
 	}
 	return value
@@ -143,7 +172,10 @@ func (cfg *Config) String(name string) string {
 func (cfg *Config) Bool(name string) bool {
 	value, ok := cfg.values[name].(bool)
 	if !ok {
-		printMissing(name)
+		value := handleMissing(name)
+		if value != nil {
+			return value.(bool)
+		}
 		return false
 	}
 	return value
@@ -152,7 +184,10 @@ func (cfg *Config) Bool(name string) bool {
 func (cfg *Config) Float(name string) float32 {
 	value, ok := cfg.values[name].(float64)
 	if !ok {
-		printMissing(name)
+		value := handleMissing(name)
+		if value != nil {
+			return value.(float32)
+		}
 		return 0.0
 	}
 	return float32(value)

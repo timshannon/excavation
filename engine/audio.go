@@ -8,7 +8,7 @@ import (
 
 const (
 	audioRollOffDefault = 0.5
-	//If Audio Node is occulded, sound drops off quicker
+	//if Audio Node is occulded, sound drops off quicker
 	audioRollOffOccluded = 4
 )
 
