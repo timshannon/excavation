@@ -14,8 +14,8 @@ func NewEntity(typeName string) (Entity, error) {
 	switch strings.ToLower(typeName) {
 	case "player":
 		return new(Player), nil
-	case "audiostatic":
-		return new(AudioStatic), nil
+	case "audio":
+		return new(Audio), nil
 	}
 	return nil, errors.New("Entity of type " + typeName + " not found.")
 

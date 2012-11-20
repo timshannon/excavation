@@ -10,6 +10,9 @@ import (
 
 type Entity interface {
 	Add(node *engine.Node, args EntityArgs)
+	//TriggerIn(float32)
+	//TriggerOut(*Entity)
+	//TriggerSource?
 }
 
 type EntityArgs map[string]string
@@ -48,6 +51,11 @@ func LoadEntity(node *engine.Node, attachmentData string) error {
 	return nil
 
 }
+
+//TODO: Match entity triggers
+// if entity has an arg of trigger, then
+// add it to the list of trigger entities
+// if trigger == true, then auto trigger the entity
 
 func EntityFromNode(node engine.Node) (Entity, bool) {
 	entity, ok := entities[int(node.H3DNode)]

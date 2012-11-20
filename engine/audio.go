@@ -67,6 +67,36 @@ func ClearAllAudio() {
 type audioSource struct {
 	openal.Source
 	audio *Audio
+	free  bool
+}
+
+func (s *audioSource) listenerRelative() bool {
+	return s.audio.node.H3DNode == listener.node.H3DNode
+}
+
+func (s *audioSource) setAudio(newAudio *Audio) {
+	newAudio.source = s
+	s.audio.source = nil
+	s.audio = newAudio
+	s.free = false
+	s.SetLooping(newAudio.looping)
+	s.SetMaxDistance(newAudio.maxDistance)
+	s.SetReferenceDistance(newAudio.minDistance)
+	if !newAudio.Occlude {
+		s.SetRolloffFactor(audioRollOffDefault)
+	}
+
+	if s.listenerRelative() {
+		//if the source of the sound is the same as the listener
+		// don't update position
+		s.SetSourceRelative(true)
+		s.Set3f(openal.AlPosition, 0, 0, 0)
+	} else {
+		s.SetSourceRelative(false)
+	}
+
+	s.SetBuffer(newAudio.Buffer)
+
 }
 
 type Audio struct {
@@ -76,32 +106,10 @@ type Audio struct {
 	file        string
 	loaded      bool
 	Occlude     bool
-	Looping     bool
+	looping     bool
 	minDistance float32
 	maxDistance float32
-	active      bool
-}
-
-//TODO: Add option for static audio
-// so we don't have to take time updating position
-
-func playAudioNode(audioNode *Audio) {
-	if len(sources) < maxAudioSources {
-		newSource := &audioSource{Source: openal.NewSource(),
-			audio: audioNode}
-		newSource.update()
-		newSource.SetRolloffFactor(audioRollOffDefault)
-
-		sources = append(sources, newSource)
-	} else {
-		//evaluate priorities
-	}
-}
-
-func (s *audioSource) update() {
-	s.SetLooping(s.audio.Looping)
-	s.SetMaxDistance(s.audio.maxDistance)
-	s.SetReferenceDistance(s.audio.minDistance)
+	source      *audioSource
 }
 
 //AddAudioNode adds an audio source who's position gets
@@ -140,38 +148,126 @@ func (a *Audio) Load() error {
 	return nil
 }
 
+func (a *Audio) Play() {
+	if a.source == nil {
+		if len(sources) < maxAudioSources {
+			newSource := &audioSource{Source: openal.NewSource(),
+				audio: a}
+			newSource.setAudio(a)
+
+			sources = append(sources, newSource)
+
+			a.source.Play()
+			return
+		} else {
+			//check for free'd source or lower priority audio
+			var freeSource *audioSource
+			var lowest *audioSource
+			for i := range sources {
+				if sources[i].free {
+					freeSource = sources[i]
+					break
+				}
+				if lowest == nil {
+					lowest = sources[i]
+				} else {
+					if sources[i].audio.Priority > lowest.audio.Priority {
+						lowest = sources[i]
+					}
+				}
+			}
+			if freeSource != nil {
+				freeSource.setAudio(a)
+			} else if lowest != nil {
+				lowest.setAudio(a)
+			} else {
+				//can't play audio
+				return
+			}
+			a.source.Play()
+			return
+		}
+	}
+	a.source.Play()
+}
+
+func (a *Audio) Pause() {
+	if a.source != nil {
+		a.source.Pause()
+	}
+}
+
+func (a *Audio) SetLooping(value bool) {
+	a.looping = value
+	if a.source != nil {
+		a.source.SetLooping(value)
+	}
+}
+
+func (a *Audio) Stop() {
+	if a.source != nil {
+		a.source.Stop()
+
+		if len(audioNodes) > maxAudioSources {
+			//free up source
+			a.freeSource()
+		}
+	}
+}
+
+func (a *Audio) freeSource() {
+	a.source.free = true
+	a.source = nil
+
+	if len(audioNodes) > maxAudioSources {
+		for i := range audioNodes {
+			if audioNodes[i].source == nil &&
+				audioNodes[i].looping {
+				audioNodes[i].Play()
+			}
+		}
+	}
+}
+
 func updateAudio() {
 	if listener.node == nil {
 		return
 	}
 
-	//TODO: Option to track occlusion.  If source is
-	// occluded, muffle the sound 
-	/*source := audioNodes[0]
-	if source.Occlude {
-		if source.node.IsVisible(MainCam, true, false) {
-			source.SetRolloffFactor(audioRollOffOccluded)
+	for i := range sources {
+		//TODO Option: Dont check every frame
+		if sources[i].State() == openal.Stopped {
+			sources[i].audio.freeSource()
+		}
 
-		else {
-			source.SetRolloffFactor(audioRollOffDefault)
+		if !sources[i].listenerRelative() {
+			if sources[i].audio.Occlude {
+				if sources[i].audio.node.IsVisible(MainCam, true, false) == -1 {
+					sources[i].SetRolloffFactor(audioRollOffOccluded)
+				} else {
+					sources[i].SetRolloffFactor(audioRollOffDefault)
+				}
+			}
+			//position
+			sources[i].Set3f(openal.AlPosition, sources[i].audio.node.AbsoluteTransMat().Col3.X,
+				sources[i].audio.node.AbsoluteTransMat().Col3.Y,
+				sources[i].audio.node.AbsoluteTransMat().Col3.Z)
+
+			//direction
+			//Only needed for sound cones, may not implement
 		}
 	}
-	*/
+
 	listener.updatePositionOrientation()
 
-	//for i := range audioNodes {
-	//horde3d.GetNodeTransform(audioNodes[i].node.H3DNode, &x, &y, &z,
-	//&rx, &ry, &rz, nil, nil, nil)
-	//audioNodes[i].source.Set3f(openal.AlPosition, x, y, z)
-	//audioNodes[i].source.Set3f(openal.AlDirection, rx, ry, rz)
 }
 
 func (l *Listener) updatePositionOrientation() {
 	//TODO: Track velocity
 
-	l.Set3f(openal.AlPosition, l.node.AbsoluteTransMat().GetElem(3, 0),
-		l.node.AbsoluteTransMat().GetElem(3, 1),
-		l.node.AbsoluteTransMat().GetElem(3, 2))
+	l.Set3f(openal.AlPosition, l.node.AbsoluteTransMat().Col3.X,
+		l.node.AbsoluteTransMat().Col3.Y,
+		l.node.AbsoluteTransMat().Col3.Z)
 
 	//forward
 	vmath.V4MakeZAxis(l.tempVec)
