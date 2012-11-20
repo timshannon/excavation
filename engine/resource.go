@@ -95,6 +95,9 @@ func (res *Resource) Load() error {
 
 }
 
+//func openDataFile
+//func closeDataFile
+
 func loadEngineData(resourcePath string) ([]byte, error) {
 	data, err := ioutil.ReadFile(resourcePath)
 
@@ -102,6 +105,8 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 		err = nil
 		//TODO: load from tar.gz data file
 		//remove respath root
+		// Open data file on first request
+		// close datafile on clear all
 	}
 
 	if err != nil {

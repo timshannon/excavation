@@ -160,6 +160,7 @@ func ClearAll() {
 	horde3d.Clear()
 	ClearAllAudio()
 	//TODO: Clear Physics entities
+	//TODO: Close compressed data file if open
 }
 
 func Cfg() *Config {
