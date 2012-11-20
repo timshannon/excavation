@@ -24,13 +24,12 @@ var listener *Listener
 var openalDevice *openal.Device
 var openalContext *openal.Context
 var maxAudioSources int
+var maxAudioBufferSize int
 
 var audioNodes []*Audio
 var sources []*audioSource
 
-//TODO: Audio Node priority, and inactivating audio nodes
-
-func initAudio(deviceName string, maxSources int) {
+func initAudio(deviceName string, maxSources, maxBufferSize int) {
 	listener = &Listener{
 		Listener: openal.Listener{},
 		upOrient: new(openal.Vector),
@@ -38,6 +37,7 @@ func initAudio(deviceName string, maxSources int) {
 		tempVec:  new(vmath.Vector4),
 	}
 	maxAudioSources = maxSources
+	maxAudioBufferSize = maxBufferSize
 
 	openalDevice = openal.OpenDevice(deviceName)
 	openalContext = openalDevice.CreateContext()
@@ -57,11 +57,13 @@ func (l *Listener) SetNode(node *Node) {
 
 func ClearAllAudio() {
 	//TODO: clear buffers
+	for i := range audioNodes {
+		audioNodes[i].Remove()
+	}
 	audioNodes = make([]*Audio, 0, maxAudioSources)
 	openalContext.Destroy()
 	openalContext = openalDevice.CreateContext()
 	openalContext.Activate()
-
 }
 
 type audioSource struct {
@@ -213,6 +215,11 @@ func (a *Audio) Stop() {
 			a.freeSource()
 		}
 	}
+}
+
+func (a *Audio) Remove() {
+	a.Stop()
+	openal.DeleteBuffer(a.Buffer)
 }
 
 func (a *Audio) freeSource() {
