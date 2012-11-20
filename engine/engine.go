@@ -96,7 +96,7 @@ func Init(name string) error {
 
 	//Music and Audio
 	initMusic()
-	initAudio(cfg.String("AudioDevice"), cfg.Int("MaxAudioSources"))
+	initAudio(cfg.String("AudioDevice"), cfg.Int("MaxAudioSources"), cfg.Int("MaxAudioBufferSize"))
 	glfw.SetWindowSizeCallback(onResize)
 
 	return nil
