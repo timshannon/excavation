@@ -8,16 +8,20 @@ import (
 
 const (
 	audioRollOffDefault = 0.5
-	//if Audio Node is occulded, sound drops off quicker
+	//if Audio Node is occluded, sound drops off quicker
 	audioRollOffOccluded = 4
 )
+
+// All audio files must be Mono wav files at 44100 Hz
+const AudioFrequency = 44100
 
 type Listener struct {
 	openal.Listener
 	node               *Node
 	upOrient, atOrient *openal.Vector
 	tempVec            *vmath.Vector4
-	prevTime           float32
+	prevTime           float64
+	curVec, prevVec    *vmath.Vector3
 }
 
 var listener *Listener
@@ -56,7 +60,6 @@ func (l *Listener) SetNode(node *Node) {
 }
 
 func ClearAllAudio() {
-	//TODO: clear buffers
 	for i := range audioNodes {
 		audioNodes[i].Remove()
 	}
@@ -112,6 +115,7 @@ type Audio struct {
 	minDistance float32
 	maxDistance float32
 	source      *audioSource
+	//TODO: optional velocity
 }
 
 //AddAudioNode adds an audio source who's position gets
@@ -141,11 +145,10 @@ func (a *Audio) Load() error {
 		return err
 	}
 
-	//TODO: Get wave file info
-	//Mono only?  rate from config?
-	//TODO: Streaming - Stream based on an arbitrary size
-	// or let the user decide? Config option?
-	a.SetData(openal.FormatMono16, data, 44100)
+	//TODO: Streaming - Stream based on maxBufferSize.
+	// if total size of file > maxBuffer size, then split into buffers the
+	// size of maxBufferSize
+	a.SetData(openal.FormatMono16, data, AudioFrequency)
 	a.loaded = true
 	return nil
 }
@@ -270,11 +273,9 @@ func updateAudio() {
 }
 
 func (l *Listener) updatePositionOrientation() {
-	//TODO: Track velocity
 
-	l.Set3f(openal.AlPosition, l.node.AbsoluteTransMat().Col3.X,
-		l.node.AbsoluteTransMat().Col3.Y,
-		l.node.AbsoluteTransMat().Col3.Z)
+	l.node.AbsoluteTransMat().Translation(l.curVec)
+	l.Set3f(openal.AlPosition, l.curVec.X, l.curVec.Y, l.curVec.Z)
 
 	//forward
 	vmath.V4MakeZAxis(l.tempVec)
@@ -287,6 +288,12 @@ func (l *Listener) updatePositionOrientation() {
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
 
+	vmath.V3Velocity(l.prevVec, l.prevVec, l.curVec, float32(Time()-l.prevTime))
+
+	l.Set3f(openal.AlVelocity, l.prevVec.X, l.prevVec.Y, l.prevVec.Z)
+
+	vmath.V3Copy(l.prevVec, l.curVec)
+	l.prevTime = Time()
 }
 
 func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vmath.Vector4, matrix *vmath.Matrix4) {
