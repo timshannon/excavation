@@ -95,9 +95,6 @@ func (res *Resource) Load() error {
 
 }
 
-//func openDataFile
-//func closeDataFile
-
 func loadEngineData(resourcePath string) ([]byte, error) {
 	data, err := ioutil.ReadFile(resourcePath)
 
@@ -107,6 +104,8 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 		//remove respath root
 		// Open data file on first request
 		// close datafile on clear all
+		// or stream buffered data
+		// package datafile
 	}
 
 	if err != nil {
