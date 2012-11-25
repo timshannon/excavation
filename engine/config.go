@@ -124,7 +124,7 @@ func (cfg *Config) Value(name string) interface{} {
 // in a config file.  It allows you to set sane defaults
 type DefaultValueHandler func(name string) interface{}
 
-var defaultValueHandlers = make([]DefaultValueHandler, 10)
+var defaultValueHandlers = make([]DefaultValueHandler, 0, 10)
 
 //SetDefaultConfigHandler lets the game code define the
 // defaults that should be written if a config file doesn't exist
@@ -135,11 +135,9 @@ func SetDefaultValueHandler(function DefaultValueHandler) {
 func handleMissing(name string) (value interface{}) {
 	RaiseError(errors.New("Config entry " + name + " does not exist. Using default."))
 	for i := range defaultValueHandlers {
-		if defaultValueHandlers[i] != nil {
-			value = defaultValueHandlers[i](name)
-			if value != nil {
-				return value
-			}
+		value = defaultValueHandlers[i](name)
+		if value != nil {
+			return value
 		}
 	}
 
