@@ -135,9 +135,11 @@ func SetDefaultValueHandler(function DefaultValueHandler) {
 func handleMissing(name string) (value interface{}) {
 	RaiseError(errors.New("Config entry " + name + " does not exist. Using default."))
 	for i := range defaultValueHandlers {
-		value = defaultValueHandlers[i]
-		if value != nil {
-			return value
+		if defaultValueHandlers[i] != nil {
+			value = defaultValueHandlers[i](name)
+			if value != nil {
+				return value
+			}
 		}
 	}
 
