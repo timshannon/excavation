@@ -118,7 +118,7 @@ func runTasks() {
 
 	//run through all queued tasks
 	for _, task := range taskQueue {
-		//TODO: Threaded tasks, queue up horde transformations
+		//TODO: Threaded tasks? queue up horde transformations?
 		if task.start == 0 {
 			task.start = Time()
 		}

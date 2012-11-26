@@ -87,6 +87,7 @@ func (s *audioSource) setAudio(newAudio *Audio) {
 	s.SetLooping(newAudio.looping)
 	s.SetMaxDistance(newAudio.maxDistance)
 	s.SetReferenceDistance(newAudio.minDistance)
+	s.SetGain(newAudio.gain)
 	if !newAudio.Occlude {
 		s.SetRolloffFactor(audioRollOffDefault)
 	}
@@ -114,6 +115,7 @@ type Audio struct {
 	looping     bool
 	minDistance float32
 	maxDistance float32
+	gain        float32
 	source      *audioSource
 	//TODO: optional velocity
 }
@@ -128,6 +130,7 @@ func AddAudioNode(node *Node, audioFile string, minDistance,
 		Priority: priority,
 		Occlude:  false,
 		loaded:   false,
+		gain:     1.0, //openal default
 	}
 
 	aNode.minDistance = minDistance
@@ -237,6 +240,24 @@ func (a *Audio) freeSource() {
 			}
 		}
 	}
+}
+
+func (a *Audio) SetGain(value float32) {
+	a.gain = value
+	if a.source != nil {
+		a.source.SetGain(value)
+	}
+}
+
+func (a *Audio) Gain() float32 {
+	return a.gain
+}
+
+func (a *Audio) State() int {
+	if a.source != nil {
+		return int(a.source.State())
+	}
+	return int(openal.Stopped)
 }
 
 func updateAudio() {

@@ -10,14 +10,12 @@ import (
 
 type Entity interface {
 	Add(node *engine.Node, args EntityArgs)
-	//TriggerIn(float32)
-	//TriggerOut(*Entity)
-	//TriggerSource?
+	Trigger(float32)
 }
 
 type EntityArgs map[string]string
 
-var entities = make(map[int]Entity)
+var entities = make(map[string]Entity)
 
 func LoadEntity(node *engine.Node, attachmentData string) error {
 
@@ -46,19 +44,14 @@ func LoadEntity(node *engine.Node, attachmentData string) error {
 
 	newEnt.Add(node, args)
 
-	entities[int(node.H3DNode)] = newEnt
+	entities[node.Name()] = newEnt
 
 	return nil
 
 }
 
-//TODO: Match entity triggers
-// if entity has an arg of trigger, then
-// add it to the list of trigger entities
-// if trigger == true, then auto trigger the entity
-
-func EntityFromNode(node engine.Node) (Entity, bool) {
-	entity, ok := entities[int(node.H3DNode)]
+func EntityFromName(name string) (Entity, bool) {
+	entity, ok := entities[name]
 	return entity, ok
 }
 
