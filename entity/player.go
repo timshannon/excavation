@@ -37,6 +37,7 @@ type Player struct {
 func (p *Player) Add(node *engine.Node, args EntityArgs) {
 	p.node = node
 
+	//TODO: Only activate camera if set to active in arg
 	engine.MainCam = &engine.Camera{p.node}
 
 	p.translate = new(vmath.Vector3)
@@ -64,6 +65,16 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 
 	engine.SetMousePos(0, 0)
 
+}
+
+func (p *Player) Trigger(value float32) {
+	//TODO: Fade view as camera changes
+	if value > 0 {
+		engine.MainCam = &engine.Camera{p.node}
+		l := engine.AudioListener()
+		l.SetNode(p.node)
+		engine.SetMousePos(0, 0)
+	}
 }
 
 func updatePlayer(t *engine.Task) {
@@ -216,3 +227,7 @@ func handlePitchYaw(i *engine.Input) {
 		}
 	}
 }
+
+//TODO: Split into two different types, one for ship movement, one for human movement, 
+// use trigger to switch between them
+// Share one player type which holds player data.

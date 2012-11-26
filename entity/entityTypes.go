@@ -16,6 +16,8 @@ func NewEntity(typeName string) (Entity, error) {
 		return new(Player), nil
 	case "audio":
 		return new(Audio), nil
+	case "timer":
+		return new(Timer), nil
 	}
 	return nil, errors.New("Entity of type " + typeName + " not found.")
 
