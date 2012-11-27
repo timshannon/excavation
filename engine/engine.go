@@ -7,6 +7,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
+	"excavation/engine/gui"
 	"github.com/jteeuwen/glfw"
 )
 
@@ -115,6 +116,7 @@ func StartMainLoop() {
 		joyUpdate()
 		runTasks()
 		updateAudio()
+		gui.Update()
 		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
 		glfw.SwapBuffers()
@@ -148,6 +150,7 @@ func onResize(w, h int) {
 	//TODO: Set clip distance? Config?
 	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
 	MainCam.Pipeline().ResizeBuffers(w, h)
+	gui.UpdateScreenSize(w, h)
 
 }
 
