@@ -41,16 +41,6 @@ func LoadAllResources() error {
 	return nil
 }
 
-//might use later with audio
-//type ResHandler interface {
-//Type() int
-//Name() string
-//Load() error
-//FullPath() string
-//IsLoaded() bool
-//Remove()
-//}
-
 type Resource struct {
 	horde3d.H3DRes
 }
