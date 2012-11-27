@@ -37,10 +37,11 @@ type Node struct {
 	updateFrame int
 }
 
-func newNode() *Node {
+func NewNode(hordeNode horde3d.H3DNode) *Node {
 	node := &Node{
-		relMat: new(vmath.Matrix4),
-		absMat: new(vmath.Matrix4),
+		horde3d.H3DNode: hordeNode,
+		relMat:          new(vmath.Matrix4),
+		absMat:          new(vmath.Matrix4),
 	}
 
 	return node
@@ -48,8 +49,7 @@ func newNode() *Node {
 
 //Adds nodes from a SceneGraph resource to the scene.
 func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
-	node := newNode()
-	node.H3DNode = horde3d.AddNodes(parent.H3DNode, sceneResource.H3DRes)
+	node := NewNode(horde3d.AddNodes(parent.H3DNode, sceneResource.H3DRes))
 
 	if node.H3DNode == 0 {
 		return nil, errors.New("Error adding nodes to the scene")
@@ -67,8 +67,7 @@ func (n *Node) Type() int {
 
 //Returns the parent of a scene node.
 func (n *Node) Parent() *Node {
-	parent := newNode()
-	parent.H3DNode = horde3d.GetNodeParent(n.H3DNode)
+	parent := NewNode(horde3d.GetNodeParent(n.H3DNode))
 	return parent
 }
 
@@ -82,7 +81,7 @@ func (n *Node) Children() []*Node {
 	for i := 0; hNode != 0; i++ {
 		hNode = horde3d.GetNodeChild(n.H3DNode, i)
 		if hNode != 0 {
-			children = append(children, &Node{H3DNode: hNode})
+			children = append(children, NewNode(hNode))
 		}
 	}
 	return children
@@ -319,9 +318,10 @@ func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector
 
 	results = results[:size]
 	for i := range results {
-		results[i].ResultNode = newNode()
+		results[i].ResultNode = NewNode(0)
 		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, results[i].Distance,
 			tempHordeVector)
+
 		newVec := &vmath.Vector3{}
 		vmath.SliceToV3(newVec, tempHordeVector)
 		results[i].Intersection = newVec
@@ -342,8 +342,7 @@ type Group struct{ *Node }
 
 //Adds a new group node
 func AddGroup(parent *Node, name string) (*Group, error) {
-	group := &Group{newNode()}
-	group.H3DNode = horde3d.AddGroupNode(parent.H3DNode, name)
+	group := &Group{NewNode(horde3d.AddGroupNode(parent.H3DNode, name))}
 	if group.H3DNode == 0 {
 		return nil, errors.New("Error adding group node")
 	}
@@ -354,8 +353,7 @@ type Model struct{ *Node }
 
 //Adds a new model
 func AddModel(parent *Node, name string, geometry *Geometry) (*Model, error) {
-	model := &Model{newNode()}
-	model.H3DNode = horde3d.AddModelNode(parent.H3DNode, name, geometry.H3DRes)
+	model := &Model{NewNode(horde3d.AddModelNode(parent.H3DNode, name, geometry.H3DRes))}
 	if model.H3DNode == 0 {
 		return nil, errors.New("Error adding Model")
 	}
@@ -419,9 +417,8 @@ type Mesh struct{ *Node }
 
 func AddMesh(parent *Node, name string, material *Material, batchStart, batchCount,
 	vertRStart, vertREnd int) (*Mesh, error) {
-	mesh := &Mesh{newNode()}
-	mesh.H3DNode = horde3d.AddMeshNode(parent.H3DNode, name, material.H3DRes, batchStart,
-		batchCount, vertRStart, vertREnd)
+	mesh := &Mesh{NewNode(horde3d.AddMeshNode(parent.H3DNode, name, material.H3DRes, batchStart,
+		batchCount, vertRStart, vertREnd))}
 	if mesh.H3DNode == 0 {
 		return nil, errors.New("Error adding Mesh")
 	}
@@ -451,8 +448,7 @@ func (m *Mesh) SetLODLevel(level int) {
 type Joint struct{ *Node }
 
 func AddJoint(parent *Node, name string, jointIndex int) (*Joint, error) {
-	joint := &Joint{newNode()}
-	joint.H3DNode = horde3d.AddJointNode(parent.H3DNode, name, jointIndex)
+	joint := &Joint{NewNode(horde3d.AddJointNode(parent.H3DNode, name, jointIndex))}
 	if joint.H3DNode == 0 {
 		return nil, errors.New("Error adding Joint")
 	}
@@ -465,9 +461,8 @@ type Light struct{ *Node }
 
 func AddLight(parent *Node, name string, material *Material, lightingContext string,
 	shadowContext string) *Light {
-	light := &Light{newNode()}
-	light.H3DNode = horde3d.AddLightNode(parent.H3DNode, name, material.H3DRes,
-		lightingContext, shadowContext)
+	light := &Light{NewNode(horde3d.AddLightNode(parent.H3DNode, name, material.H3DRes,
+		lightingContext, shadowContext))}
 	return light
 }
 
@@ -550,8 +545,7 @@ func (l *Light) SetShadowContext(context string) {
 type Camera struct{ *Node }
 
 func AddCamera(parent *Node, name string, pipeline *Pipeline) *Camera {
-	camera := &Camera{newNode()}
-	camera.H3DNode = horde3d.AddCameraNode(parent.H3DNode, name, pipeline.H3DRes)
+	camera := &Camera{NewNode(horde3d.AddCameraNode(parent.H3DNode, name, pipeline.H3DRes))}
 	return camera
 }
 
@@ -666,9 +660,8 @@ type Emitter struct{ *Node }
 
 func AddEmitter(parent *Node, name string, material *Material, particleEffect *ParticleEffect,
 	maxParticleCount int, respawnCount int) *Emitter {
-	emitter := &Emitter{newNode()}
-	emitter.H3DNode = horde3d.AddEmitterNode(parent.H3DNode, name, material.H3DRes,
-		particleEffect.H3DRes, maxParticleCount, respawnCount)
+	emitter := &Emitter{NewNode(horde3d.AddEmitterNode(parent.H3DNode, name, material.H3DRes,
+		particleEffect.H3DRes, maxParticleCount, respawnCount))}
 
 	return emitter
 }

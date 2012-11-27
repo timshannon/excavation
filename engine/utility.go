@@ -18,6 +18,7 @@ var appName string = "excavation"
 func UserDir() (string, error) {
 	var userDir string
 
+	//TODO: Testing and specific handling on Windows and Mac
 	userDir = os.Getenv("XDG_DATA_HOME")
 	if userDir == "" {
 		curUser, err := user.Current()

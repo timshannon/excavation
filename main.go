@@ -43,6 +43,7 @@ func main() {
 
 	//todo: temp for testing frame independence
 	engine.BindDirectInput(ToggleVSync, "Key_F1")
+	engine.AddTask("FPS", showFPS, nil, 0, 1)
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
@@ -50,6 +51,11 @@ func main() {
 
 func errHandler(err error) {
 	fmt.Println(err)
+}
+
+func showFPS(t *engine.Task) {
+	fmt.Println("FPS: ", engine.Fps())
+	t.Wait(1)
 }
 
 var vsync int
@@ -79,7 +85,7 @@ func setCfgDefaults(cfg *engine.Config) {
 		cfg.SetValue("MouseSensitivity", 0.3)
 		cfg.SetValue("AudioDevice", "")
 		cfg.SetValue("MaxAudioSources", 16)
-		cfg.SetValue("MaxAudioBufferSize", 16)
+		cfg.SetValue("MaxAudioBufferSize", 5242880)
 	case "controls.cfg":
 		cfg.SetValue("Forward", "Key_W")
 		cfg.SetValue("Backward", "Key_S")

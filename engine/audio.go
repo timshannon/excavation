@@ -39,6 +39,8 @@ func initAudio(deviceName string, maxSources, maxBufferSize int) {
 		upOrient: new(openal.Vector),
 		atOrient: new(openal.Vector),
 		tempVec:  new(vmath.Vector4),
+		curVec:   new(vmath.Vector3),
+		prevVec:  new(vmath.Vector3),
 	}
 	maxAudioSources = maxSources
 	maxAudioBufferSize = maxBufferSize
