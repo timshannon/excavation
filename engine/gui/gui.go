@@ -14,7 +14,8 @@ const (
 )
 
 var screenRatio float32
-var activeGui *Gui
+var screenHeight int
+var screenWidth int
 var tempArray [16]float32 //Rectangles only for now
 
 //resolution independent
@@ -22,7 +23,7 @@ var tempArray [16]float32 //Rectangles only for now
 
 //ActualPosition returns the actual position on the screen from the interpreted
 // relative position
-func ActualPosition(result []float32, position *Postion, size *Size, relative int) {
+func ActualPosition(result []float32, position *Position, size *Size) {
 	//Y is not relative to aspect
 	//vert1 
 	result[1] = position.Y
@@ -40,7 +41,7 @@ func ActualPosition(result []float32, position *Postion, size *Size, relative in
 	result[13] = (position.Y + size.Height)
 	result[14] = 1
 	result[15] = 1
-	switch relative {
+	switch position.RelativeTo {
 	case RelativeAspect:
 		result[0] = position.X
 		result[4] = (position.X + size.Width)
@@ -60,14 +61,15 @@ func ActualPosition(result []float32, position *Postion, size *Size, relative in
 }
 
 func AddOverlay(widget Widget) {
-	ActualPosition(tempArray[:], widget.Position(), widget.Size(), widget.RelativeTo())
+	ActualPosition(tempArray[:], widget.Position(), widget.Size())
 	horde3d.ShowOverlays(tempArray[:], 4, widget.Color().R, widget.Color().G,
 		widget.Color().B, widget.Color().A, widget.Material(), 0)
 
 }
 
-type Postion struct {
-	X, Y float32
+type Position struct {
+	X, Y       float32
+	RelativeTo int
 }
 type Size struct {
 	Height, Width float32
@@ -79,9 +81,8 @@ type Color struct {
 
 type Widget interface {
 	Update()
-	Position() *Postion
+	Position() *Position
 	Size() *Size
-	RelativeTo() int
 	Color() *Color
 	Material() horde3d.H3DRes
 }
@@ -91,27 +92,28 @@ type Gui struct {
 	//TODO: Hover, click, scroll, type
 }
 
-func LoadGui(gui *Gui) {
-	activeGui = gui
-}
-
 func (g *Gui) AddWidget(widget Widget) {
 	g.Widgets = append(g.Widgets, widget)
 }
 
-func Update() {
-	if activeGui != nil {
-		horde3d.ClearOverlays()
-		for g := range activeGui.Widgets {
-			activeGui.Widgets[g].Update()
-		}
+func (g *Gui) Update() {
+	horde3d.ClearOverlays()
+	for i := range g.Widgets {
+		g.Widgets[i].Update()
 	}
 }
 
 func UpdateScreenSize(w, h int) {
+	screenHeight = h
+	screenWidth = w
 	screenRatio = float32(w) / float32(h)
 }
 
-func MousePos() (int, int) {
-	return glfw.MousePos()
+func MousePos() Position {
+	//Return position according to widget ratio positioning
+	//  0.0 - 1.0
+	x, y := glfw.MousePos()
+	//TODO:fIX
+	return Position{float32(x), float32(y), RelativeLeft}
+
 }
