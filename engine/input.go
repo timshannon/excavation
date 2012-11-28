@@ -43,14 +43,26 @@ var (
 
 var inputHandlers map[string]InputHandler
 
-func init() {
+func initInput() {
+	resetInputs()
+
+	glfw.SetKeyCallback(keyCallback)
+	glfw.SetMouseButtonCallback(mouseButtonCallback)
+	glfw.SetMousePosCallback(mousePosCallback)
+	glfw.SetMouseWheelCallback(mouseWheelCallback)
+
+	//Reload configs on write
+	controlCfg.RegisterOnWriteHandler(reloadBindingsFromCfg)
+	loadBindingsFromCfg(controlCfg)
+}
+
+func resetInputs() {
 	mouseAxisInputs = make(map[int]*Input)
 	mouseBtnInputs = make(map[int]*Input)
 	keyInputs = make(map[int]*Input)
 	joyAxisInputs = make(map[int]*Input)
 	joyBtnInputs = make(map[int]*Input)
 	inputHandlers = make(map[string]InputHandler)
-
 }
 
 type InputHandler func(input *Input)
@@ -68,7 +80,6 @@ type Input struct {
 	X           int
 	Y           int
 	AxisPos     float32
-	Active      bool
 }
 
 // JoyAxis returns the joystick's current axis value if the input is
@@ -208,7 +219,6 @@ var curJoystick *joystick
 func newInput(cfgString string) *Input {
 	dev := &Device{-1, -1, -1, -1}
 	input := new(Input)
-	input.Active = true
 
 	var prefix string
 	var suffix string
@@ -310,7 +320,7 @@ func addBinding(controlName, cfgString string) {
 // inputhandler for the given input
 func keyCallback(key, state int) {
 	input, ok := keyInputs[key]
-	if ok && input.Active {
+	if ok && !haltInput {
 		input.State = state
 		if function, ok := inputHandlers[input.controlName]; ok {
 			function(input)
@@ -322,7 +332,7 @@ func keyCallback(key, state int) {
 // inputhandler for the given input
 func mouseButtonCallback(button, state int) {
 	input, ok := mouseBtnInputs[button]
-	if ok && input.Active {
+	if ok && !haltInput {
 		input.State = state
 		if function, ok := inputHandlers[input.controlName]; ok {
 			function(input)
@@ -334,7 +344,7 @@ func mouseButtonCallback(button, state int) {
 // inputhandler for the given input
 func mousePosCallback(x, y int) {
 	input, ok := mouseAxisInputs[MouseAxisPos]
-	if ok && input.Active {
+	if ok && !haltInput {
 		input.X = x
 		input.Y = y
 		if function, ok := inputHandlers[input.controlName]; ok {
@@ -345,7 +355,7 @@ func mousePosCallback(x, y int) {
 
 func mouseWheelCallback(delta int) {
 	input, ok := mouseAxisInputs[MouseAxisWheel]
-	if ok && input.Active {
+	if ok && !haltInput {
 		input.X = delta
 		if function, ok := inputHandlers[input.controlName]; ok {
 			function(input)
@@ -364,7 +374,7 @@ func joyUpdate() {
 
 		for i := 0; i < results; i++ {
 			input, ok = joyBtnInputs[i]
-			if ok && input.Active {
+			if ok && !haltInput {
 				input.State = int(curJoystick.buttons[i])
 				if function, ok := inputHandlers[input.controlName]; ok {
 					function(input)
@@ -388,9 +398,20 @@ func joyUpdate() {
 func MousePos() (int, int) {
 	return glfw.MousePos()
 }
+
 func SetMousePos(x, y int) {
 	glfw.SetMousePos(x, y)
 }
 
-//TODO: Disable all inputs when a gui is menu is active
-//TODO: Option to reload all config
+func HaltInput() {
+	haltInput = true
+}
+
+func ResumeInput() {
+	haltInput = false
+}
+
+func reloadBindingsFromCfg(cfg *Config) {
+	resetInputs()
+	loadBindingsFromCfg(cfg)
+}
