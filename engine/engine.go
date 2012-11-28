@@ -79,12 +79,8 @@ func Init(name string) error {
 		return err
 	}
 	controlCfg.Load()
-	loadBindingsFromCfg(controlCfg)
 
-	glfw.SetKeyCallback(keyCallback)
-	glfw.SetMouseButtonCallback(mouseButtonCallback)
-	glfw.SetMousePosCallback(mousePosCallback)
-	glfw.SetMouseWheelCallback(mouseWheelCallback)
+	initInput()
 
 	//load pipeline
 	pipeline, err := LoadPipeline()

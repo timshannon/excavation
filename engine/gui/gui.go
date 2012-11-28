@@ -59,7 +59,7 @@ func ActualPosition(result []float32, position *Postion, size *Size, relative in
 	}
 }
 
-func addOverlay(widget Widget) {
+func AddOverlay(widget Widget) {
 	ActualPosition(tempArray[:], widget.Position(), widget.Size(), widget.RelativeTo())
 	horde3d.ShowOverlays(tempArray[:], 4, widget.Color().R, widget.Color().G,
 		widget.Color().B, widget.Color().A, widget.Material(), 0)
@@ -89,11 +89,9 @@ type Widget interface {
 type Gui struct {
 	Widgets []Widget
 	//TODO: Hover, click, scroll, type
-
 }
 
 func LoadGui(gui *Gui) {
-	horde3d.ClearOverlays()
 	activeGui = gui
 }
 
@@ -106,7 +104,6 @@ func Update() {
 		horde3d.ClearOverlays()
 		for g := range activeGui.Widgets {
 			activeGui.Widgets[g].Update()
-			addOverlay(activeGui.Widgets[g])
 		}
 	}
 }
