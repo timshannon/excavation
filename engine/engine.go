@@ -24,6 +24,7 @@ var frames int
 var startTime float64
 var controlCfg *Config
 var standardCfg *Config
+var activeGui *gui.Gui
 
 func init() {
 	Root = new(Node)
@@ -48,6 +49,11 @@ func Init(name string) error {
 		return err
 	}
 
+	if !horde3d.Init() {
+		horde3d.DumpMessages()
+		return errors.New("Error starting Horde3D.  Check Horde3D_log.html for more information")
+	}
+
 	var mode int
 	if cfg.Bool("Fullscreen") {
 		mode = glfw.Fullscreen
@@ -65,11 +71,6 @@ func Init(name string) error {
 	glfw.SetSwapInterval(cfg.Int("VSync"))
 	glfw.SetWindowTitle(windowTitle)
 	glfw.Disable(glfw.MouseCursor)
-
-	if !horde3d.Init() {
-		horde3d.DumpMessages()
-		return errors.New("Error starting Horde3D.  Check Horde3D_log.html for more information")
-	}
 
 	//setup input handling
 	controls, err := NewControlCfg()
@@ -103,16 +104,13 @@ func Init(name string) error {
 func StartMainLoop() {
 	running = true
 
-	//TODO: fix missed onresize call
-	onResize(1024, 768)
-
 	startTime = Time()
 	for running {
 		frames++
 		joyUpdate()
 		runTasks()
+		updateGui()
 		updateAudio()
-		gui.Update()
 		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
 		glfw.SwapBuffers()
@@ -168,4 +166,19 @@ func Cfg() *Config {
 
 func ControlCfg() *Config {
 	return controlCfg
+}
+
+func LoadGui(gui *gui.Gui) {
+	HaltInput()
+	activeGui = gui
+}
+
+func UnloadGui() {
+	activeGui = nil
+	ResumeInput()
+}
+func updateGui() {
+	if activeGui != nil {
+		activeGui.Update()
+	}
 }
