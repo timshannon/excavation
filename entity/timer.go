@@ -17,7 +17,7 @@ type Timer struct {
 func (t *Timer) Add(node *engine.Node, args EntityArgs) {
 	t.node = node
 	t.triggers = make(map[float64]Entity)
-	triggerList := strings.Split(args.String("Triggers"), ",")
+	triggerList := strings.Split(args.String("triggers"), ",")
 
 	for i := 0; i < len(triggerList); i += 2 {
 		f, err := strconv.ParseFloat(triggerList[i+1], 64)

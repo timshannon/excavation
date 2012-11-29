@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	maxSpeed        = 75
-	acceleration    = 400
+	maxSpeed        = 35
+	acceleration    = 200
 	mouseMultiplier = 0.001 // makes for some saner numbers in the config file
 )
 
