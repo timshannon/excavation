@@ -164,6 +164,7 @@ func (a *Audio) Play() {
 			newSource := &audioSource{Source: openal.NewSource(),
 				audio: a}
 			newSource.setAudio(a)
+			a.source = newSource
 
 			sources = append(sources, newSource)
 
@@ -275,7 +276,8 @@ func updateAudio() {
 
 		if !sources[i].listenerRelative() {
 			if sources[i].audio.Occlude {
-				if sources[i].audio.node.IsVisible(MainCam, true, false) == -1 {
+
+				if sources[i].occluded() {
 					sources[i].SetRolloffFactor(audioRollOffOccluded)
 				} else {
 					sources[i].SetRolloffFactor(audioRollOffDefault)
@@ -293,6 +295,16 @@ func updateAudio() {
 
 	listener.updatePositionOrientation()
 
+}
+
+func (s *audioSource) occluded() bool {
+	//TODO: Fix occlusion test.  Not visible to camera, but 
+	// visible to ears.  A sound behind your head isn't automatically
+	// occluded because you can't see it 
+	//360 camera attached to listener?
+	//ray cast from source to listener
+	//return sources[i].audio.node.IsVisible(MainCam, true, false) == -1
+	return false
 }
 
 func (l *Listener) updatePositionOrientation() {
