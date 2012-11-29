@@ -11,12 +11,6 @@ import (
 	"github.com/jteeuwen/glfw"
 )
 
-const (
-	windowTitle = "Excavation"
-)
-
-//1 engine unit = 1 meter
-
 var Root *Node
 var MainCam *Camera
 var running bool
@@ -49,11 +43,6 @@ func Init(name string) error {
 		return err
 	}
 
-	if !horde3d.Init() {
-		horde3d.DumpMessages()
-		return errors.New("Error starting Horde3D.  Check Horde3D_log.html for more information")
-	}
-
 	var mode int
 	if cfg.Bool("Fullscreen") {
 		mode = glfw.Fullscreen
@@ -69,8 +58,13 @@ func Init(name string) error {
 	}
 
 	glfw.SetSwapInterval(cfg.Int("VSync"))
-	glfw.SetWindowTitle(windowTitle)
+	glfw.SetWindowTitle(name)
 	glfw.Disable(glfw.MouseCursor)
+
+	if !horde3d.Init() {
+		horde3d.DumpMessages()
+		return errors.New("Error starting Horde3D.  Check Horde3D_log.html for more information")
+	}
 
 	//setup input handling
 	controls, err := NewControlCfg()
@@ -104,6 +98,7 @@ func Init(name string) error {
 func StartMainLoop() {
 	running = true
 
+	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
 	startTime = Time()
 	for running {
 		frames++
