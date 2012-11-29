@@ -32,6 +32,10 @@ func (t *Timer) Add(node *engine.Node, args EntityArgs) {
 			engine.RaiseError(errors.New("Entity Name: " + triggerList[i] + " not found for timer."))
 		}
 	}
+
+	if args.Bool("autoStart") {
+		t.Trigger(1)
+	}
 }
 
 func (t *Timer) Trigger(value float32) {

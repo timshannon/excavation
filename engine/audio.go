@@ -189,8 +189,10 @@ func (a *Audio) Play() {
 			}
 			if freeSource != nil {
 				freeSource.setAudio(a)
+				a.source = freeSource
 			} else if lowest != nil {
 				lowest.setAudio(a)
+				a.source = lowest
 			} else {
 				//can't play audio
 				return
