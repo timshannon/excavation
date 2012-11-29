@@ -77,6 +77,7 @@ func Init(name string) error {
 
 	initInput()
 
+	gui.Init()
 	//load pipeline
 	pipeline, err := LoadPipeline()
 	if err != nil {
@@ -166,9 +167,11 @@ func ControlCfg() *Config {
 func LoadGui(gui *gui.Gui) {
 	HaltInput()
 	activeGui = gui
+	activeGui.Load()
 }
 
 func UnloadGui() {
+	activeGui.Unload()
 	activeGui = nil
 	ResumeInput()
 }

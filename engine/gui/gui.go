@@ -18,6 +18,30 @@ var screenHeight int
 var screenWidth int
 var tempArray [16]float32 //Rectangles only for now
 
+func Init() {
+	glfw.SetCharCallback(keyCollector)
+	glfw.SetMouseButtonCallback(click)
+}
+
+func keyCollector(key, state int) {
+	if state == glfw.KeyPress {
+		gKeyCollector(key)
+	}
+}
+
+func click(button, state int) {
+	if state == glfw.KeyPress {
+		getWidgetFromMouse().Click()
+	}
+}
+
+func getWidgetFromMouse() Widget {
+}
+
+type KeyCollector func(key int)
+
+var gKeyCollector KeyCollector
+
 //resolution independent
 // relativePos can be used to set position relative to a side of the screen
 
@@ -85,15 +109,34 @@ type Widget interface {
 	Size() *Size
 	Color() *Color
 	Material() horde3d.H3DRes
+	Hover()
+	Click()
 }
 
 type Gui struct {
-	Widgets []Widget
-	//TODO: Hover, click, scroll, type
+	Widgets    []Widget
+	UseMouse   bool
+	KeyCollect KeyCollector
 }
 
 func (g *Gui) AddWidget(widget Widget) {
 	g.Widgets = append(g.Widgets, widget)
+}
+
+func (g *Gui) Load() {
+	if g.UseMouse {
+		glfw.Enable(glfw.MouseCursor)
+	} else {
+		glfw.Disable(glfw.MouseCursor)
+	}
+	//set GLFW callbacks
+	gKeyCollector = g.KeyCollect
+
+}
+
+func (g *Gui) Unload() {
+	glfw.Disable(glfw.MouseCursor)
+	gKeyCollector = nil
 }
 
 func (g *Gui) Update() {
@@ -109,11 +152,10 @@ func UpdateScreenSize(w, h int) {
 	screenRatio = float32(w) / float32(h)
 }
 
-func MousePos() Position {
+func MousePos() *Position {
 	//Return position according to widget ratio positioning
 	//  0.0 - 1.0
 	x, y := glfw.MousePos()
-	//TODO:fIX
-	return Position{float32(x), float32(y), RelativeLeft}
 
+	return &Position{float32(x/screenWidth) * screenRatio, float32(y / screenHeight), RelativeAspect}
 }
