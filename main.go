@@ -14,6 +14,10 @@ import (
 	"strings"
 )
 
+const (
+	name = "excavation"
+)
+
 //cmd line options
 var (
 	sceneFlag string
@@ -31,7 +35,7 @@ func main() {
 	engine.SetDefaultConfigHandler(setCfgDefaults)
 	engine.SetErrorHandler(errHandler)
 
-	if err := engine.Init("excavation"); err != nil {
+	if err := engine.Init(name); err != nil {
 		panic("Error starting Excavation: " + err.Error())
 	}
 
@@ -47,6 +51,15 @@ func main() {
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
+}
+
+//ResetEngine Reloads all config from disk and reopens a new glfw window
+// used for after video settings are changed
+func ResetEngine() {
+	engine.ClearAll()
+	engine.StopMainLoop()
+	//TODO: Fix
+	main()
 }
 
 func errHandler(err error) {
