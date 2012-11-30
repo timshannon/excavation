@@ -31,12 +31,13 @@ func keyCollector(key, state int) {
 
 func click(button, state int) {
 	if state == glfw.KeyPress {
-		getWidgetFromMouse().Click()
+		//getWidgetFromMouse().Click()
 	}
 }
 
-func getWidgetFromMouse() Widget {
-}
+//func widgetFromPosition(position *Position) Widget {
+//return Widget{}
+//}
 
 type KeyCollector func(key int)
 
@@ -152,10 +153,21 @@ func UpdateScreenSize(w, h int) {
 	screenRatio = float32(w) / float32(h)
 }
 
-func MousePos() *Position {
+func MousePos(relative int) (x, y float32) {
 	//Return position according to widget ratio positioning
 	//  0.0 - 1.0
-	x, y := glfw.MousePos()
+	gX, gY := glfw.MousePos()
+	x = float32(gX)
+	y = float32(gY)
+	switch relative {
+	case RelativeLeft:
+		return (x / float32(screenWidth)), (y / float32(screenHeight))
+	case RelativeRight:
+		return (float32(screenWidth) - x) / float32(screenWidth),
+			(float32(screenHeight) - y) / float32(screenHeight)
+	case RelativeAspect:
+		return (x / float32(screenWidth)) * screenRatio, (y / float32(screenHeight))
+	}
+	return 0, 0
 
-	return &Position{float32(x/screenWidth) * screenRatio, float32(y / screenHeight), RelativeAspect}
 }
