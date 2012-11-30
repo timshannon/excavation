@@ -214,6 +214,11 @@ void exAttachment::setCellData() {
 	int row = m_widget->currentRow();
 	int column = m_widget->currentColumn();
 
+	//bln = Check Box
+	//txt = Multiline textbox
+	//fil = file dialog
+	//none = lineEdit
+
 	QWidget* widget = m_widget->cellWidget(row, column);
 	m_widget->currentItem()->setText(dynamic_cast<QLineEdit*>(widget)->text());
 	m_widget->removeCellWidget(row, column);
