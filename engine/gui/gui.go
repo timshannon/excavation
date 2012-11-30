@@ -106,14 +106,16 @@ type Widget interface {
 	Update()
 	Hover()
 	Click()
+	Scroll(int)
 }
 
 //Gui is a collection of Widgets
 type Gui struct {
-	Widgets    []Widget
-	UseMouse   bool
-	KeyCollect KeyCollector
-	prevTime   float64
+	Widgets      []Widget
+	UseMouse     bool
+	KeyCollect   KeyCollector
+	prevTime     float64
+	prevWheelPos int
 }
 
 func (g *Gui) ElapsedTime() float64 {
@@ -148,6 +150,10 @@ func (g *Gui) Update() {
 		widget.Hover()
 		if glfw.MouseButton(0) == glfw.KeyPress {
 			widget.Click()
+		}
+		delta := glfw.MouseWheel()
+		if delta != g.prevWheelPos {
+			widget.Scroll(g.prevWheelPos - delta)
 		}
 	}
 
