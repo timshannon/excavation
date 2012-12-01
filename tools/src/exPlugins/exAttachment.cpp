@@ -14,6 +14,7 @@
 #include <QString>
 #include <QStringList>
 #include <QLineEdit>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QXmlTree/QXmlTreeNode.h>
@@ -27,12 +28,17 @@
 #include <QtDebug>
 #include <horde3d/Horde3D.h>
 
+QStringList typesPrefix;
+QStringList typeProperties;
+
 exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 {
 	m_widget = new QTableWidget(1,2);
 	m_widget->setVisible(false);
 	QStringList headers;
 	headers<<"Name"<<"Value";
+
+	typesPrefix<<"bln_"<<"txt_"<<"fil_";
 	m_widget->setHorizontalHeaderLabels(headers);
 	connect(m_widget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(updateValue(int, int)));
 
@@ -74,8 +80,6 @@ QWidget* exAttachment::configurationWidget()
 void exAttachment::init(SceneFile* file, QPropertyEditorWidget* widget) 
 {
 	m_sceneFile = file;
-
-	
 }
 
 void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
@@ -100,7 +104,7 @@ void exAttachment::setCurrentNode(QXmlTreeNode* parentNode)
 	m_typeCombo->setCurrentIndex(index);
 	//update table widget values
 
-	for (int r = 1; r < m_widget->rowCount(); ++r)
+	for (int r = 1; r < m_widget->rowCount(); ++r) 
 		m_widget->item(r, 1)->setText(attNode.attribute(m_widget->item(r, 0)->text(), ""));
 }
 
@@ -130,7 +134,8 @@ void exAttachment::destroyNodeAttachment(QXmlTreeNode* sceneNode)
 void exAttachment::createNodeAttachment()
 {	
 	Q_ASSERT(m_currentNode != 0);	
-	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
+	QDomElement node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), 
+		QDomNode()).toElement();
 	node.setAttribute("type", "");
 	initNodeAttachment(m_currentNode);
 	setCurrentNode(m_currentNode);
@@ -153,9 +158,7 @@ QXmlTreeModel* exAttachment::initExtras( const QDomElement &extraNode, QObject* 
 	return NULL;
 }
 
-void exAttachment::sceneFileConfig()
-{
-}
+void exAttachment::sceneFileConfig() {}
 void exAttachment::registerLuaFunctions(lua_State* lua) {}
 QFileInfoList exAttachment::findReferences(const QDomElement &node) const {}
 
@@ -176,24 +179,30 @@ void exAttachment::changeType(int index)
 
 	if (node.attribute("type") != m_typeCombo->currentText()) {
 		m_currentNode->xmlNode().removeChild(node);	
-		node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), QDomNode()).toElement();
+		node = m_currentNode->xmlNode().insertBefore(QDomDocument().createElement("Attachment"), 
+			QDomNode()).toElement();
 
 		node.setAttribute("type", m_typeCombo->currentText());
 
 	}	
 	
 	//Parse string into tablewidgets
-	QStringList properties = m_typeCombo->itemData(index).toStringList();
+	typeProperties = m_typeCombo->itemData(index).toStringList();
 
-	m_widget->setRowCount(properties.size());
-	for (int r = 1; r < properties.size(); ++r)
-	{
-		m_widget->setItem(r, 0, new QTableWidgetItem(properties[r], 0));
+	m_widget->setRowCount(typeProperties.size());
+	for (int r = 1; r < typeProperties.size(); ++r) {
+		if (typesPrefix.contains(typeProperties[r].mid(0, 4))) {
+			m_widget->setItem(r, 0, new QTableWidgetItem(typeProperties[r].mid(4), 0));
+		} else {
+			m_widget->setItem(r, 0, new QTableWidgetItem(typeProperties[r], 0));
+		}
 		m_widget->setItem(r, 1, new QTableWidgetItem(""));
 		m_widget->item(r,0)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled );
 	}
 	
 }
+
+
 void exAttachment::updateValue(int row, int column)
 {
 	if (column != 1) return;
@@ -202,12 +211,25 @@ void exAttachment::updateValue(int row, int column)
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	if (node.isNull()) return;
 
-	QLineEdit* lineEdit = new QLineEdit();
+	QString prefix = typeProperties[row].mid(0, 4);
+
+	if (prefix  == "bln_") {
+		QCheckBox* checkBox = new QCheckBox();
+		//TODO: Fix
+		checkBox->setText(m_widget->currentItem()->text());
+		
+		connect(checkBox, SIGNAL(editingFinished()), this, SLOT(setCellData()));
+		m_widget->setCellWidget(row, column, checkBox);
+
+
+	} else {
+		QLineEdit* lineEdit = new QLineEdit();
+		lineEdit->setText(m_widget->currentItem()->text());
+		
+		connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setCellData()));
+		m_widget->setCellWidget(row, column, lineEdit);
+	}
 	
-	lineEdit->setText(m_widget->currentItem()->text());
-	
-	connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setCellData()));
-	m_widget->setCellWidget(row, column, lineEdit);
 }
 
 void exAttachment::setCellData() {

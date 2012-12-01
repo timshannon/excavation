@@ -103,7 +103,6 @@ private slots:
 	void updateValue(int , int );
 	void changeType(int);
 	void setCellData();
-
 protected:
 	SceneFile*	m_sceneFile;
 	
@@ -112,6 +111,7 @@ protected:
 	QTableWidget*	m_widget;
 
 	QXmlTreeNode*	m_currentNode;
+	
 
 };
 #endif
