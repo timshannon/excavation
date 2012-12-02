@@ -95,14 +95,13 @@ public:
 	 * @return QFileInfoList all files referenced in the given node
 	 */
 	QFileInfoList findReferences(const QDomElement& node) const;
-
 signals:
 	void modified(bool);
 	
 private slots:
 	void updateValue(int , int );
 	void changeType(int);
-	void setCellData();
+	void setCellData(int,int,int,int);
 protected:
 	SceneFile*	m_sceneFile;
 	

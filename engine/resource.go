@@ -86,6 +86,10 @@ func (res *Resource) Load() error {
 }
 
 func loadEngineData(resourcePath string) ([]byte, error) {
+	if !path.IsAbs(resourcePath) {
+		resourcePath = path.Join(dataDir, resourcePath)
+	}
+
 	data, err := ioutil.ReadFile(resourcePath)
 
 	if os.IsNotExist(err) {

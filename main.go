@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/jteeuwen/glfw"
-	"os"
 	"strings"
 )
 
@@ -128,14 +127,11 @@ func loadScene(scene string) {
 		panic(err)
 	}
 
-	if _, err := os.Stat(sceneRes.FullPath()); err != nil {
-		if os.IsNotExist(err) {
-			//TODO: Load Main Menu instead
-			panic("Scene file " + scene + " doesn't exist")
-
-		}
-	}
 	err = sceneRes.Load()
+	if err != nil {
+		//TODO: Load Main Menu instead
+		panic("Scene file " + scene + " doesn't exist")
+	}
 
 	err = engine.LoadAllResources()
 	sceneNode, err := engine.AddNodes(engine.Root, sceneRes)
