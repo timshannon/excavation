@@ -15,6 +15,7 @@
 #include <QStringList>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QFileDialog>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QXmlTree/QXmlTreeNode.h>
@@ -41,6 +42,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	typesPrefix<<"bln_"<<"txt_"<<"fil_";
 	m_widget->setHorizontalHeaderLabels(headers);
 	connect(m_widget, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(updateValue(int, int)));
+	connect(m_widget, SIGNAL(currentCellChanged(int,int,int,int)), this, SLOT(setCellData(int,int,int,int)));
 
 	m_typeCombo = new QComboBox();
 	connect(m_typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeType(int)));
@@ -65,6 +67,7 @@ exAttachment::exAttachment(QObject* parent /*= 0*/) : AttachmentPlugIn(parent)
 	}
 	
 	m_widget->setCellWidget(0, 1,m_typeCombo);
+	m_widget->setEnabled(false);
 }
 
 exAttachment::~exAttachment() 
@@ -210,43 +213,75 @@ void exAttachment::updateValue(int row, int column)
 
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
 	if (node.isNull()) return;
+	
+	//bln = Check Box
+	//fil = file dialog
+	//none = lineEdit
 
 	QString prefix = typeProperties[row].mid(0, 4);
 
 	if (prefix  == "bln_") {
 		QCheckBox* checkBox = new QCheckBox();
-		//TODO: Fix
-		checkBox->setText(m_widget->currentItem()->text());
-		
-		connect(checkBox, SIGNAL(editingFinished()), this, SLOT(setCellData()));
+		if (m_widget->currentItem()->text() == "1" ||
+			m_widget->currentItem()->text() == "true") {
+			checkBox->setCheckState(Qt::Checked);
+		} else {
+			checkBox->setCheckState(Qt::Unchecked);
+		}
+		m_widget->currentItem()->setText("");
 		m_widget->setCellWidget(row, column, checkBox);
-
+	} else if (prefix == "fil_") {
+		QString fileName = QFileDialog::getOpenFileName(m_widget,
+		     tr("Open File"), m_widget->currentItem()->text(), tr(""));
+		QLineEdit* lineEdit = new QLineEdit();
+		if (fileName != 0) {
+			lineEdit->setText(fileName);
+		} else {
+			lineEdit->setText(m_widget->currentItem()->text());
+		}
+		
+		m_widget->setCellWidget(row, column, lineEdit);
 
 	} else {
 		QLineEdit* lineEdit = new QLineEdit();
 		lineEdit->setText(m_widget->currentItem()->text());
 		
-		connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(setCellData()));
 		m_widget->setCellWidget(row, column, lineEdit);
 	}
 	
 }
 
-void exAttachment::setCellData() {
-	int row = m_widget->currentRow();
-	int column = m_widget->currentColumn();
+
+void exAttachment::setCellData(int currentRow, int currentColumn, int previousRow, int previousColumn) {
+	//int row = m_widget->currentRow();
+	//int column = m_widget->currentColumn();
 
 	//bln = Check Box
-	//txt = Multiline textbox
 	//fil = file dialog
 	//none = lineEdit
+	
+	if (previousColumn == 0) { return;}
+	if (previousRow == 0) { return; }
+	if (currentRow == previousRow) { return; }
 
-	QWidget* widget = m_widget->cellWidget(row, column);
-	m_widget->currentItem()->setText(dynamic_cast<QLineEdit*>(widget)->text());
-	m_widget->removeCellWidget(row, column);
+	QWidget* widget = m_widget->cellWidget(previousRow, previousColumn);
+	if (widget == 0) {return;}
 
+	QString prefix = typeProperties[previousRow].mid(0, 4);
+
+	if (prefix  == "bln_") {
+		if (dynamic_cast<QCheckBox*>(widget)->checkState() == Qt::Checked) {
+			m_widget->item(previousRow, previousColumn)->setText("true");
+		} else {
+			m_widget->item(previousRow, previousColumn)->setText("false");
+		}
+	} else {
+		m_widget->item(previousRow, previousColumn)->setText(dynamic_cast<QLineEdit*>(widget)->text());
+	}
+
+	m_widget->removeCellWidget(previousRow, previousColumn);
 	QDomElement node = m_currentNode->xmlNode().firstChildElement("Attachment");
-	node.setAttribute(m_widget->item(row, 0)->text(), m_widget->item(row, 1)->text());
+	node.setAttribute(m_widget->item(previousRow, 0)->text(), m_widget->item(previousRow, 1)->text());
 	
 	emit modified(true);
 }

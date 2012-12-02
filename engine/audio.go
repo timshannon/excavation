@@ -3,7 +3,6 @@ package engine
 import (
 	"github.com/timshannon/go-openal/openal"
 	vmath "github.com/timshannon/vectormath"
-	"path"
 )
 
 const (
@@ -143,7 +142,7 @@ func AddAudioNode(node *Node, audioFile string, minDistance,
 }
 
 func (a *Audio) Load() error {
-	data, err := loadEngineData(path.Join(path.Join(dataDir, "sounds"), a.file))
+	data, err := loadEngineData(a.file)
 
 	if err != nil {
 		RaiseError(err)
