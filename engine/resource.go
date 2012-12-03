@@ -93,13 +93,15 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 	data, err := ioutil.ReadFile(resourcePath)
 
 	if os.IsNotExist(err) {
-		err = nil
-		//TODO: load from tar.gz data file
+		//err = nil
+		//TODO: load from tar or tar.gz data file
 		//remove respath root
 		// Open data file on first request
 		// close datafile on clear all
 		// or stream buffered data
 		// package datafile
+		RaiseError(err)
+		return nil, err
 	}
 
 	if err != nil {

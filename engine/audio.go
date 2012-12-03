@@ -299,12 +299,9 @@ func updateAudio() {
 }
 
 func (s *audioSource) occluded() bool {
-	//TODO: Fix occlusion test.  Not visible to camera, but 
-	// visible to ears.  A sound behind your head isn't automatically
+	//TODO: Fix occlusion test.  
 	// occluded because you can't see it 
-	//360 camera attached to listener?
 	//ray cast from source to listener
-	//return sources[i].audio.node.IsVisible(MainCam, true, false) == -1
 	return false
 }
 
