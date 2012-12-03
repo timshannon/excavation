@@ -153,6 +153,7 @@ func (g *Gui) Update() {
 		}
 		delta := glfw.MouseWheel()
 		if delta != g.prevWheelPos {
+			//TODO: Test delta
 			widget.Scroll(g.prevWheelPos - delta)
 		}
 	}
