@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	maxSpeed        = 35
-	acceleration    = 200
+	maxSpeed        = 20
+	acceleration    = 100
 	mouseMultiplier = 0.001 // makes for some saner numbers in the config file
 )
 
@@ -39,6 +39,7 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 
 	//TODO: Only activate camera if set to active in arg
 	engine.MainCam = &engine.Camera{p.node}
+	engine.MainCam.SetOcclusionCulling(true)
 
 	p.translate = new(vmath.Vector3)
 	p.rotate = new(vmath.Vector3)
