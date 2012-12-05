@@ -2,7 +2,6 @@ package entity
 
 import (
 	"excavation/engine"
-	"github.com/timshannon/go-openal/openal"
 )
 
 type Audio struct {
@@ -26,7 +25,7 @@ func (a *Audio) Add(node *engine.Node, args EntityArgs) {
 
 func (a *Audio) Trigger(value float32) {
 	if value > 0 {
-		if a.State() == openal.Stopped {
+		if a.State() == engine.AudioStopped {
 			a.Play()
 		} else {
 			a.SetGain(value)

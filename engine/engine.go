@@ -7,7 +7,6 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	"excavation/engine/gui"
 	"github.com/jteeuwen/glfw"
 )
 
@@ -18,7 +17,7 @@ var frames int
 var startTime float64
 var controlCfg *Config
 var standardCfg *Config
-var activeGui *gui.Gui
+var activeGui *Gui
 
 func init() {
 	Root = new(Node)
@@ -77,7 +76,7 @@ func Init(name string) error {
 
 	initInput()
 
-	gui.Init()
+	initGui()
 	//load pipeline
 	pipeline, err := LoadPipeline()
 	if err != nil {
@@ -140,7 +139,7 @@ func onResize(w, h int) {
 	//TODO: Set clip distance? Config?
 	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
 	MainCam.Pipeline().ResizeBuffers(w, h)
-	gui.UpdateScreenSize(w, h)
+	updateScreenSize(w, h)
 
 }
 
@@ -164,7 +163,7 @@ func ControlCfg() *Config {
 	return controlCfg
 }
 
-func LoadGui(gui *gui.Gui) {
+func LoadGui(gui *Gui) {
 	HaltInput()
 	activeGui = gui
 	activeGui.Load()

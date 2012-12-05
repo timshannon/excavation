@@ -1,4 +1,4 @@
-package gui
+package engine
 
 import (
 	"code.google.com/p/gohorde/horde3d"
@@ -18,7 +18,7 @@ var screenHeight int
 var screenWidth int
 var tempArray [16]float32 //Rectangles only for now
 
-func Init() {
+func initGui() {
 	glfw.SetCharCallback(keyCollector)
 }
 
@@ -91,13 +91,13 @@ type Color struct {
 type Overlay struct {
 	Dimensions *Dimensions
 	Color      *Color
-	Material   horde3d.H3DRes
+	Material   *Material
 }
 
 func (o *Overlay) Place() {
 	o.Dimensions.ActualPosition(tempArray[:])
 	horde3d.ShowOverlays(tempArray[:], 4, o.Color.R, o.Color.G,
-		o.Color.B, o.Color.A, o.Material, 0)
+		o.Color.B, o.Color.A, o.Material.H3DRes, 0)
 }
 
 //Widget is a collection of Overlays
@@ -171,7 +171,7 @@ func (g *Gui) WidgetUnderMouse() (Widget, bool) {
 	// widget that the mouse hits
 	for i := len(g.Widgets) - 1; i >= 0; i-- {
 		dimensions = g.Widgets[i].MouseArea()
-		x, y = MousePos(dimensions.RelativeTo)
+		x, y = GuiMousePos(dimensions.RelativeTo)
 		if x >= dimensions.X && x <= dimensions.X+dimensions.Width &&
 			y >= dimensions.Y && y <= dimensions.Y+dimensions.Height {
 			return g.Widgets[i], true
@@ -182,13 +182,13 @@ func (g *Gui) WidgetUnderMouse() (Widget, bool) {
 	return nil, false
 }
 
-func UpdateScreenSize(w, h int) {
+func updateScreenSize(w, h int) {
 	screenHeight = h
 	screenWidth = w
 	screenRatio = float32(w) / float32(h)
 }
 
-func MousePos(relative int) (x, y float32) {
+func GuiMousePos(relative int) (x, y float32) {
 	//Return position according to widget ratio positioning
 	//  0.0 - 1.0
 	gX, gY := glfw.MousePos()
