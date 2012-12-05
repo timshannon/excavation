@@ -11,6 +11,12 @@ const (
 	audioRollOffOccluded = 4
 )
 
+const (
+	AudioPlaying = openal.Playing
+	AudioPaused  = openal.Paused
+	AudioStopped = openal.Stopped
+)
+
 // All audio files must be Mono wav files at 44100 Hz
 const AudioFrequency = 44100
 
