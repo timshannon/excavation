@@ -17,7 +17,6 @@ var frames int
 var startTime float64
 var controlCfg *Config
 var standardCfg *Config
-var activeGui *Gui
 
 func init() {
 	Root = new(Node)
@@ -161,21 +160,4 @@ func Cfg() *Config {
 
 func ControlCfg() *Config {
 	return controlCfg
-}
-
-func LoadGui(gui *Gui) {
-	HaltInput()
-	activeGui = gui
-	activeGui.Load()
-}
-
-func UnloadGui() {
-	activeGui.Unload()
-	activeGui = nil
-	ResumeInput()
-}
-func updateGui() {
-	if activeGui != nil {
-		activeGui.Update()
-	}
 }

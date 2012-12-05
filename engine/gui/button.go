@@ -4,21 +4,41 @@ import (
 	"excavation/engine"
 )
 
+const (
+	defaultBackground = "textures/gui/defaultBackground.material.xml"
+)
+
 type Button struct {
-	Dimensions     *engine.Dimensions
-	Background     *engine.Material
-	Color          *engine.Color
-	HoverColor     *engine.Color
-	ShowBackground bool
+	BackgroundOverlay      *engine.Overlay
+	BackgroundHoverOverlay *engine.Overlay
+	BackgroundClickOverlay *engine.Overlay
+	ShowBackground         bool
 	//text
 	Text           string
+	TextSize       float32
+	FontMaterial   *engine.Material
 	TextColor      *engine.Color
 	TextHoverColor *engine.Color
+	TextClickColor *engine.Color
 	hover          bool
 }
 
-//func AddButton(dimensions *Dimensions, background *horde3d.H3DRes, color *Color, hoverColor *Color,
-//text string, textColor *Color, textHoverColor *Color) *Button {
-//return
+//MakeButton returns a button with the default background and colors
+//  changes from default can be made by accessing exported variables
+func MakeButton(text string, textSize float32, dimensions *engine.Dimensions) *Button {
 
-//}
+	return
+
+}
+
+func (b *Button) MouseArea() *engine.Dimension {
+	return b.Dimensions
+}
+
+func (b *Button) Hover() {
+	b.hover = true
+}
+
+//Update()
+//Click()
+//Scroll(int)

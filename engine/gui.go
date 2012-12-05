@@ -8,20 +8,37 @@ import (
 //Used for both menus and HUDs
 
 const (
-	RelativeAspect = iota
-	RelativeLeft
-	RelativeRight
+	ScreenRelativeAspect = iota
+	ScreenRelativeLeft
+	ScreenRelativeRight
 )
 
 var screenRatio float32
 var screenHeight int
 var screenWidth int
 var tempArray [16]float32 //Rectangles only for now
+var activeGui *Gui
 
 func initGui() {
 	glfw.SetCharCallback(keyCollector)
 }
 
+func LoadGui(gui *Gui) {
+	HaltInput()
+	activeGui = gui
+	activeGui.Load()
+}
+
+func UnloadGui() {
+	activeGui.Unload()
+	activeGui = nil
+	ResumeInput()
+}
+func updateGui() {
+	if activeGui != nil {
+		activeGui.Update()
+	}
+}
 func keyCollector(key, state int) {
 	if state == glfw.KeyPress {
 		if gKeyCollector != nil {
@@ -37,51 +54,56 @@ var gKeyCollector KeyCollector
 //resolution independent
 // relativePos can be used to set position relative to a side of the screen
 
-//ActualPosition returns the actual position on the screen from the interpreted
+//toVertex returns the actual position on the screen from the interpreted
 // relative position
 //TODO: Test for stretching between different screen ratios
 // width should be constant, and not change between ratio changes
 // everything else should be relative to screen size
-func (d *Dimensions) ActualPosition(result []float32) {
+func (s *ScreenArea) toVertex(result []float32) {
 	//Y is not relative to aspect
 	//vert1 
-	result[1] = d.Y
+	result[1] = s.Position.Y
 	result[2] = 0
 	result[3] = 1
 	//vert2 
-	result[5] = d.Y
+	result[5] = s.Position.Y
 	result[6] = 0
 	result[7] = 0
 	//vert3 
-	result[9] = (d.Y + d.Height)
+	result[9] = (s.Position.Y + s.Height)
 	result[10] = 1
 	result[11] = 0
 	//vert4 
-	result[13] = (d.Y + d.Height)
+	result[13] = (s.Position.Y + s.Height)
 	result[14] = 1
 	result[15] = 1
-	switch d.RelativeTo {
-	case RelativeAspect:
-		result[0] = d.X
-		result[4] = (d.X + d.Width)
-		result[8] = d.X
-		result[12] = (d.X + d.Width)
-	case RelativeLeft:
-		result[0] = d.X * screenRatio
-		result[4] = (d.X * screenRatio) + d.Width
-		result[8] = d.X * screenRatio
-		result[12] = (d.X * screenRatio) + d.Width
-	case RelativeRight:
-		result[0] = (d.X * screenRatio) + d.Width
-		result[4] = d.X * screenRatio
-		result[8] = (d.X * screenRatio) + d.Width
-		result[12] = d.X * screenRatio
+	switch s.Position.RelativeTo {
+	case ScreenRelativeAspect:
+		result[0] = s.Position.X
+		result[4] = (s.Position.X + s.Width)
+		result[8] = s.Position.X
+		result[12] = (s.Position.X + s.Width)
+	case ScreenRelativeLeft:
+		result[0] = s.Position.X * screenRatio
+		result[4] = (s.Position.X * screenRatio) + s.Width
+		result[8] = s.Position.X * screenRatio
+		result[12] = (s.Position.X * screenRatio) + s.Width
+	case ScreenRelativeRight:
+		result[0] = (s.Position.X * screenRatio) + s.Width
+		result[4] = s.Position.X * screenRatio
+		result[8] = (s.Position.X * screenRatio) + s.Width
+		result[12] = s.Position.X * screenRatio
 	}
 }
 
-type Dimensions struct {
-	X, Y, Height, Width float32
-	RelativeTo          int
+type ScreenPosition struct {
+	X, Y       float32
+	RelativeTo int
+}
+
+type ScreenArea struct {
+	Position      *ScreenPosition
+	Height, Width float32
 }
 
 type Color struct {
@@ -89,20 +111,32 @@ type Color struct {
 }
 
 type Overlay struct {
-	Dimensions *Dimensions
+	Dimensions *ScreenArea
 	Color      *Color
 	Material   *Material
 }
 
+type Text struct {
+	Text         string
+	Position     *ScreenPosition
+	Size         float32
+	FontMaterial *Material
+	Color        *Color
+}
+
 func (o *Overlay) Place() {
-	o.Dimensions.ActualPosition(tempArray[:])
+	o.Dimensions.toVertex(tempArray[:])
 	horde3d.ShowOverlays(tempArray[:], 4, o.Color.R, o.Color.G,
 		o.Color.B, o.Color.A, o.Material.H3DRes, 0)
 }
 
+func (t *Text) Place() {
+
+}
+
 //Widget is a collection of Overlays
 type Widget interface {
-	MouseArea() *Dimensions
+	MouseArea() *ScreenArea
 	Update()
 	Hover()
 	Click()
@@ -166,14 +200,14 @@ func (g *Gui) Update() {
 
 func (g *Gui) WidgetUnderMouse() (Widget, bool) {
 	var x, y float32
-	var dimensions *Dimensions
+	var dimensions *ScreenArea
 	//Loop through list backwards to check for topmost
 	// widget that the mouse hits
 	for i := len(g.Widgets) - 1; i >= 0; i-- {
 		dimensions = g.Widgets[i].MouseArea()
-		x, y = GuiMousePos(dimensions.RelativeTo)
-		if x >= dimensions.X && x <= dimensions.X+dimensions.Width &&
-			y >= dimensions.Y && y <= dimensions.Y+dimensions.Height {
+		x, y = GuiMousePos(dimensions.Position.RelativeTo)
+		if x >= dimensions.Position.X && x <= dimensions.Position.X+dimensions.Width &&
+			y >= dimensions.Position.Y && y <= dimensions.Position.Y+dimensions.Height {
 			return g.Widgets[i], true
 
 		}
@@ -195,12 +229,12 @@ func GuiMousePos(relative int) (x, y float32) {
 	x = float32(gX)
 	y = float32(gY)
 	switch relative {
-	case RelativeLeft:
+	case ScreenRelativeLeft:
 		return (x / float32(screenWidth)), (y / float32(screenHeight))
-	case RelativeRight:
+	case ScreenRelativeRight:
 		return (float32(screenWidth) - x) / float32(screenWidth),
 			(float32(screenHeight) - y) / float32(screenHeight)
-	case RelativeAspect:
+	case ScreenRelativeAspect:
 		return (x / float32(screenWidth)) * screenRatio, (y / float32(screenHeight))
 	}
 	return -1, -1
