@@ -42,6 +42,7 @@ func main() {
 		loadScene(sceneFlag)
 	} else {
 		//TODO: Load Main Menu
+		loadMainMenu()
 	}
 
 	//todo: temp for testing frame independence

@@ -106,6 +106,10 @@ type ScreenArea struct {
 	Height, Width float32
 }
 
+func NewScreenArea(x, y, height, width float32, relativeTo int) *ScreenArea {
+	return &ScreenArea{&ScreenPosition{x, y, relativeTo}, height, width}
+}
+
 type Color struct {
 	R, G, B, A float32
 }
