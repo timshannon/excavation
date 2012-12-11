@@ -116,12 +116,26 @@ type Overlay struct {
 	Material   *Material
 }
 
+func NewOverlay(materialLocation string, color *Color, dimensions *ScreenArea) *Overlay {
+	material, _ := NewMaterial(materialLocation)
+	material.Load()
+	return &Overlay{dimensions, color, material}
+}
+
 type Text struct {
 	Text         string
 	Position     *ScreenPosition
 	Size         float32
 	FontMaterial *Material
 	Color        *Color
+}
+
+func NewText(text string, size float32, materialLocation string,
+	color *Color, position *ScreenPosition) *Text {
+	material, _ := NewMaterial(materialLocation)
+	material.Load()
+
+	return &Text{text, position, size, material, color}
 }
 
 func (o *Overlay) Place() {
@@ -131,7 +145,17 @@ func (o *Overlay) Place() {
 }
 
 func (t *Text) Place() {
-
+	//TODO: Test how text places
+	var newX float32
+	switch t.Position.RelativeTo {
+	case ScreenRelativeAspect:
+		newX = t.Position.X
+	case ScreenRelativeLeft:
+		newX = t.Position.X * screenRatio
+	case ScreenRelativeRight:
+		newX = screenRatio - (t.Position.X * screenRatio)
+	}
+	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R, t.Color.G, t.Color.B, t.FontMaterial.H3DRes)
 }
 
 //Widget is a collection of Overlays
@@ -180,15 +204,17 @@ func (g *Gui) Unload() {
 func (g *Gui) Update() {
 	horde3d.ClearOverlays()
 
-	if widget, ok := g.WidgetUnderMouse(); ok {
-		widget.Hover()
-		if glfw.MouseButton(0) == glfw.KeyPress {
-			widget.Click()
-		}
-		delta := glfw.MouseWheel()
-		if delta != g.prevWheelPos {
-			//TODO: Test delta
-			widget.Scroll(g.prevWheelPos - delta)
+	if g.UseMouse {
+		if widget, ok := g.WidgetUnderMouse(); ok {
+			widget.Hover()
+			if glfw.MouseButton(0) == glfw.KeyPress {
+				widget.Click()
+			}
+			delta := glfw.MouseWheel()
+			if delta != g.prevWheelPos {
+				//TODO: Test delta
+				widget.Scroll(g.prevWheelPos - delta)
+			}
 		}
 	}
 

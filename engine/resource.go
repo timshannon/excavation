@@ -176,6 +176,18 @@ func NewAnimation(name string) (*Animation, error) {
 
 type Material struct{ *Resource }
 
+func NewMaterial(name string) (*Material, error) {
+	material := &Material{&Resource{horde3d.AddResource(horde3d.ResTypes_Material,
+		name, 0)}}
+	if material.H3DRes == 0 {
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		RaiseError(err)
+		return nil, err
+	}
+
+	return material, nil
+}
+
 func (m *Material) SetUniform(name string, a, b, c, d float32) bool {
 	return horde3d.SetMaterialUniform(m.H3DRes, name, a, b, c, d)
 }
