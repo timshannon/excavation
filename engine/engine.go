@@ -125,7 +125,10 @@ func StopMainLoop() {
 }
 
 func Fps() float64 {
-	return float64(frames) / (Time() - startTime)
+	fps := float64(frames) / (Time() - startTime)
+	frames = 0
+	startTime = Time()
+	return fps
 }
 
 func onResize(w, h int) {
