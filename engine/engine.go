@@ -103,10 +103,12 @@ func StartMainLoop() {
 		frames++
 		joyUpdate()
 		runTasks()
+
 		updateGui()
 		updateAudio()
 		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
+		horde3d.ClearOverlays()
 		glfw.SwapBuffers()
 
 		//TODO: handle with input and tasks
