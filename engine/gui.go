@@ -13,6 +13,8 @@ const (
 	ScreenRelativeRight
 )
 
+const overlayShader = "shaders/overlay.shader"
+
 var screenRatio float32
 var screenHeight int
 var screenWidth int
@@ -24,6 +26,8 @@ func initGui() {
 }
 
 func LoadGui(gui *Gui) {
+	shaderRes := &Resource{horde3d.AddResource(ResTypeShader, overlayShader, 0)}
+	shaderRes.Load()
 	HaltInput()
 	activeGui = gui
 	activeGui.Load()
@@ -39,6 +43,7 @@ func updateGui() {
 		activeGui.Update()
 	}
 }
+
 func keyCollector(key, state int) {
 	if state == glfw.KeyPress {
 		if gKeyCollector != nil {
@@ -159,7 +164,8 @@ func (t *Text) Place() {
 	case ScreenRelativeRight:
 		newX = screenRatio - (t.Position.X * screenRatio)
 	}
-	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R, t.Color.G, t.Color.B, t.FontMaterial.H3DRes)
+	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R,
+		t.Color.G, t.Color.B, t.FontMaterial.H3DRes)
 }
 
 //Widget is a collection of Overlays
