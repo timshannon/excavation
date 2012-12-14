@@ -117,6 +117,7 @@ func StartMainLoop() {
 
 	}
 
+	horde3d.DumpMessages()
 	horde3d.Release()
 	glfw.Terminate()
 	glfw.CloseWindow()

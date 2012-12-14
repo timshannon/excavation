@@ -25,7 +25,7 @@ type Button struct {
 //MakeButton returns a button with the default background and colors
 //  changes from default can be made by accessing exported variables
 func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenArea) *Button {
-	defaultColor := &engine.Color{118, 118, 118, 1}
+	defaultColor := &engine.Color{118, 118, 118, 255}
 	hoverColor := &engine.Color{155, 155, 155, 50}
 	textColor := &engine.Color{255, 255, 255, 255}
 	//TODO: Determine text position
@@ -62,11 +62,19 @@ func (b *Button) Hover() {
 
 func (b *Button) Update() {
 	if b.hover {
-		b.BackgroundHoverOverlay.Place()
-		b.TextHover.Place()
+		if b.ShowBackground {
+			b.BackgroundHoverOverlay.Place()
+		}
+		if b.TextHover.Text != "" {
+			b.TextHover.Place()
+		}
 	} else {
-		b.BackgroundOverlay.Place()
-		b.Text.Place()
+		if b.ShowBackground {
+			b.BackgroundOverlay.Place()
+		}
+		if b.Text.Text != "" {
+			b.Text.Place()
+		}
 	}
 }
 
