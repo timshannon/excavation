@@ -71,7 +71,7 @@ func (s *ScreenArea) toVertex(result []float32) {
 	result[2] = 0
 	result[3] = 1
 	//vert2 
-	result[5] = s.Position.Y
+	result[5] = (s.Position.Y + s.Height)
 	result[6] = 0
 	result[7] = 0
 	//vert3 
@@ -79,24 +79,24 @@ func (s *ScreenArea) toVertex(result []float32) {
 	result[10] = 1
 	result[11] = 0
 	//vert4 
-	result[13] = (s.Position.Y + s.Height)
+	result[13] = s.Position.Y
 	result[14] = 1
 	result[15] = 1
 	switch s.Position.RelativeTo {
 	case ScreenRelativeAspect:
 		result[0] = s.Position.X
-		result[4] = (s.Position.X + s.Width)
-		result[8] = s.Position.X
+		result[4] = s.Position.X
+		result[8] = (s.Position.X + s.Width)
 		result[12] = (s.Position.X + s.Width)
 	case ScreenRelativeLeft:
 		result[0] = s.Position.X * screenRatio
-		result[4] = (s.Position.X * screenRatio) + s.Width
-		result[8] = s.Position.X * screenRatio
+		result[4] = s.Position.X * screenRatio
+		result[8] = (s.Position.X * screenRatio) + s.Width
 		result[12] = (s.Position.X * screenRatio) + s.Width
 	case ScreenRelativeRight:
 		result[0] = (s.Position.X * screenRatio) + s.Width
-		result[4] = s.Position.X * screenRatio
-		result[8] = (s.Position.X * screenRatio) + s.Width
+		result[4] = (s.Position.X * screenRatio) + s.Width
+		result[8] = s.Position.X * screenRatio
 		result[12] = s.Position.X * screenRatio
 	}
 }
