@@ -115,8 +115,30 @@ func NewScreenArea(x, y, height, width float32, relativeTo int) *ScreenArea {
 	return &ScreenArea{&ScreenPosition{x, y, relativeTo}, height, width}
 }
 
+//255 based color
+// translates to horde float based color
 type Color struct {
-	R, G, B, A float32
+	r, g, b, a int
+}
+
+func NewColor(r, g, b, a int) *Color {
+	return &Color{r, g, b, a}
+}
+
+func (c *Color) R() float32 {
+	return c.toHordeColor(c.r)
+}
+func (c *Color) G() float32 {
+	return c.toHordeColor(c.r)
+}
+func (c *Color) B() float32 {
+	return c.toHordeColor(c.r)
+}
+func (c *Color) A() float32 {
+	return c.toHordeColor(c.r)
+}
+func (c *Color) toHordeColor(color int) float32 {
+	return float32(color) / 255.0
 }
 
 type Overlay struct {
@@ -149,8 +171,8 @@ func NewText(text string, size float32, materialLocation string,
 
 func (o *Overlay) Place() {
 	o.Dimensions.toVertex(tempArray[:])
-	horde3d.ShowOverlays(tempArray[:], 4, o.Color.R, o.Color.G,
-		o.Color.B, o.Color.A, o.Material.H3DRes, 0)
+	horde3d.ShowOverlays(tempArray[:], 4, o.Color.R(), o.Color.G(),
+		o.Color.B(), o.Color.A(), o.Material.H3DRes, 0)
 }
 
 func (t *Text) Place() {
@@ -164,8 +186,8 @@ func (t *Text) Place() {
 	case ScreenRelativeRight:
 		newX = screenRatio - (t.Position.X * screenRatio)
 	}
-	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R,
-		t.Color.G, t.Color.B, t.FontMaterial.H3DRes)
+	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R(),
+		t.Color.G(), t.Color.B(), t.FontMaterial.H3DRes)
 }
 
 //Widget is a collection of Overlays
