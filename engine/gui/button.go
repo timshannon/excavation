@@ -25,9 +25,9 @@ type Button struct {
 //MakeButton returns a button with the default background and colors
 //  changes from default can be made by accessing exported variables
 func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenArea) *Button {
-	defaultColor := &engine.Color{118, 118, 118, 255}
-	hoverColor := &engine.Color{155, 155, 155, 50}
-	textColor := &engine.Color{255, 255, 255, 255}
+	defaultColor := engine.NewColor(118, 118, 118, 255)
+	hoverColor := engine.NewColor(155, 155, 155, 50)
+	textColor := engine.NewColor(255, 255, 255, 255)
 	//TODO: Determine text position
 	// Auto size button to hold text, center text vertically
 	textPosition := dimensions.Position
