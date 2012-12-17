@@ -177,17 +177,20 @@ func (o *Overlay) Place() {
 
 func (t *Text) Place() {
 	//TODO: Test how text places
-	var newX float32
-	switch t.Position.RelativeTo {
-	case ScreenRelativeAspect:
-		newX = t.Position.X
-	case ScreenRelativeLeft:
-		newX = t.Position.X * screenRatio
-	case ScreenRelativeRight:
-		newX = screenRatio - (t.Position.X * screenRatio)
-	}
-	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R(),
-		t.Color.G(), t.Color.B(), t.FontMaterial.H3DRes)
+	//var newX float32
+	//switch t.Position.RelativeTo {
+	//case ScreenRelativeAspect:
+	//newX = t.Position.X
+	//case ScreenRelativeLeft:
+	//newX = t.Position.X * screenRatio
+	//case ScreenRelativeRight:
+	//newX = screenRatio - (t.Position.X * screenRatio)
+	//}
+	//horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R(),
+	//t.Color.G(), t.Color.B(), t.FontMaterial.H3DRes)
+
+	horde3d.ShowText(t.Text, 0.03, 0.24, 0.026, 1, 1, 1, t.FontMaterial.H3DRes)
+
 }
 
 //Widget is a collection of Overlays

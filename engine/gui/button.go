@@ -27,7 +27,7 @@ type Button struct {
 func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenArea) *Button {
 	defaultColor := engine.NewColor(118, 118, 118, 255)
 	hoverColor := engine.NewColor(155, 155, 155, 50)
-	textColor := engine.NewColor(255, 255, 255, 255)
+	textColor := engine.NewColor(255, 255, 255, 0)
 	//TODO: Determine text position
 	// Auto size button to hold text, center text vertically
 	textPosition := dimensions.Position
@@ -68,6 +68,7 @@ func (b *Button) Update() {
 		if b.TextHover.Text != "" {
 			b.TextHover.Place()
 		}
+		b.hover = false
 	} else {
 		if b.ShowBackground {
 			b.BackgroundOverlay.Place()
