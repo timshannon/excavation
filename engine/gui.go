@@ -26,8 +26,6 @@ func initGui() {
 }
 
 func LoadGui(gui *Gui) {
-	shaderRes := &Resource{horde3d.AddResource(ResTypeShader, overlayShader, 0)}
-	shaderRes.Load()
 	HaltInput()
 	activeGui = gui
 	activeGui.Load()
@@ -149,7 +147,6 @@ type Overlay struct {
 
 func NewOverlay(materialLocation string, color *Color, dimensions *ScreenArea) *Overlay {
 	material, _ := NewMaterial(materialLocation)
-	material.Load()
 	return &Overlay{dimensions, color, material}
 }
 
@@ -164,7 +161,6 @@ type Text struct {
 func NewText(text string, size float32, materialLocation string,
 	color *Color, position *ScreenPosition) *Text {
 	material, _ := NewMaterial(materialLocation)
-	material.Load()
 
 	return &Text{text, position, size, material, color}
 }
@@ -177,19 +173,17 @@ func (o *Overlay) Place() {
 
 func (t *Text) Place() {
 	//TODO: Test how text places
-	//var newX float32
-	//switch t.Position.RelativeTo {
-	//case ScreenRelativeAspect:
-	//newX = t.Position.X
-	//case ScreenRelativeLeft:
-	//newX = t.Position.X * screenRatio
-	//case ScreenRelativeRight:
-	//newX = screenRatio - (t.Position.X * screenRatio)
-	//}
-	//horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R(),
-	//t.Color.G(), t.Color.B(), t.FontMaterial.H3DRes)
-
-	horde3d.ShowText(t.Text, 0.03, 0.24, 0.026, 1, 1, 1, t.FontMaterial.H3DRes)
+	var newX float32
+	switch t.Position.RelativeTo {
+	case ScreenRelativeAspect:
+		newX = t.Position.X
+	case ScreenRelativeLeft:
+		newX = t.Position.X * screenRatio
+	case ScreenRelativeRight:
+		newX = screenRatio - (t.Position.X * screenRatio)
+	}
+	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R(),
+		t.Color.G(), t.Color.B(), t.FontMaterial.H3DRes)
 
 }
 
@@ -222,6 +216,11 @@ func (g *Gui) AddWidget(widget Widget) {
 }
 
 func (g *Gui) Load() {
+	//TODO; Might be overkill
+	err := LoadAllResources()
+	if err != nil {
+		RaiseError(err)
+	}
 	if g.UseMouse {
 		glfw.Enable(glfw.MouseCursor)
 	} else {
