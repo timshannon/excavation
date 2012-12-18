@@ -25,10 +25,10 @@ func init() {
 
 func LoadAllResources() error {
 
-	var res = &Resource{horde3d.GetNextResource(horde3d.ResTypes_Undefined, horde3d.H3DRes(0))}
+	var res = &Resource{horde3d.H3DRes(0)}
 	var err error
 
-	for int(res.H3DRes) != 0 {
+	for {
 		res.H3DRes = horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)
 		if int(res.H3DRes) != 0 {
 			err = res.Load()
@@ -36,9 +36,29 @@ func LoadAllResources() error {
 			if err != nil {
 				return err
 			}
+		} else {
+			break
 		}
 	}
 	return nil
+}
+
+func ResourcesNotLoaded() []*Resource {
+	notLoaded := make([]*Resource, 0)
+	var res = &Resource{horde3d.H3DRes(0)}
+
+	for {
+		res = &Resource{horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)}
+		if int(res.H3DRes) != 0 {
+			if !res.IsLoaded() {
+				notLoaded = append(notLoaded, res)
+			}
+		} else {
+			break
+		}
+	}
+	return notLoaded
+
 }
 
 type Resource struct {
@@ -95,11 +115,12 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 	if os.IsNotExist(err) {
 		//err = nil
 		//TODO: load from tar or tar.gz data file
+		// or if a tar.gz file is found, unzip it and leave the tar
 		//remove respath root
 		// Open data file on first request
 		// close datafile on clear all
 		// or stream buffered data
-		// package datafile
+		// package datafile?
 		RaiseError(err)
 		return nil, err
 	}
