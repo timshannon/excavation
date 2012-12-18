@@ -13,7 +13,7 @@ func loadMainMenu() {
 	mainMenu.UseMouse = true
 
 	button := gui.MakeButton("newButton", "New Game", 0.1,
-		engine.NewScreenArea(.5, .5, .2, .5, engine.ScreenRelativeAspect))
+		engine.NewScreenArea(1, .5, .2, .5, engine.ScreenRelativeRight))
 	//button.ShowBackground = false
 	mainMenu.AddWidget(button)
 	engine.LoadGui(mainMenu)

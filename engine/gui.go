@@ -8,12 +8,13 @@ import (
 //Used for both menus and HUDs
 
 const (
+	//position is based on the aspect ratio of the screen
 	ScreenRelativeAspect = iota
+	//position is independant of the aspect ratio and position from the left 
 	ScreenRelativeLeft
+	//position is independant of the aspect ratio and position from the right 0 is right 1 is left
 	ScreenRelativeRight
 )
-
-const overlayShader = "shaders/overlay.shader"
 
 var screenRatio float32
 var screenHeight int
@@ -54,16 +55,11 @@ type KeyCollector func(key int)
 
 var gKeyCollector KeyCollector
 
-//resolution independent
-// relativePos can be used to set position relative to a side of the screen
-
 //toVertex returns the actual position on the screen from the interpreted
 // relative position
-//TODO: Test for stretching between different screen ratios
-// width should be constant, and not change between ratio changes
-// everything else should be relative to screen size
 func (s *ScreenArea) toVertex(result []float32) {
 	//Y is not relative to aspect
+	//verts are added counter clockwise
 	//vert1 
 	result[1] = s.Position.Y
 	result[2] = 0
@@ -92,8 +88,9 @@ func (s *ScreenArea) toVertex(result []float32) {
 		result[8] = (s.Position.X * screenRatio) + s.Width
 		result[12] = (s.Position.X * screenRatio) + s.Width
 	case ScreenRelativeRight:
-		result[0] = (s.Position.X * screenRatio) + s.Width
-		result[4] = (s.Position.X * screenRatio) + s.Width
+		//TODO: Fix
+		result[0] = (s.Position.X * screenRatio) - s.Width
+		result[4] = (s.Position.X * screenRatio) - s.Width
 		result[8] = s.Position.X * screenRatio
 		result[12] = s.Position.X * screenRatio
 	}
