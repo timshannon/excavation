@@ -11,15 +11,17 @@ const (
 
 type Button struct {
 	Name                   string
+	dimensions             *engine.ScreenArea
 	BackgroundOverlay      *engine.Overlay
 	BackgroundHoverOverlay *engine.Overlay
 	BackgroundClickOverlay *engine.Overlay
-	ShowBackground         bool
 	//text
-	Text      *engine.Text
-	TextHover *engine.Text
-	TextClick *engine.Text
-	hover     bool
+	Text           *engine.Text
+	TextHover      *engine.Text
+	TextClick      *engine.Text
+	hover          bool
+	showBackground bool
+	ClickEvent     func(sender string)
 }
 
 //MakeButton returns a button with the default background and colors
@@ -37,23 +39,29 @@ func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenAr
 		BackgroundOverlay:      engine.NewOverlay(defaultBackground, defaultColor, dimensions),
 		BackgroundHoverOverlay: engine.NewOverlay(defaultBackground, hoverColor, dimensions),
 		BackgroundClickOverlay: engine.NewOverlay(defaultBackground, hoverColor, dimensions),
-		ShowBackground:         true,
+		showBackground:         true,
 		Text:                   engine.NewText(text, textSize, defaultFont, textColor, textPosition),
 		TextHover:              engine.NewText(text, textSize, defaultFont, textColor, textPosition),
 		TextClick:              engine.NewText(text, textSize, defaultFont, textColor, textPosition),
 	}
+	button.dimensions = button.BackgroundOverlay.Dimensions
 	return button
 
 }
 
-//textPosition returns the position of the text based on the size
-// and dimensions of the button
-//func textPosition(dimensions *engine.Dimensions, textSize) *engine.ScreenPosition {
-
-//}
+func (b *Button) ShowBackground(value bool) {
+	if value {
+		b.dimensions = b.BackgroundOverlay.Dimensions
+	} else {
+		//If no background, base mouse area on text
+		b.dimensions = engine.NewScreenArea(b.Text.Position.X, b.Text.Position.Y,
+			b.Text.Size, b.Text.Width(), b.Text.Position.RelativeTo)
+	}
+	b.showBackground = value
+}
 
 func (b *Button) MouseArea() *engine.ScreenArea {
-	return b.BackgroundOverlay.Dimensions
+	return b.dimensions
 }
 
 func (b *Button) Hover() {
@@ -62,7 +70,7 @@ func (b *Button) Hover() {
 
 func (b *Button) Update() {
 	if b.hover {
-		if b.ShowBackground {
+		if b.showBackground {
 			b.BackgroundHoverOverlay.Place()
 		}
 		if b.TextHover.Text != "" {
@@ -70,7 +78,7 @@ func (b *Button) Update() {
 		}
 		b.hover = false
 	} else {
-		if b.ShowBackground {
+		if b.showBackground {
 			b.BackgroundOverlay.Place()
 		}
 		if b.Text.Text != "" {
@@ -82,6 +90,12 @@ func (b *Button) Update() {
 func (b *Button) Click() {
 	b.BackgroundClickOverlay.Place()
 	b.TextClick.Place()
+	b.ClickEvent(b.Name)
+}
+
+func (b *Button) RightClick() {
+	//nothing
+	return
 }
 
 func (b *Button) Scroll(delta int) {

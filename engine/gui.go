@@ -208,6 +208,7 @@ type Widget interface {
 	Update()
 	Hover()
 	Click()
+	RightClick()
 	Scroll(int)
 }
 
@@ -218,6 +219,8 @@ type Gui struct {
 	KeyCollect   KeyCollector
 	prevTime     float64
 	prevWheelPos int
+	mouse1Press  bool
+	mouse2Press  bool
 }
 
 func (g *Gui) ElapsedTime() float64 {
@@ -250,14 +253,38 @@ func (g *Gui) Unload() {
 	gKeyCollector = nil
 }
 
+func (g *Gui) mouseClick(button int) bool {
+	if glfw.MouseButton(button) == glfw.KeyPress {
+		if button == 0 {
+			g.mouse1Press = true
+		} else if button == 1 {
+			g.mouse2Press = true
+		}
+		return false
+	} else if glfw.MouseButton(button) == glfw.KeyRelease {
+		if button == 0 && g.mouse1Press {
+			g.mouse1Press = false
+			return true
+		}
+		if button == 1 && g.mouse2Press {
+			g.mouse2Press = false
+			return true
+		}
+	}
+	return false
+}
+
 func (g *Gui) Update() {
 	horde3d.ClearOverlays()
 
 	if g.UseMouse {
 		if widget, ok := g.WidgetUnderMouse(); ok {
 			widget.Hover()
-			if glfw.MouseButton(0) == glfw.KeyPress {
+			if g.mouseClick(0) {
 				widget.Click()
+			}
+			if g.mouseClick(1) {
+				widget.RightClick()
 			}
 			delta := glfw.MouseWheel()
 			if delta != g.prevWheelPos {
@@ -280,7 +307,7 @@ func (g *Gui) WidgetUnderMouse() (Widget, bool) {
 	// widget that the mouse hits
 	for i := len(g.Widgets) - 1; i >= 0; i-- {
 		dimensions = g.Widgets[i].MouseArea()
-		x, y = g.MousePos(ScreenRelativeAspect) //reusing
+		x, y = g.MousePos(ScreenRelativeAspect)
 		if x >= dimensions.X() && x <= dimensions.X2() &&
 			y >= dimensions.Position.Y && y <= dimensions.Position.Y+dimensions.Height {
 			return g.Widgets[i], true
