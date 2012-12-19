@@ -61,39 +61,25 @@ func (s *ScreenArea) toVertex(result []float32) {
 	//Y is not relative to aspect
 	//verts are added counter clockwise
 	//vert1 
+	result[0] = s.X()
 	result[1] = s.Position.Y
 	result[2] = 0
 	result[3] = 1
 	//vert2 
+	result[4] = s.X()
 	result[5] = (s.Position.Y + s.Height)
 	result[6] = 0
 	result[7] = 0
 	//vert3 
+	result[8] = s.X2()
 	result[9] = (s.Position.Y + s.Height)
 	result[10] = 1
 	result[11] = 0
 	//vert4 
+	result[12] = s.X2()
 	result[13] = s.Position.Y
 	result[14] = 1
 	result[15] = 1
-	switch s.Position.RelativeTo {
-	case ScreenRelativeAspect:
-		result[0] = s.Position.X
-		result[4] = s.Position.X
-		result[8] = (s.Position.X + s.Width)
-		result[12] = (s.Position.X + s.Width)
-	case ScreenRelativeLeft:
-		result[0] = s.Position.X * screenRatio
-		result[4] = s.Position.X * screenRatio
-		result[8] = (s.Position.X * screenRatio) + s.Width
-		result[12] = (s.Position.X * screenRatio) + s.Width
-	case ScreenRelativeRight:
-		//TODO: Fix
-		result[0] = (s.Position.X * screenRatio) - s.Width
-		result[4] = (s.Position.X * screenRatio) - s.Width
-		result[8] = s.Position.X * screenRatio
-		result[12] = s.Position.X * screenRatio
-	}
 }
 
 type ScreenPosition struct {
@@ -104,6 +90,35 @@ type ScreenPosition struct {
 type ScreenArea struct {
 	Position      *ScreenPosition
 	Height, Width float32
+}
+
+//X1 Returns the first x vertex position
+// based on the relative positioning of the screen area
+func (s *ScreenArea) X() float32 {
+	switch s.Position.RelativeTo {
+	case ScreenRelativeAspect:
+		return s.Position.X
+	case ScreenRelativeLeft:
+		return s.Position.X * screenRatio
+	case ScreenRelativeRight:
+		return (screenRatio - (s.Position.X * screenRatio)) - s.Width
+	}
+	return 0
+}
+
+//X2 Returns the second x (width) position
+// based on the relative positioning of the screen area
+func (s *ScreenArea) X2() float32 {
+	switch s.Position.RelativeTo {
+	case ScreenRelativeAspect:
+		return (s.Position.X + s.Width)
+	case ScreenRelativeLeft:
+		return (s.Position.X * screenRatio) + s.Width
+	case ScreenRelativeRight:
+		return (screenRatio - (s.Position.X * screenRatio))
+	}
+
+	return 0
 }
 
 func NewScreenArea(x, y, height, width float32, relativeTo int) *ScreenArea {
@@ -169,7 +184,6 @@ func (o *Overlay) Place() {
 }
 
 func (t *Text) Place() {
-	//TODO: Test how text places
 	var newX float32
 	switch t.Position.RelativeTo {
 	case ScreenRelativeAspect:
@@ -177,11 +191,15 @@ func (t *Text) Place() {
 	case ScreenRelativeLeft:
 		newX = t.Position.X * screenRatio
 	case ScreenRelativeRight:
-		newX = screenRatio - (t.Position.X * screenRatio)
+		newX = (screenRatio - (t.Position.X * screenRatio)) - t.Width()
 	}
 	horde3d.ShowText(t.Text, newX, t.Position.Y, t.Size, t.Color.R(),
 		t.Color.G(), t.Color.B(), t.FontMaterial.H3DRes)
 
+}
+
+func (t *Text) Width() float32 {
+	return (float32(len(t.Text)) * t.Size * .5) + (t.Size * .25)
 }
 
 //Widget is a collection of Overlays
@@ -262,8 +280,8 @@ func (g *Gui) WidgetUnderMouse() (Widget, bool) {
 	// widget that the mouse hits
 	for i := len(g.Widgets) - 1; i >= 0; i-- {
 		dimensions = g.Widgets[i].MouseArea()
-		x, y = GuiMousePos(dimensions.Position.RelativeTo)
-		if x >= dimensions.Position.X && x <= dimensions.Position.X+dimensions.Width &&
+		x, y = g.MousePos(ScreenRelativeAspect) //reusing
+		if x >= dimensions.X() && x <= dimensions.X2() &&
 			y >= dimensions.Position.Y && y <= dimensions.Position.Y+dimensions.Height {
 			return g.Widgets[i], true
 
@@ -279,7 +297,7 @@ func updateScreenSize(w, h int) {
 	screenRatio = float32(w) / float32(h)
 }
 
-func GuiMousePos(relative int) (x, y float32) {
+func (g *Gui) MousePos(relative int) (x, y float32) {
 	//Return position according to widget ratio positioning
 	//  0.0 - 1.0
 	gX, gY := glfw.MousePos()
@@ -290,7 +308,7 @@ func GuiMousePos(relative int) (x, y float32) {
 		return (x / float32(screenWidth)), (y / float32(screenHeight))
 	case ScreenRelativeRight:
 		return (float32(screenWidth) - x) / float32(screenWidth),
-			(float32(screenHeight) - y) / float32(screenHeight)
+			(y / float32(screenHeight))
 	case ScreenRelativeAspect:
 		return (x / float32(screenWidth)) * screenRatio, (y / float32(screenHeight))
 	}
