@@ -41,7 +41,6 @@ func main() {
 	if sceneFlag != "" {
 		loadScene(sceneFlag)
 	} else {
-		//TODO: Load Main Menu
 		loadMainMenu()
 	}
 
