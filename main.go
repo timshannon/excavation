@@ -44,12 +44,19 @@ func main() {
 		loadMainMenu()
 	}
 
+	//Bind Esc to menu
+	engine.BindDirectInput(loadMenu, "Key_Esc")
+
 	//todo: temp for testing frame independence
 	engine.BindDirectInput(ToggleVSync, "Key_F1")
 	engine.AddTask("FPS", showFPS, nil, 0, 1)
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
+}
+
+func loadMenu(input *engine.Input) {
+	loadMainMenu()
 }
 
 //ResetEngine Reloads all config from disk and reopens a new glfw window
@@ -122,6 +129,8 @@ func loadScene(scene string) {
 	}
 	//Clear any old scene data and resources
 	engine.ClearAll()
+	//TODO:  Loading screen, and camera managment
+
 	sceneRes, err := engine.NewScene(scene)
 	if err != nil {
 		panic(err)
