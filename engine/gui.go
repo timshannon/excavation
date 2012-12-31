@@ -207,8 +207,7 @@ type Widget interface {
 	MouseArea() *ScreenArea
 	Update()
 	Hover()
-	Click()
-	RightClick()
+	Click(int)
 	Scroll(int)
 }
 
@@ -219,8 +218,7 @@ type Gui struct {
 	KeyCollect   KeyCollector
 	prevTime     float64
 	prevWheelPos int
-	mouse1Press  bool
-	mouse2Press  bool
+	mousePress   [8]bool
 }
 
 func (g *Gui) ElapsedTime() float64 {
@@ -255,19 +253,11 @@ func (g *Gui) Unload() {
 
 func (g *Gui) mouseClick(button int) bool {
 	if glfw.MouseButton(button) == glfw.KeyPress {
-		if button == 0 {
-			g.mouse1Press = true
-		} else if button == 1 {
-			g.mouse2Press = true
-		}
+		g.mousePress[button] = true
 		return false
 	} else if glfw.MouseButton(button) == glfw.KeyRelease {
-		if button == 0 && g.mouse1Press {
-			g.mouse1Press = false
-			return true
-		}
-		if button == 1 && g.mouse2Press {
-			g.mouse2Press = false
+		if g.mousePress[button] {
+			g.mousePress[button] = false
 			return true
 		}
 	}
@@ -280,11 +270,10 @@ func (g *Gui) Update() {
 	if g.UseMouse {
 		if widget, ok := g.WidgetUnderMouse(); ok {
 			widget.Hover()
-			if g.mouseClick(0) {
-				widget.Click()
-			}
-			if g.mouseClick(1) {
-				widget.RightClick()
+			for i := range g.mousePress {
+				if g.mouseClick(i) {
+					widget.Click(i)
+				}
 			}
 			delta := glfw.MouseWheel()
 			if delta != g.prevWheelPos {

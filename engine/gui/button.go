@@ -87,10 +87,12 @@ func (b *Button) Update() {
 	}
 }
 
-func (b *Button) Click() {
-	b.BackgroundClickOverlay.Place()
-	b.TextClick.Place()
-	b.ClickEvent(b.Name)
+func (b *Button) Click(button int) {
+	if button == 0 {
+		b.BackgroundClickOverlay.Place()
+		b.TextClick.Place()
+		b.ClickEvent(b.Name)
+	}
 }
 
 func (b *Button) RightClick() {
