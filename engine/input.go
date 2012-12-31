@@ -404,6 +404,8 @@ func SetMousePos(x, y int) {
 }
 
 func HaltInput() {
+	//TODO: Fix, input groups?
+	// halt some inputs while allowing others
 	haltInput = true
 }
 
