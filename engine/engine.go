@@ -111,10 +111,6 @@ func StartMainLoop() {
 		horde3d.ClearOverlays()
 		glfw.SwapBuffers()
 
-		//TODO: handle with input and tasks
-		running = glfw.Key(glfw.KeyEsc) == 0 &&
-			glfw.WindowParam(glfw.Opened) == 1
-
 	}
 
 	horde3d.Release()
