@@ -18,6 +18,7 @@ func loadMainMenu() {
 	btnNew.ShowBackground(false)
 	btnNew.Text.Color = engine.NewColor(175, 175, 175, 255)
 	btnNew.TextHover.Color = engine.NewColor(255, 255, 255, 255)
+	btnNew.TextClick.Color = engine.NewColor(255, 255, 255, 255)
 
 	btnNew.ClickEvent = mainMenuButtons
 

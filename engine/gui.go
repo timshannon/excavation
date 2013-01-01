@@ -27,7 +27,6 @@ func initGui() {
 }
 
 func LoadGui(gui *Gui) {
-	HaltInput()
 	activeGui = gui
 	activeGui.Load()
 }
@@ -35,7 +34,6 @@ func LoadGui(gui *Gui) {
 func UnloadGui() {
 	activeGui.Unload()
 	activeGui = nil
-	ResumeInput()
 }
 func updateGui() {
 	if activeGui != nil {
