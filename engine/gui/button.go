@@ -89,15 +89,14 @@ func (b *Button) Update() {
 
 func (b *Button) Click(button int) {
 	if button == 0 {
-		b.BackgroundClickOverlay.Place()
-		b.TextClick.Place()
+		if b.showBackground {
+			b.BackgroundClickOverlay.Place()
+		}
+		if b.Text.Text != "" {
+			b.TextClick.Place()
+		}
 		b.ClickEvent(b.Name)
 	}
-}
-
-func (b *Button) RightClick() {
-	//nothing
-	return
 }
 
 func (b *Button) Scroll(delta int) {
