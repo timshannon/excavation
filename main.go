@@ -55,18 +55,8 @@ func main() {
 	engine.StartMainLoop()
 }
 
-var menuOpen bool
-
 func loadMenu(input *engine.Input) {
-	if menuOpen {
-		//TODO: Fix, input groups?
-		// halt some inputs while allowing others
-		engine.UnloadGui()
-		menuOpen = false
-	} else {
-		menuOpen = true
-		loadMainMenu()
-	}
+	loadMainMenu()
 }
 
 //ResetEngine Reloads all config from disk and reopens a new glfw window
@@ -74,7 +64,7 @@ func loadMenu(input *engine.Input) {
 func ResetEngine() {
 	engine.ClearAll()
 	engine.StopMainLoop()
-	//TODO: Fix
+	//FIXME
 	main()
 }
 

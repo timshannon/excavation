@@ -20,24 +20,48 @@ var screenRatio float32
 var screenHeight int
 var screenWidth int
 var tempArray [16]float32 //Rectangles only for now
-var activeGui *Gui
+var activeGuis []*Gui
 
 func initGui() {
 	glfw.SetCharCallback(keyCollector)
+	activeGuis = make([]*Gui, 0, 5)
 }
 
+//LoadGui pushes a gui onto a stack of guis, only top most in the stack
+// is used for interaction
 func LoadGui(gui *Gui) {
-	activeGui = gui
-	activeGui.Load()
+	activeGuis = append([]*Gui{gui}, activeGuis...)
+	gui.load()
 }
 
+//UnloadGui pops a gui off the stack of guis
 func UnloadGui() {
-	activeGui.Unload()
-	activeGui = nil
+	if len(activeGuis) == 0 {
+		return
+	}
+	gui := activeGuis[0]
+	gui.unload()
+
+	activeGuis = activeGuis[1:]
+	//Reset input and mouse 
+	activeGuis[0].load()
 }
+
+//UnloadAllGuis unload all the guis on the stack and resets
+// the engine and inputs back to normal operation
+func UnloadAllGuis() {
+	for i := range activeGuis {
+		activeGuis[i].unload()
+	}
+	activeGuis = make([]*Gui, 0, 5)
+}
+
 func updateGui() {
-	if activeGui != nil {
-		activeGui.Update()
+	for i := range activeGuis {
+		if i == 0 {
+			activeGuis[i].handleInput()
+		}
+		activeGuis[i].update()
 	}
 }
 
@@ -213,6 +237,7 @@ type Widget interface {
 type Gui struct {
 	Widgets      []Widget
 	UseMouse     bool
+	HaltInput    bool
 	KeyCollect   KeyCollector
 	prevTime     float64
 	prevWheelPos int
@@ -229,7 +254,7 @@ func (g *Gui) AddWidget(widget Widget) {
 	g.Widgets = append(g.Widgets, widget)
 }
 
-func (g *Gui) Load() {
+func (g *Gui) load() {
 	//TODO; Might be overkill
 	err := LoadAllResources()
 	if err != nil {
@@ -240,12 +265,19 @@ func (g *Gui) Load() {
 	} else {
 		glfw.Disable(glfw.MouseCursor)
 	}
-	gKeyCollector = g.KeyCollect
 
+	if g.HaltInput {
+		HaltInput()
+	} else {
+		ResumeInput()
+	}
+
+	gKeyCollector = g.KeyCollect
 }
 
-func (g *Gui) Unload() {
+func (g *Gui) unload() {
 	glfw.Disable(glfw.MouseCursor)
+	ResumeInput()
 	gKeyCollector = nil
 }
 
@@ -262,9 +294,10 @@ func (g *Gui) mouseClick(button int) bool {
 	return false
 }
 
-func (g *Gui) Update() {
-	horde3d.ClearOverlays()
-
+//handleInput only processes input for the topmost
+// gui on the stack, basically creating model guis
+// as well has menus on top of game huds or other game guis
+func (g *Gui) handleInput() {
 	if g.UseMouse {
 		if widget, ok := g.WidgetUnderMouse(); ok {
 			widget.Hover()
@@ -280,6 +313,11 @@ func (g *Gui) Update() {
 			}
 		}
 	}
+
+}
+
+func (g *Gui) update() {
+	horde3d.ClearOverlays()
 
 	for i := range g.Widgets {
 		g.Widgets[i].Update()

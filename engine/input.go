@@ -403,15 +403,13 @@ func SetMousePos(x, y int) {
 	glfw.SetMousePos(x, y)
 }
 
-//func HaltInput() {
-////TODO: Fix, input groups?
-//// halt some inputs while allowing others
-//haltInput = true
-//}
+func HaltInput() {
+	haltInput = true
+}
 
-//func ResumeInput() {
-//haltInput = false
-//}
+func ResumeInput() {
+	haltInput = false
+}
 
 func reloadBindingsFromCfg(cfg *Config) {
 	resetInputs()
