@@ -11,6 +11,7 @@ func loadMainMenu() {
 
 	mainMenu = new(engine.Gui)
 	mainMenu.UseMouse = true
+	mainMenu.HaltInput = true
 
 	//New
 	btnNew := gui.MakeButton("new", "New Game", 0.05,
