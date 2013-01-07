@@ -22,6 +22,7 @@ type Button struct {
 	hover          bool
 	showBackground bool
 	ClickEvent     func(sender string)
+	Active         bool
 }
 
 //MakeButton returns a button with the default background and colors
@@ -43,6 +44,7 @@ func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenAr
 		Text:                   engine.NewText(text, textSize, defaultFont, textColor, textPosition),
 		TextHover:              engine.NewText(text, textSize, defaultFont, textColor, textPosition),
 		TextClick:              engine.NewText(text, textSize, defaultFont, textColor, textPosition),
+		Active:                 true,
 	}
 	button.dimensions = button.BackgroundOverlay.Dimensions
 	return button
@@ -69,6 +71,9 @@ func (b *Button) Hover() {
 }
 
 func (b *Button) Update() {
+	if !b.Active {
+		return
+	}
 	if b.hover {
 		if b.showBackground {
 			b.BackgroundHoverOverlay.Place()
@@ -88,6 +93,9 @@ func (b *Button) Update() {
 }
 
 func (b *Button) Click(button int) {
+	if !b.Active {
+		return
+	}
 	if button == 0 {
 		if b.showBackground {
 			b.BackgroundClickOverlay.Place()

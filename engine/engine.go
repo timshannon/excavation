@@ -17,6 +17,7 @@ var frames int
 var startTime float64
 var controlCfg *Config
 var standardCfg *Config
+var paused bool
 
 func init() {
 	Root = new(Node)
@@ -96,16 +97,19 @@ func Init(name string) error {
 
 func StartMainLoop() {
 	running = true
+	paused = false
 
 	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
 	startTime = Time()
 	for running {
 		frames++
 		joyUpdate()
-		runTasks()
-
+		if !paused {
+			runTasks()
+			updateAudio()
+			//TODO: Physics
+		}
 		updateGui()
-		updateAudio()
 		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
 		horde3d.ClearOverlays()
@@ -153,6 +157,17 @@ func ClearAll() {
 	ClearAllAudio()
 	//TODO: Clear Physics entities
 	//TODO: Close compressed data file if open
+}
+
+func Pause() {
+	paused = true
+	//TODO: Pause all audio
+}
+
+func Resume() {
+	paused = false
+	//TODO: resume all audio
+
 }
 
 func Cfg() *Config {

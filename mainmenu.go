@@ -9,7 +9,7 @@ var mainMenu *engine.Gui
 
 func loadMainMenu() {
 
-	mainMenu = new(engine.Gui)
+	mainMenu = engine.NewGui()
 	mainMenu.UseMouse = true
 	mainMenu.HaltInput = true
 

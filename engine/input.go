@@ -163,7 +163,7 @@ func (d *Device) String() string {
 	switch d.Type {
 	case DeviceKeyboard:
 		prefix = "Key"
-		suffix = keyString(d.Button)
+		suffix = KeyString(d.Button)
 	case DeviceMouse:
 		prefix = "Mouse"
 		if d.Button >= 0 {
@@ -184,7 +184,7 @@ func (d *Device) String() string {
 	return prefix + "_" + suffix
 }
 
-func keyString(key int) string {
+func KeyString(key int) string {
 	if key == 32 {
 		return "Space"
 	}
@@ -194,7 +194,7 @@ func keyString(key int) string {
 	return string(key)
 }
 
-func keyInt(key string) int {
+func KeyInt(key string) int {
 	if key == "Space" {
 		return 32
 	}
@@ -229,7 +229,7 @@ func newInput(cfgString string) *Input {
 	switch {
 	case prefix == "Key":
 		dev.Type = DeviceKeyboard
-		dev.Button = keyInt(suffix)
+		dev.Button = KeyInt(suffix)
 	case prefix == "Mouse":
 		dev.Type = DeviceMouse
 		if strings.HasPrefix(suffix, "Axis") {
@@ -403,6 +403,8 @@ func SetMousePos(x, y int) {
 	glfw.SetMousePos(x, y)
 }
 
+//TODO: Input Groups, group for game input, and individual
+// gui inputs
 func HaltInput() {
 	haltInput = true
 }
