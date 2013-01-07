@@ -56,6 +56,7 @@ func main() {
 }
 
 func loadMenu(input *engine.Input) {
+	engine.Pause()
 	loadMainMenu()
 }
 
@@ -129,6 +130,7 @@ func loadScene(scene string) {
 	}
 	//Clear any old scene data and resources
 	engine.ClearAll()
+	engine.UnloadAllGuis()
 	//TODO:  Loading screen, and camera managment
 
 	sceneRes, err := engine.NewScene(scene)

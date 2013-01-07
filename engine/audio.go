@@ -305,10 +305,7 @@ func updateAudio() {
 }
 
 func (s *audioSource) occluded() bool {
-	//TODO: Fix occlusion test.  
-	// occluded because you can't see it 
-	//ray cast from source to listener
-	return false
+	return s.audio.node.Occluded()
 }
 
 func (l *Listener) updatePositionOrientation() {

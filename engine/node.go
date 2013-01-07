@@ -138,6 +138,11 @@ func (n *Node) Scale(result *vmath.Vector3) {
 	vmath.V3MakeFromElems(result, sx, sy, sz)
 }
 
+func (n *Node) Occluded() bool {
+	//TODO: Cast physics ray from node to camera?
+	return false
+}
+
 //This function sets the relative translation, rotation and scale of a 
 //specified scene node object.  The coordinates are in local space and 
 //contain the transformation of the node relative to its parent.

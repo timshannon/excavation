@@ -17,9 +17,9 @@ const (
 )
 
 var (
-	taskList  Tasks
-	taskQueue Tasks
-	sorted    bool
+	taskList    Tasks
+	taskQueue   Tasks
+	tasksSorted bool
 )
 
 type taskFunc func(task *Task)
@@ -39,7 +39,7 @@ func (t *Task) Priority() int { return t.priority }
 func (t *Task) SetPriority(priority int) {
 	t.priority = priority
 	//priority changed, resort
-	sorted = false
+	tasksSorted = false
 }
 
 //Wait schedules the task to run the given # of seconds in the future
@@ -85,17 +85,17 @@ func AddTask(name string, function taskFunc, data interface{}, priority int, del
 	}
 	taskList = append(taskList, task)
 
-	//new task added resort
-	sorted = false
+	//new task added; resort
+	tasksSorted = false
 }
 
 //runTasks sorts the taskList by priority, then adds all active,
 // non-waiting task to the task queue and processes them
 func runTasks() {
 
-	if !sorted {
+	if !tasksSorted {
 		sort.Sort(ByPriority{taskList})
-		sorted = true
+		tasksSorted = true
 	}
 
 	for i, task := range taskList {
@@ -118,7 +118,6 @@ func runTasks() {
 
 	//run through all queued tasks
 	for _, task := range taskQueue {
-		//TODO: Threaded tasks? queue up horde transformations?
 		if task.start == 0 {
 			task.start = Time()
 		}

@@ -12,7 +12,7 @@ const (
 	ScreenRelativeAspect = iota
 	//position is independant of the aspect ratio and position from the left 
 	ScreenRelativeLeft
-	//position is independant of the aspect ratio and position from the right 0 is right 1 is left
+	//position is independant of the aspect ratio and position from the right (0 is right 1 is left)
 	ScreenRelativeRight
 )
 
@@ -23,7 +23,7 @@ var tempArray [16]float32 //Rectangles only for now
 var activeGuis []*Gui
 
 func initGui() {
-	glfw.SetCharCallback(keyCollector)
+	glfw.SetCharCallback(charCollector)
 	activeGuis = make([]*Gui, 0, 5)
 }
 
@@ -65,17 +65,17 @@ func updateGui() {
 	}
 }
 
-func keyCollector(key, state int) {
+func charCollector(key, state int) {
 	if state == glfw.KeyPress {
-		if gKeyCollector != nil {
-			gKeyCollector(key)
+		if gCharCollector != nil {
+			gCharCollector(key)
 		}
 	}
 }
 
-type KeyCollector func(key int)
+type CharCollector func(key int)
 
-var gKeyCollector KeyCollector
+var gCharCollector CharCollector
 
 //toVertex returns the actual position on the screen from the interpreted
 // relative position
@@ -238,10 +238,17 @@ type Gui struct {
 	Widgets      []Widget
 	UseMouse     bool
 	HaltInput    bool
-	KeyCollect   KeyCollector
+	CharCollect  CharCollector
 	prevTime     float64
 	prevWheelPos int
 	mousePress   [8]bool
+}
+
+//TODO: Use inputHandlers
+
+func NewGui() *Gui {
+	gui := new(Gui)
+	return gui
 }
 
 func (g *Gui) ElapsedTime() float64 {
@@ -272,13 +279,13 @@ func (g *Gui) load() {
 		ResumeInput()
 	}
 
-	gKeyCollector = g.KeyCollect
+	gCharCollector = g.CharCollect
 }
 
 func (g *Gui) unload() {
 	glfw.Disable(glfw.MouseCursor)
 	ResumeInput()
-	gKeyCollector = nil
+	gCharCollector = nil
 }
 
 func (g *Gui) mouseClick(button int) bool {
@@ -295,7 +302,7 @@ func (g *Gui) mouseClick(button int) bool {
 }
 
 //handleInput only processes input for the topmost
-// gui on the stack, basically creating model guis
+// gui on the stack, basically creating modal guis
 // as well has menus on top of game huds or other game guis
 func (g *Gui) handleInput() {
 	if g.UseMouse {
