@@ -56,8 +56,10 @@ func main() {
 }
 
 func loadMenu(input *engine.Input) {
-	engine.Pause()
-	loadMainMenu()
+	if state, ok := input.ButtonState(); ok && state == engine.StateReleased {
+		engine.Pause()
+		loadMainMenu()
+	}
 }
 
 //ResetEngine Reloads all config from disk and reopens a new glfw window
