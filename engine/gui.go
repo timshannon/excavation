@@ -39,12 +39,15 @@ func UnloadGui() {
 	if len(activeGuis) == 0 {
 		return
 	}
+
 	gui := activeGuis[0]
 	gui.unload()
 
 	activeGuis = activeGuis[1:]
-	//Reset input and mouse 
-	activeGuis[0].load()
+	if len(activeGuis) != 0 {
+		//Reset input and mouse 
+		activeGuis[0].load()
+	}
 }
 
 //UnloadAllGuis unload all the guis on the stack and resets

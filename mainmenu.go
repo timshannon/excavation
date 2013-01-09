@@ -13,6 +13,8 @@ func loadMainMenu() {
 	mainMenu.UseMouse = true
 	mainMenu.HaltInput = true
 
+	mainMenu.Bind(closeMenu, "Key_Esc")
+
 	//New
 	btnNew := gui.MakeButton("new", "New Game", 0.05,
 		engine.NewScreenArea(0.1, .7, .03, .5, engine.ScreenRelativeLeft))
@@ -35,6 +37,7 @@ func loadMainMenu() {
 	mainMenu.AddWidget(btnNew)
 	mainMenu.AddWidget(btnQuit)
 	engine.LoadGui(mainMenu)
+
 }
 
 func mainMenuButtons(sender string) {
@@ -44,5 +47,12 @@ func mainMenuButtons(sender string) {
 	case "new":
 		//TODO: Fix
 		loadScene("test")
+	}
+}
+
+func closeMenu(input *engine.Input) {
+	if state, ok := input.ButtonState(); ok && state == engine.StateReleased {
+		engine.UnloadGui()
+		engine.Resume()
 	}
 }

@@ -199,6 +199,7 @@ func handlePlayerInput(i *engine.Input) {
 
 func handlePitchYaw(i *engine.Input) {
 	//TODO: handle joy and key input
+	//FIXME: mouse position gets changed when returning from menus
 	x, y, ok := i.MousePos()
 
 	if ok {
