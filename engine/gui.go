@@ -242,13 +242,17 @@ type Gui struct {
 	prevTime     float64
 	prevWheelPos int
 	mousePress   [8]bool
+	inputs       *inputGroup
 }
-
-//TODO: Use inputHandlers
 
 func NewGui() *Gui {
 	gui := new(Gui)
+	gui.inputs = newInputGroup()
 	return gui
+}
+
+func (g *Gui) Bind(function InputHandler, input string) {
+	g.inputs.bind(function, input, input)
 }
 
 func (g *Gui) ElapsedTime() float64 {
@@ -274,9 +278,9 @@ func (g *Gui) load() {
 	}
 
 	if g.HaltInput {
-		HaltInput()
+		loadInputGroup(g.inputs)
 	} else {
-		ResumeInput()
+		unloadInputGroup()
 	}
 
 	gCharCollector = g.CharCollect
@@ -284,7 +288,7 @@ func (g *Gui) load() {
 
 func (g *Gui) unload() {
 	glfw.Disable(glfw.MouseCursor)
-	ResumeInput()
+	unloadInputGroup()
 	gCharCollector = nil
 }
 

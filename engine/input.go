@@ -33,18 +33,33 @@ const (
 )
 
 var (
+	gameInput    *inputGroup
+	currentInput *inputGroup
+)
+
+//used to handle different groups of input like those used
+// for gameplay and those used in a gui
+type inputGroup struct {
 	mouseAxisInputs map[int]*Input
 	mouseBtnInputs  map[int]*Input
 	keyInputs       map[int]*Input
 	joyAxisInputs   map[int]*Input
 	joyBtnInputs    map[int]*Input
-	haltInput       bool
-)
 
-var inputHandlers map[string]InputHandler
+	inputHandlers map[string]InputHandler
+}
+
+func loadInputGroup(group *inputGroup) {
+	currentInput = group
+}
+
+func unloadInputGroup() {
+	currentInput = gameInput
+}
 
 func initInput() {
-	resetInputs()
+	gameInput = newInputGroup()
+	currentInput = gameInput
 
 	glfw.SetKeyCallback(keyCallback)
 	glfw.SetMouseButtonCallback(mouseButtonCallback)
@@ -53,16 +68,17 @@ func initInput() {
 
 	//Reload configs on write
 	controlCfg.RegisterOnWriteHandler(reloadBindingsFromCfg)
-	loadBindingsFromCfg(controlCfg)
 }
 
-func resetInputs() {
-	mouseAxisInputs = make(map[int]*Input)
-	mouseBtnInputs = make(map[int]*Input)
-	keyInputs = make(map[int]*Input)
-	joyAxisInputs = make(map[int]*Input)
-	joyBtnInputs = make(map[int]*Input)
-	inputHandlers = make(map[string]InputHandler)
+func newInputGroup() *inputGroup {
+	group := new(inputGroup)
+	group.mouseAxisInputs = make(map[int]*Input)
+	group.mouseBtnInputs = make(map[int]*Input)
+	group.keyInputs = make(map[int]*Input)
+	group.joyAxisInputs = make(map[int]*Input)
+	group.joyBtnInputs = make(map[int]*Input)
+	group.inputHandlers = make(map[string]InputHandler)
+	return group
 }
 
 type InputHandler func(input *Input)
@@ -215,14 +231,14 @@ type joystick struct {
 
 var curJoystick *joystick
 
-//New Device creates a new Device from a control config string
-func newInput(cfgString string) *Input {
+//newInput creates a new Device from an input Name ex. Key_Esc
+func newInput(inputName string) *Input {
 	dev := &Device{-1, -1, -1, -1}
 	input := new(Input)
 
 	var prefix string
 	var suffix string
-	str := strings.Split(cfgString, "_")
+	str := strings.Split(inputName, "_")
 	prefix = str[0]
 	suffix = str[1]
 
@@ -253,52 +269,44 @@ func newInput(cfgString string) *Input {
 	return input
 }
 
-//BindInput binds a config input entry to a input handler function
-// Note, you can bind multiple controlsNames to the same function in one call
-// ex: BindInput(function, "Strafe_Left", "Strafe_Right")
-func BindInput(function InputHandler, controlName ...string) {
-	for i := range controlName {
-		inputHandlers[controlName[i]] = function
-	}
-}
-
-//BindDirectInput binds an input to a function directly
-// without requiring a config entry for it
-// ex: BindDirectInput(function, "Key_A", "Key_Space")
-func BindDirectInput(function InputHandler, input ...string) {
+//BindInput takes either a key name or a control config entry
+// and binds it to an input and ties that input to a function
+func BindInput(function InputHandler, input ...string) {
 	for i := range input {
-		addBinding(input[i], input[i])
-		inputHandlers[input[i]] = function
+		//check if input is controlConfig entry
+		if cfgInput, ok := controlCfg.values[input[i]].(string); ok {
+			gameInput.bind(function, input[i], cfgInput)
+		} else {
+			gameInput.bind(function, input[i], input[i])
+		}
 	}
 }
 
-//loadBindingFromCfg loads and binds the inputs, creating indexed input
-// entries for use with input callbacks
-func loadBindingsFromCfg(cfg *Config) {
-	for k, v := range cfg.values {
-		addBinding(k, v.(string))
-	}
+func (g *inputGroup) bind(function InputHandler, controlName, input string) {
+	g.addBinding(controlName, input)
+	g.inputHandlers[controlName] = function
+
 }
 
-func addBinding(controlName, cfgString string) {
-	input := newInput(cfgString)
+func (g *inputGroup) addBinding(controlName, inputName string) {
+	input := newInput(inputName)
 	input.controlName = controlName
 	device := input.Device
 
 	switch device.Type {
 	case DeviceKeyboard:
-		keyInputs[device.Button] = input
+		g.keyInputs[device.Button] = input
 	case DeviceMouse:
 		if device.Button != -1 {
-			mouseBtnInputs[device.Button] = input
+			g.mouseBtnInputs[device.Button] = input
 		} else {
-			mouseAxisInputs[device.Axis] = input
+			g.mouseAxisInputs[device.Axis] = input
 		}
 	case DeviceJoystick:
 		if device.Button != -1 {
-			joyBtnInputs[device.Button] = input
+			g.joyBtnInputs[device.Button] = input
 		} else {
-			joyAxisInputs[device.Axis] = input
+			g.joyAxisInputs[device.Axis] = input
 		}
 		if curJoystick == nil {
 			//currently not supporting multiple binds
@@ -319,10 +327,10 @@ func addBinding(controlName, cfgString string) {
 //keyCallBack handles the glfw callback and executes the configured
 // inputhandler for the given input
 func keyCallback(key, state int) {
-	input, ok := keyInputs[key]
-	if ok && !haltInput {
+	input, ok := currentInput.keyInputs[key]
+	if ok {
 		input.State = state
-		if function, ok := inputHandlers[input.controlName]; ok {
+		if function, ok := currentInput.inputHandlers[input.controlName]; ok {
 			function(input)
 		}
 	}
@@ -331,10 +339,10 @@ func keyCallback(key, state int) {
 //mouseButtonCallBack handles the glfw callback and executes the configured
 // inputhandler for the given input
 func mouseButtonCallback(button, state int) {
-	input, ok := mouseBtnInputs[button]
-	if ok && !haltInput {
+	input, ok := currentInput.mouseBtnInputs[button]
+	if ok {
 		input.State = state
-		if function, ok := inputHandlers[input.controlName]; ok {
+		if function, ok := currentInput.inputHandlers[input.controlName]; ok {
 			function(input)
 		}
 	}
@@ -343,21 +351,21 @@ func mouseButtonCallback(button, state int) {
 //mousePosCallBack handles the glfw callback and executes the configured
 // inputhandler for the given input
 func mousePosCallback(x, y int) {
-	input, ok := mouseAxisInputs[MouseAxisPos]
-	if ok && !haltInput {
+	input, ok := currentInput.mouseAxisInputs[MouseAxisPos]
+	if ok {
 		input.X = x
 		input.Y = y
-		if function, ok := inputHandlers[input.controlName]; ok {
+		if function, ok := currentInput.inputHandlers[input.controlName]; ok {
 			function(input)
 		}
 	}
 }
 
 func mouseWheelCallback(delta int) {
-	input, ok := mouseAxisInputs[MouseAxisWheel]
-	if ok && !haltInput {
+	input, ok := currentInput.mouseAxisInputs[MouseAxisWheel]
+	if ok {
 		input.X = delta
-		if function, ok := inputHandlers[input.controlName]; ok {
+		if function, ok := currentInput.inputHandlers[input.controlName]; ok {
 			function(input)
 		}
 	}
@@ -373,10 +381,10 @@ func joyUpdate() {
 		results = glfw.JoystickButtons(curJoystick.index, curJoystick.buttons)
 
 		for i := 0; i < results; i++ {
-			input, ok = joyBtnInputs[i]
-			if ok && !haltInput {
+			input, ok = currentInput.joyBtnInputs[i]
+			if ok {
 				input.State = int(curJoystick.buttons[i])
-				if function, ok := inputHandlers[input.controlName]; ok {
+				if function, ok := currentInput.inputHandlers[input.controlName]; ok {
 					function(input)
 				}
 			}
@@ -384,10 +392,10 @@ func joyUpdate() {
 
 		results = glfw.JoystickPos(curJoystick.index, curJoystick.axes)
 		for i := 0; i < results; i++ {
-			input, ok = joyAxisInputs[i]
+			input, ok = currentInput.joyAxisInputs[i]
 			if ok {
 				input.AxisPos = curJoystick.axes[i]
-				if function, ok := inputHandlers[input.controlName]; ok {
+				if function, ok := currentInput.inputHandlers[input.controlName]; ok {
 					function(input)
 				}
 			}
@@ -403,17 +411,18 @@ func SetMousePos(x, y int) {
 	glfw.SetMousePos(x, y)
 }
 
-//TODO: Input Groups, group for game input, and individual
-// gui inputs
-func HaltInput() {
-	haltInput = true
-}
-
-func ResumeInput() {
-	haltInput = false
-}
-
 func reloadBindingsFromCfg(cfg *Config) {
-	resetInputs()
-	loadBindingsFromCfg(cfg)
+	//TODO: Only drop cfg bindings, not direct bindings
+	oldBindings := make(map[string]InputHandler)
+	for k := range gameInput.inputHandlers {
+		oldBindings[k] = gameInput.inputHandlers[k]
+	}
+
+	gameInput = newInputGroup()
+
+	for k := range oldBindings {
+		BindInput(oldBindings[k], k)
+
+	}
+
 }

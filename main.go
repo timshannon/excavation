@@ -45,10 +45,10 @@ func main() {
 	}
 
 	//Bind Esc to menu
-	engine.BindDirectInput(loadMenu, "Key_Esc")
+	engine.BindInput(loadMenu, "Key_Esc")
 
 	//todo: temp for testing frame independence
-	engine.BindDirectInput(ToggleVSync, "Key_F1")
+	engine.BindInput(ToggleVSync, "Key_F1")
 	engine.AddTask("FPS", showFPS, nil, 0, 1)
 	//starting the loop should be the last thing
 	// after setting up the game
