@@ -18,6 +18,7 @@ var startTime float64
 var controlCfg *Config
 var standardCfg *Config
 var paused bool
+var ClipPlaneDistance float32 = 1000
 
 func init() {
 	Root = new(Node)
@@ -140,8 +141,8 @@ func onResize(w, h int) {
 
 	MainCam.SetViewport(0, 0, w, h)
 
-	//TODO: Set clip distance? Config?
-	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, 1000.0)
+	//TODO: Set clip distance? Config? Engine setting?
+	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, ClipPlaneDistance)
 	MainCam.Pipeline().ResizeBuffers(w, h)
 	updateScreenSize(w, h)
 
@@ -150,6 +151,15 @@ func onResize(w, h int) {
 func Time() float64 {
 	return glfw.Time()
 }
+
+//Game time is the actual game time
+// not including the time paused.  When the game is
+// paused, the game time will not increment
+func GameTime() float64 {
+	return Time() - pausedTime
+}
+
+var pauseStart, pausedTime float64
 
 //Clear clears all rendering, physics, and sound resources, nodes, etc
 func ClearAll() {
@@ -161,11 +171,13 @@ func ClearAll() {
 
 func Pause() {
 	paused = true
+	pauseStart = Time()
 	//TODO: Pause all audio
 }
 
 func Resume() {
 	paused = false
+	pausedTime += Time() - pauseStart
 	//TODO: resume all audio
 
 }

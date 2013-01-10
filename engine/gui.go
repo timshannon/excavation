@@ -238,14 +238,16 @@ type Widget interface {
 
 //Gui is a collection of Widgets
 type Gui struct {
-	Widgets      []Widget
-	UseMouse     bool
-	HaltInput    bool
-	CharCollect  CharCollector
-	prevTime     float64
-	prevWheelPos int
-	mousePress   [8]bool
-	inputs       *inputGroup
+	Widgets       []Widget
+	UseMouse      bool
+	HaltInput     bool
+	CharCollect   CharCollector
+	prevTime      float64
+	prevWheelPos  int
+	mousePress    [8]bool
+	inputs        *inputGroup
+	prevMousePosX int
+	prevMousePosY int
 }
 
 func NewGui() *Gui {
@@ -275,6 +277,8 @@ func (g *Gui) load() {
 		RaiseError(err)
 	}
 	if g.UseMouse {
+		g.prevMousePosX, g.prevMousePosY = glfw.MousePos()
+
 		glfw.Enable(glfw.MouseCursor)
 	} else {
 		glfw.Disable(glfw.MouseCursor)
@@ -291,6 +295,7 @@ func (g *Gui) load() {
 
 func (g *Gui) unload() {
 	glfw.Disable(glfw.MouseCursor)
+	glfw.SetMousePos(g.prevMousePosX, g.prevMousePosY)
 	unloadInputGroup()
 	gCharCollector = nil
 }
