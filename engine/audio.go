@@ -324,12 +324,12 @@ func (l *Listener) updatePositionOrientation() {
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
 
-	vmath.V3Velocity(l.prevVec, l.prevVec, l.curVec, float32(Time()-l.prevTime))
+	vmath.V3Velocity(l.prevVec, l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
 
 	l.Set3f(openal.AlVelocity, l.prevVec.X, l.prevVec.Y, l.prevVec.Z)
 
 	vmath.V3Copy(l.prevVec, l.curVec)
-	l.prevTime = Time()
+	l.prevTime = GameTime()
 }
 
 func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vmath.Vector4, matrix *vmath.Matrix4) {

@@ -44,13 +44,13 @@ func (t *Task) SetPriority(priority int) {
 
 //Wait schedules the task to run the given # of seconds in the future
 func (t *Task) Wait(seconds float64) {
-	t.delay = Time() + seconds
+	t.delay = GameTime() + seconds
 	t.state = TaskWaiting
 }
 
 //Time is the number of seconds passed since this task first started
 func (t *Task) Time() float64 {
-	return Time() - t.start
+	return GameTime() - t.start
 }
 
 //Frames is the number of frames/times this task has been called
@@ -105,7 +105,7 @@ func runTasks() {
 			taskList = append(taskList[:i], taskList[i+1:]...)
 		case TaskWaiting:
 			//check delay
-			if task.delay <= Time() {
+			if task.delay <= GameTime() {
 				task.state = TaskRunning
 			}
 		case TaskRunning:
@@ -119,7 +119,7 @@ func runTasks() {
 	//run through all queued tasks
 	for _, task := range taskQueue {
 		if task.start == 0 {
-			task.start = Time()
+			task.start = GameTime()
 		}
 		task.frames++
 		task.Func(task)

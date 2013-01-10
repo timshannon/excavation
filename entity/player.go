@@ -81,8 +81,8 @@ func (p *Player) Trigger(value float32) {
 func updatePlayer(t *engine.Task) {
 	p := t.Data.(*Player)
 
-	elapsedTime := float32(engine.Time() - p.lastUpdate)
-	p.lastUpdate = engine.Time()
+	elapsedTime := float32(engine.GameTime() - p.lastUpdate)
+	p.lastUpdate = engine.GameTime()
 
 	if inX == 0 {
 		p.speedX = deccelerate(p.speedX, elapsedTime)
