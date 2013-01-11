@@ -2,6 +2,7 @@ package entity
 
 import (
 	"excavation/engine"
+	"fmt"
 	vmath "github.com/timshannon/vectormath"
 	"math"
 )
@@ -114,6 +115,15 @@ func updatePlayer(t *engine.Task) {
 
 	p.rotate.X = (float32(vX-p.curVx) * p.mouseSensitivity)
 
+	x := float32(vX - p.curVx)
+	y := float32(vY - p.curVy)
+	if x != 0 {
+		fmt.Println(x)
+	}
+	if y != 0 {
+		fmt.Println(y)
+	}
+
 	p.localTransform()
 
 	p.curVx = vX
@@ -200,6 +210,7 @@ func handlePlayerInput(i *engine.Input) {
 func handlePitchYaw(i *engine.Input) {
 	//TODO: handle joy and key input
 	//FIXME: mouse position gets changed when returning from menus
+	// GLFW sets the mouse position to the middle of the screen
 	x, y, ok := i.MousePos()
 
 	if ok {
