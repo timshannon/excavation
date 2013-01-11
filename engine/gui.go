@@ -296,6 +296,7 @@ func (g *Gui) load() {
 func (g *Gui) unload() {
 	glfw.Disable(glfw.MouseCursor)
 	glfw.SetMousePos(g.prevMousePosX, g.prevMousePosY)
+	glfw.PollEvents()
 	unloadInputGroup()
 	gCharCollector = nil
 }
