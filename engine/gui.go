@@ -276,13 +276,6 @@ func (g *Gui) load() {
 	if err != nil {
 		RaiseError(err)
 	}
-	if g.UseMouse {
-		g.prevMousePosX, g.prevMousePosY = glfw.MousePos()
-
-		glfw.Enable(glfw.MouseCursor)
-	} else {
-		glfw.Disable(glfw.MouseCursor)
-	}
 
 	if g.HaltInput {
 		loadInputGroup(g.inputs)
@@ -290,6 +283,13 @@ func (g *Gui) load() {
 		unloadInputGroup()
 	}
 
+	if g.UseMouse {
+		g.prevMousePosX, g.prevMousePosY = glfw.MousePos()
+
+		glfw.Enable(glfw.MouseCursor)
+	} else {
+		glfw.Disable(glfw.MouseCursor)
+	}
 	gCharCollector = g.CharCollect
 }
 

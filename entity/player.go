@@ -2,7 +2,6 @@ package entity
 
 import (
 	"excavation/engine"
-	"fmt"
 	vmath "github.com/timshannon/vectormath"
 	"math"
 )
@@ -114,15 +113,6 @@ func updatePlayer(t *engine.Task) {
 	}
 
 	p.rotate.X = (float32(vX-p.curVx) * p.mouseSensitivity)
-
-	x := float32(vX - p.curVx)
-	y := float32(vY - p.curVy)
-	if x != 0 {
-		fmt.Println(x)
-	}
-	if y != 0 {
-		fmt.Println(y)
-	}
 
 	p.localTransform()
 
