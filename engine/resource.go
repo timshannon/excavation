@@ -250,8 +250,8 @@ func NewPipeline(name string) (*Pipeline, error) {
 
 }
 
-//LoadPipeline loads the default pipeline for the engine
-func LoadPipeline() (*Pipeline, error) {
+//loadPipeline loads the default pipeline for the engine
+func loadDefaultPipeline() (*Pipeline, error) {
 	pipeline, err := NewPipeline("pipelines/hdr.pipeline.xml")
 	if err != nil {
 		return nil, err

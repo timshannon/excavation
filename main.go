@@ -132,8 +132,7 @@ func loadScene(scene string) {
 	}
 	//Clear any old scene data and resources
 	engine.ClearAll()
-	engine.UnloadAllGuis()
-	//TODO:  Loading screen, and camera managment
+	//TODO:  Loading screen, and camera management
 
 	sceneRes, err := engine.NewScene(scene)
 	if err != nil {

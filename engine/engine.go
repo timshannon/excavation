@@ -7,6 +7,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
+	"fmt"
 	"github.com/jteeuwen/glfw"
 )
 
@@ -18,6 +19,8 @@ var startTime float64
 var controlCfg *Config
 var standardCfg *Config
 var paused bool
+
+//exported variable for changing the clip distance on the fly if need be
 var ClipPlaneDistance float32 = 1000
 
 func init() {
@@ -78,14 +81,7 @@ func Init(name string) error {
 	initInput()
 
 	initGui()
-	//load pipeline
-	pipeline, err := LoadPipeline()
-	if err != nil {
-		return err
-	}
-
-	//add camera
-	MainCam = AddCamera(Root, "MainCamera", pipeline)
+	resetRenderer()
 
 	//Music and Audio
 	initMusic()
@@ -99,6 +95,7 @@ func Init(name string) error {
 func StartMainLoop() {
 	running = true
 	paused = false
+	var cam int
 
 	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
 	startTime = Time()
@@ -111,16 +108,31 @@ func StartMainLoop() {
 			//TODO: Physics
 		}
 		updateGui()
+		if cam != int(MainCam.H3DNode) {
+			cam = int(MainCam.H3DNode)
+			fmt.Println("cam: ", cam)
+		}
 		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
 		horde3d.ClearOverlays()
 		glfw.SwapBuffers()
-
 	}
 
 	horde3d.Release()
 	glfw.Terminate()
 	glfw.CloseWindow()
+}
+
+func resetRenderer() {
+	pipeline, err := loadDefaultPipeline()
+	if err != nil {
+		panic(err)
+	}
+
+	//add camera
+	MainCam = AddCamera(Root, "MainCamera", pipeline)
+	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
+
 }
 
 func StopMainLoop() {
@@ -141,7 +153,6 @@ func onResize(w, h int) {
 
 	MainCam.SetViewport(0, 0, w, h)
 
-	//TODO: Set clip distance? Config? Engine setting?
 	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, ClipPlaneDistance)
 	MainCam.Pipeline().ResizeBuffers(w, h)
 	updateScreenSize(w, h)
@@ -152,6 +163,8 @@ func Time() float64 {
 	return glfw.Time()
 }
 
+var pauseStart, pausedTime float64
+
 //Game time is the actual game time
 // not including the time paused.  When the game is
 // paused, the game time will not increment
@@ -159,26 +172,28 @@ func GameTime() float64 {
 	return Time() - pausedTime
 }
 
-var pauseStart, pausedTime float64
-
 //Clear clears all rendering, physics, and sound resources, nodes, etc
 func ClearAll() {
+	UnloadAllGuis()
 	horde3d.Clear()
 	ClearAllAudio()
 	//TODO: Clear Physics entities
 	//TODO: Close compressed data file if open
+	resetRenderer()
 }
 
 func Pause() {
 	paused = true
 	pauseStart = Time()
-	//TODO: Pause all audio
+	pauseAllAudio()
+	//TODO: Pause physics?
 }
 
 func Resume() {
 	paused = false
 	pausedTime += Time() - pauseStart
-	//TODO: resume all audio
+	resumeAllAudio()
+	//TODO: Resume Physics?
 
 }
 
