@@ -56,7 +56,7 @@ func UnloadAllGuis() {
 	for i := range activeGuis {
 		activeGuis[i].unload()
 	}
-	activeGuis = make([]*Gui, 0, 5)
+	activeGuis = activeGuis[0:0]
 }
 
 func updateGui() {
@@ -64,7 +64,9 @@ func updateGui() {
 		if i == 0 {
 			activeGuis[i].handleInput()
 		}
-		activeGuis[i].update()
+		if len(activeGuis) > 0 {
+			activeGuis[i].update()
+		}
 	}
 }
 

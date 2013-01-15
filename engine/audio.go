@@ -215,6 +215,26 @@ func (a *Audio) Pause() {
 	}
 }
 
+var resumableAudioSources = make([]*audioSource, 0, maxAudioSources)
+
+func pauseAllAudio() {
+	for i := range sources {
+		if sources[i].State() != openal.Paused {
+			resumableAudioSources = append(resumableAudioSources, sources[i])
+			sources[i].Pause()
+		}
+	}
+
+}
+
+func resumeAllAudio() {
+	for i := range resumableAudioSources {
+		resumableAudioSources[i].Play()
+	}
+	resumableAudioSources = resumableAudioSources[0:0]
+
+}
+
 func (a *Audio) SetLooping(value bool) {
 	a.looping = value
 	if a.source != nil {
