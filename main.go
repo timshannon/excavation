@@ -95,35 +95,6 @@ func ToggleVSync(input *engine.Input) {
 	}
 }
 
-func setCfgDefaults(cfg *engine.Config) {
-	switch cfg.Name {
-	case "excavation.cfg":
-		cfg.SetValue("WindowWidth", 1024)
-		cfg.SetValue("WindowHeight", 728)
-		cfg.SetValue("WindowDepth", 24)
-		cfg.SetValue("Fullscreen", false)
-		cfg.SetValue("VSync", 0)
-		cfg.SetValue("InvertMouse", true)
-		cfg.SetValue("MouseSensitivity", 0.3)
-		cfg.SetValue("AudioDevice", "")
-		cfg.SetValue("MaxAudioSources", 16)
-		cfg.SetValue("MaxAudioBufferSize", 5242880)
-	case "controls.cfg":
-		cfg.SetValue("Forward", "Key_W")
-		cfg.SetValue("Backward", "Key_S")
-		cfg.SetValue("StrafeLeft", "Key_A")
-		cfg.SetValue("StrafeRight", "Key_D")
-		cfg.SetValue("MoveUp", "Key_E")
-		cfg.SetValue("MoveDown", "Key_Space")
-		cfg.SetValue("PitchYaw", "Mouse_Axis0")
-		cfg.SetValue("PitchUp", "Key_Up")
-		cfg.SetValue("PitchDown", "Key_Down")
-		cfg.SetValue("YawLeft", "Key_Left")
-		cfg.SetValue("YawRight", "Key_Right")
-	}
-
-}
-
 //loadScene loads a scene and all associated resources in the given
 //scenefile and loads the entities and properties
 func loadScene(scene string) {
@@ -163,4 +134,33 @@ func loadScene(scene string) {
 		}
 
 	}
+}
+
+func setCfgDefaults(cfg *engine.Config) {
+	switch cfg.Name {
+	case "excavation.cfg":
+		cfg.SetValue("WindowWidth", 1024)
+		cfg.SetValue("WindowHeight", 728)
+		cfg.SetValue("WindowDepth", 24)
+		cfg.SetValue("Fullscreen", false)
+		cfg.SetValue("VSync", 0)
+		cfg.SetValue("InvertMouse", true)
+		cfg.SetValue("MouseSensitivity", 0.3)
+		cfg.SetValue("AudioDevice", "")
+		cfg.SetValue("MaxAudioSources", 16)
+		cfg.SetValue("MaxAudioBufferSize", 5242880)
+	case "controls.cfg":
+		cfg.SetValue("Forward", "Key_W")
+		cfg.SetValue("Backward", "Key_S")
+		cfg.SetValue("StrafeLeft", "Key_A")
+		cfg.SetValue("StrafeRight", "Key_D")
+		cfg.SetValue("MoveUp", "Key_E")
+		cfg.SetValue("MoveDown", "Key_Space")
+		cfg.SetValue("PitchYaw", "Mouse_Axis0")
+		cfg.SetValue("PitchUp", "Key_Up")
+		cfg.SetValue("PitchDown", "Key_Down")
+		cfg.SetValue("YawLeft", "Key_Left")
+		cfg.SetValue("YawRight", "Key_Right")
+	}
+
 }
