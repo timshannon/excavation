@@ -203,6 +203,7 @@ func Pause() {
 	paused = true
 	pauseStart = Time()
 	pauseAllAudio()
+	PauseMusic()
 	//TODO: Pause physics?
 }
 
@@ -210,6 +211,7 @@ func Resume() {
 	paused = false
 	pausedTime += Time() - pauseStart
 	resumeAllAudio()
+	ResumeMusic()
 	//TODO: Resume Physics?
 
 }
