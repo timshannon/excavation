@@ -231,6 +231,7 @@ func (t *Text) Width() float32 {
 
 //Widget is a collection of Overlays
 type Widget interface {
+	Name() string
 	MouseArea() *ScreenArea
 	Update()
 	Hover()
@@ -270,6 +271,15 @@ func (g *Gui) ElapsedTime() float64 {
 // of the gui
 func (g *Gui) AddWidget(widget Widget) {
 	g.Widgets = append(g.Widgets, widget)
+}
+
+//Removes a widget from the gui. 
+func (g *Gui) RemoveWidget(name string) {
+	for i := range g.Widgets {
+		if g.Widgets[i].Name() == name {
+			g.Widgets = append(g.Widgets[:i], g.Widgets[i+1:]...)
+		}
+	}
 }
 
 func (g *Gui) load() {
