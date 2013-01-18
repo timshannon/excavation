@@ -24,7 +24,6 @@ func init() {
 }
 
 func LoadAllResources() error {
-
 	var res = &Resource{horde3d.H3DRes(0)}
 	var err error
 
@@ -58,6 +57,22 @@ func ResourcesNotLoaded() []*Resource {
 		}
 	}
 	return notLoaded
+
+}
+
+func ResourceList() []*Resource {
+	resList := make([]*Resource, 0)
+	res := &Resource{horde3d.H3DRes(0)}
+
+	for {
+		res = &Resource{horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)}
+		if int(res.H3DRes) != 0 {
+			resList = append(resList, res)
+		} else {
+			break
+		}
+	}
+	return resList
 
 }
 

@@ -47,6 +47,8 @@ func mainMenuButtons(sender string) {
 	case "new":
 		//TODO: Fix
 		loadScene("test")
+		//engine.ClearAll()
+		engine.Resume()
 	}
 }
 

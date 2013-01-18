@@ -365,7 +365,7 @@ func (g *Gui) WidgetUnderMouse() (Widget, bool) {
 	return nil, false
 }
 
-func updateScreenSize(w, h int) {
+func updateGuiScreenSize(w, h int) {
 	screenHeight = h
 	screenWidth = w
 	screenRatio = float32(w) / float32(h)

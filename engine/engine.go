@@ -81,7 +81,7 @@ func Init(name string) error {
 	initInput()
 
 	initGui()
-	resetRenderer()
+	setupRenderer()
 
 	//Music and Audio
 	initMusic()
@@ -95,7 +95,6 @@ func Init(name string) error {
 func StartMainLoop() {
 	running = true
 	paused = false
-	var cam int
 
 	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
 	startTime = Time()
@@ -108,10 +107,6 @@ func StartMainLoop() {
 			//TODO: Physics
 		}
 		updateGui()
-		if cam != int(MainCam.H3DNode) {
-			cam = int(MainCam.H3DNode)
-			fmt.Println("cam: ", cam)
-		}
 		horde3d.Render(MainCam.H3DNode)
 		horde3d.FinalizeFrame()
 		horde3d.ClearOverlays()
@@ -123,7 +118,7 @@ func StartMainLoop() {
 	glfw.CloseWindow()
 }
 
-func resetRenderer() {
+func setupRenderer() {
 	pipeline, err := loadDefaultPipeline()
 	if err != nil {
 		panic(err)
@@ -155,7 +150,7 @@ func onResize(w, h int) {
 
 	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, ClipPlaneDistance)
 	MainCam.Pipeline().ResizeBuffers(w, h)
-	updateScreenSize(w, h)
+	updateGuiScreenSize(w, h)
 
 }
 
@@ -174,12 +169,34 @@ func GameTime() float64 {
 
 //Clear clears all rendering, physics, and sound resources, nodes, etc
 func ClearAll() {
+	removeAllTasks()
 	UnloadAllGuis()
-	horde3d.Clear()
 	ClearAllAudio()
 	//TODO: Clear Physics entities
 	//TODO: Close compressed data file if open
-	resetRenderer()
+	//horde3d.Clear()
+	children := Root.Children()
+	for i := range children {
+		//if children[i].Type() != NodeTypeCamera {
+		children[i].Remove()
+		//}
+	}
+
+	resList := ResourceList()
+	for i := range resList {
+		resList[i].Remove()
+	}
+
+	resList = ResourceList()
+	for i := range resList {
+		//wtf, remove doesn't remove
+		fmt.Println("res: ", resList[i].Name())
+
+	}
+
+	fmt.Println("Clear")
+
+	setupRenderer()
 }
 
 func Pause() {
