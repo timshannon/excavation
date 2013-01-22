@@ -20,7 +20,7 @@ var controlCfg *Config
 var standardCfg *Config
 var paused bool
 
-//exported variable for changing the clip distance on the fly if need be
+//exported variable for changing the clip distance 
 var ClipPlaneDistance float32 = 1000
 
 func init() {
@@ -87,6 +87,8 @@ func Init(name string) error {
 	initMusic()
 	initAudio(cfg.String("AudioDevice"), cfg.Int("MaxAudioSources"), cfg.Int("MaxAudioBufferSize"))
 	glfw.SetWindowSizeCallback(onResize)
+
+	fmt.Println("Loaded: ", ResourceList())
 
 	return nil
 
@@ -174,29 +176,32 @@ func ClearAll() {
 	ClearAllAudio()
 	//TODO: Clear Physics entities
 	//TODO: Close compressed data file if open
-	//horde3d.Clear()
-	children := Root.Children()
-	for i := range children {
-		//if children[i].Type() != NodeTypeCamera {
-		children[i].Remove()
-		//}
-	}
+	horde3d.Clear()
+	//children := Root.Children()
+	//for i := range children {
+	////if children[i].Type() != NodeTypeCamera {
+	//children[i].Remove()
+	////}
+	//}
 
-	resList := ResourceList()
-	for i := range resList {
-		resList[i].Remove()
-	}
+	//resList := ResourceList()
+	//for i := range resList {
+	//resList[i].Remove()
+	//}
 
-	resList = ResourceList()
-	for i := range resList {
-		//wtf, remove doesn't remove
-		fmt.Println("res: ", resList[i].Name())
+	//resList = ResourceList()
+	//for i := range resList {
+	////wtf, remove doesn't remove
+	//fmt.Println("res: ", resList[i].Name())
 
-	}
+	//}
 
 	fmt.Println("Clear")
 
+	horde3d.Init()
 	setupRenderer()
+	LoadAllResources()
+	fmt.Println("After clear: ", ResourceList())
 }
 
 func Pause() {

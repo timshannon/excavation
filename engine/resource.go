@@ -80,6 +80,10 @@ type Resource struct {
 	horde3d.H3DRes
 }
 
+func (res *Resource) String() string {
+	return res.Name()
+}
+
 const (
 	ResTypeUndefined      = horde3d.ResTypes_Undefined
 	ResTypeSceneGraph     = horde3d.ResTypes_SceneGraph
