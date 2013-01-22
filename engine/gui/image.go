@@ -23,6 +23,10 @@ func (i *Image) Update() {
 	i.Overlay.Place()
 }
 
+func (i *Image) Name() string {
+	return i.name
+}
+
 func (i *Image) Hover()           { return }
 func (i *Image) Click(mouse int)  { return }
 func (i *Image) Scroll(delta int) { return }

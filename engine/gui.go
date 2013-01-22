@@ -381,6 +381,10 @@ func updateGuiScreenSize(w, h int) {
 	screenRatio = float32(w) / float32(h)
 }
 
+func ScreenRatio() float32 {
+	return screenRatio
+}
+
 func (g *Gui) MousePos(relative int) (x, y float32) {
 	//Return position according to widget ratio positioning
 	//  0.0 - 1.0

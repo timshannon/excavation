@@ -49,7 +49,7 @@ func main() {
 
 	//todo: temp for testing frame independence
 	engine.BindInput(ToggleVSync, "Key_F1")
-	engine.AddTask("FPS", showFPS, nil, 0, 1)
+	//engine.AddTask("FPS", showFPS, nil, 0, 1)
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()

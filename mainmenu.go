@@ -15,12 +15,17 @@ func loadMainMenu() {
 
 	mainMenu.Bind(closeMenu, "Key_Esc")
 
+	//background Image
+	img := gui.MakeImage("jupiterBackground", "overlays/gui/mainMenu/jupiter.material.xml",
+		engine.NewScreenArea(0, 0, 1, 1.8, engine.ScreenRelativeLeft))
+	mainMenu.AddWidget(img)
+
 	//New
 	btnNew := gui.MakeButton("new", "New Game", 0.05,
 		engine.NewScreenArea(0.1, .7, .03, .5, engine.ScreenRelativeLeft))
 	btnNew.ShowBackground(false)
-	btnNew.Text.Color = engine.NewColor(175, 175, 175, 255)
-	btnNew.TextHover.Color = engine.NewColor(255, 255, 255, 255)
+	btnNew.Text.Color = engine.NewColor(75, 75, 75, 255)
+	btnNew.TextHover.Color = engine.NewColor(100, 100, 100, 255)
 	btnNew.TextClick.Color = engine.NewColor(255, 255, 255, 255)
 
 	btnNew.ClickEvent = mainMenuButtons
@@ -29,8 +34,9 @@ func loadMainMenu() {
 	btnQuit := gui.MakeButton("quit", "Quit", 0.05,
 		engine.NewScreenArea(0.1, .75, .03, .5, engine.ScreenRelativeLeft))
 	btnQuit.ShowBackground(false)
-	btnQuit.Text.Color = engine.NewColor(175, 175, 175, 255)
-	btnQuit.TextHover.Color = engine.NewColor(255, 255, 255, 255)
+	btnQuit.Text.Color = engine.NewColor(75, 75, 75, 255)
+	btnQuit.TextHover.Color = engine.NewColor(100, 100, 100, 255)
+	btnQuit.TextClick.Color = engine.NewColor(100, 100, 100, 255)
 
 	btnQuit.ClickEvent = mainMenuButtons
 
