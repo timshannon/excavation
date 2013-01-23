@@ -593,21 +593,6 @@ func (c *Camera) SetOutputBufferIndex(index int) {
 	horde3d.SetNodeParamI(c.H3DNode, horde3d.Camera_OutBufIndexI, index)
 }
 
-func (c *Camera) ViewPlanes() (left, right, bottom, top float32) {
-	left = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_LeftPlaneF, 0)
-	right = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_RightPlaneF, 0)
-	bottom = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_BottomPlaneF, 0)
-	top = horde3d.GetNodeParamF(c.H3DNode, horde3d.Camera_TopPlaneF, 0)
-	return
-}
-
-func (c *Camera) SetViewPlanes(left, right, bottom, top float32) {
-	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_LeftPlaneF, 0, left)
-	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_RightPlaneF, 0, right)
-	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_BottomPlaneF, 0, bottom)
-	horde3d.SetNodeParamF(c.H3DNode, horde3d.Camera_TopPlaneF, 0, top)
-}
-
 func (c *Camera) Viewport() (x, y, width, height int) {
 	x = horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_ViewportXI)
 	y = horde3d.GetNodeParamI(c.H3DNode, horde3d.Camera_ViewportYI)
