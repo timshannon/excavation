@@ -7,21 +7,28 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	"fmt"
 	"github.com/jteeuwen/glfw"
 )
 
+//Used to hold resize parms between cameras 
+// the render cam will lookup near and far plane,
+// but FOV will have to be set separately
+type renderCam struct {
+	camera      *Camera
+	fallbackCam *Camera
+	fov         float32
+	nearPlane   float32
+	farPlane    float32
+}
+
 var Root *Node
-var MainCam *Camera
+var mainCam *renderCam
 var running bool
 var frames int
 var startTime float64
 var controlCfg *Config
 var standardCfg *Config
 var paused bool
-
-//exported variable for changing the clip distance 
-var ClipPlaneDistance float32 = 1000
 
 func init() {
 	Root = new(Node)
@@ -81,14 +88,24 @@ func Init(name string) error {
 	initInput()
 
 	initGui()
-	setupRenderer()
+
+	//setup base camera
+	pipeline, err := loadDefaultPipeline()
+	if err != nil {
+		panic(err)
+	}
+
+	mainCam = new(renderCam)
+	mainCam.fallbackCam = AddCamera(Root, "FallbackCamera", pipeline)
+	mainCam.camera = mainCam.fallbackCam
+	mainCam.fov = 45
+
+	resizeView(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
 
 	//Music and Audio
 	initMusic()
 	initAudio(cfg.String("AudioDevice"), cfg.Int("MaxAudioSources"), cfg.Int("MaxAudioBufferSize"))
-	glfw.SetWindowSizeCallback(onResize)
-
-	fmt.Println("Loaded: ", ResourceList())
+	glfw.SetWindowSizeCallback(resizeView)
 
 	return nil
 
@@ -98,7 +115,7 @@ func StartMainLoop() {
 	running = true
 	paused = false
 
-	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
+	resetView()
 	startTime = Time()
 	for running {
 		frames++
@@ -109,7 +126,7 @@ func StartMainLoop() {
 			//TODO: Physics
 		}
 		updateGui()
-		horde3d.Render(MainCam.H3DNode)
+		horde3d.Render(mainCam.camera.H3DNode)
 		horde3d.FinalizeFrame()
 		horde3d.ClearOverlays()
 		glfw.SwapBuffers()
@@ -118,18 +135,6 @@ func StartMainLoop() {
 	horde3d.Release()
 	glfw.Terminate()
 	glfw.CloseWindow()
-}
-
-func setupRenderer() {
-	pipeline, err := loadDefaultPipeline()
-	if err != nil {
-		panic(err)
-	}
-
-	//add camera
-	MainCam = AddCamera(Root, "MainCamera", pipeline)
-	onResize(Cfg().Int("WindowWidth"), Cfg().Int("WindowHeight"))
-
 }
 
 func StopMainLoop() {
@@ -143,15 +148,36 @@ func Fps() float64 {
 	return fps
 }
 
-func onResize(w, h int) {
+func SetMainCamera(camera *Camera) {
+	mainCam.camera = camera
+	mainCam.nearPlane = horde3d.GetNodeParamF(camera.H3DNode, horde3d.Camera_NearPlaneF, 0)
+	mainCam.farPlane = horde3d.GetNodeParamF(camera.H3DNode, horde3d.Camera_FarPlaneF, 0)
+	resetView()
+}
+
+func SetCameraFOV(fov float32) {
+	mainCam.fov = fov
+	resetView()
+}
+
+func MainCamera() *Camera {
+	return mainCam.camera
+}
+
+func resetView() {
+	w, h := glfw.WindowSize()
+	resizeView(w, h)
+}
+
+func resizeView(w, h int) {
 	if h == 0 {
 		h = 1
 	}
 
-	MainCam.SetViewport(0, 0, w, h)
+	mainCam.camera.SetViewport(0, 0, w, h)
 
-	MainCam.SetupView(45.0, float32(w)/float32(h), 0.1, ClipPlaneDistance)
-	MainCam.Pipeline().ResizeBuffers(w, h)
+	mainCam.camera.SetupView(mainCam.fov, float32(w)/float32(h), mainCam.nearPlane, mainCam.farPlane)
+	mainCam.camera.Pipeline().ResizeBuffers(w, h)
 	updateGuiScreenSize(w, h)
 
 }
@@ -176,32 +202,22 @@ func ClearAll() {
 	ClearAllAudio()
 	//TODO: Clear Physics entities
 	//TODO: Close compressed data file if open
-	horde3d.Clear()
-	//children := Root.Children()
-	//for i := range children {
-	////if children[i].Type() != NodeTypeCamera {
-	//children[i].Remove()
-	////}
-	//}
+	//horde3d.Clear()
 
-	//resList := ResourceList()
-	//for i := range resList {
-	//resList[i].Remove()
-	//}
+	children := Root.Children()
+	for i := range children {
+		children[i].Remove()
+	}
 
-	//resList = ResourceList()
-	//for i := range resList {
-	////wtf, remove doesn't remove
-	//fmt.Println("res: ", resList[i].Name())
+	resList := ResourceList()
+	for i := range resList {
+		resList[i].Remove()
+	}
 
-	//}
+	horde3d.ReleaseUnusedResources()
 
-	fmt.Println("Clear")
-
-	horde3d.Init()
-	setupRenderer()
-	LoadAllResources()
-	fmt.Println("After clear: ", ResourceList())
+	SetMainCamera(mainCam.fallbackCam)
+	//LoadAllResources()
 }
 
 func Pause() {

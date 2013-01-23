@@ -38,8 +38,8 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 	p.node = node
 
 	//TODO: Only activate camera if set to active in arg
-	engine.MainCam = &engine.Camera{p.node}
-	engine.MainCam.SetOcclusionCulling(true)
+	engine.SetMainCamera(&engine.Camera{p.node})
+	engine.MainCamera().SetOcclusionCulling(true)
 
 	p.translate = new(vmath.Vector3)
 	p.rotate = new(vmath.Vector3)
@@ -71,7 +71,7 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 func (p *Player) Trigger(value float32) {
 	//TODO: Fade view as camera changes
 	if value > 0 {
-		engine.MainCam = &engine.Camera{p.node}
+		engine.SetMainCamera(&engine.Camera{p.node})
 		l := engine.AudioListener()
 		l.SetNode(p.node)
 		engine.SetMousePos(0, 0)
