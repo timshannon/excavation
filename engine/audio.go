@@ -66,7 +66,7 @@ func (l *Listener) SetNode(node *Node) {
 	l.node = node
 }
 
-func ClearAllAudio() {
+func clearAllAudio() {
 	for i := range audioNodes {
 		audioNodes[i].Remove()
 	}

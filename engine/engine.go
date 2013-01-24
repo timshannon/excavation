@@ -88,6 +88,7 @@ func Init(name string) error {
 	initInput()
 
 	initGui()
+	initPhysics()
 
 	//setup base camera
 	pipeline, err := loadDefaultPipeline()
@@ -123,7 +124,7 @@ func StartMainLoop() {
 		if !paused {
 			runTasks()
 			updateAudio()
-			//TODO: Physics
+			updatePhysics()
 		}
 		updateGui()
 		horde3d.Render(mainCam.camera.H3DNode)
@@ -199,8 +200,8 @@ func GameTime() float64 {
 func ClearAll() {
 	removeAllTasks()
 	UnloadAllGuis()
-	ClearAllAudio()
-	//TODO: Clear Physics entities
+	clearAllAudio()
+	clearAllPhysics()
 	//TODO: Close compressed data file if open
 	//horde3d.Clear()
 
