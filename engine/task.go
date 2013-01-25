@@ -91,12 +91,8 @@ func AddTask(name string, function taskFunc, data interface{}, priority int, del
 
 //removeAllTasks removes all active tasks in taskmanager
 func removeAllTasks() {
-	for i := range taskList {
-		taskList[i].Remove()
-	}
-	for i := range taskQueue {
-		taskQueue[i].Remove()
-	}
+	taskList = taskList[0:0]
+	taskQueue = taskQueue[0:0]
 }
 
 //runTasks sorts the taskList by priority, then adds all active,
@@ -108,22 +104,27 @@ func runTasks() {
 		tasksSorted = true
 	}
 
-	for i, task := range taskList {
-		switch task.state {
+	for i := 0; i < len(taskList); i++ {
+		if taskList[i].state == TaskCompleted {
+			if len(taskList) > 1 {
+				taskList = append(taskList[:i], taskList[i+1:]...)
+			} else {
+				taskList = taskList[0:0]
+				break
+			}
+		}
+		switch taskList[i].state {
 		case TaskCompleted:
 			//remove task from list
-			if len(taskList) > 0 {
-			taskList = append(taskList[:i], taskList[i+1:]...)
-		} else {
-			taskList = taskList[0:0]
-		}
+			//FIXME
+
 		case TaskWaiting:
 			//check delay
-			if task.delay <= GameTime() {
-				task.state = TaskRunning
+			if taskList[i].delay <= GameTime() {
+				taskList[i].state = TaskRunning
 			}
 		case TaskRunning:
-			taskQueue = append(taskQueue, task)
+			taskQueue = append(taskQueue, taskList[i])
 		case TaskStopped:
 			//do nothing
 		}

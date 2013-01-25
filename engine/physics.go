@@ -6,7 +6,10 @@ import (
 	vmath "github.com/timshannon/vectormath"
 )
 
-const GRAVITY = -9.8
+const (
+	gravity         = -9.8
+	convexTolerance = 0.1
+)
 
 var newtonWorld *newton.World
 var newtonLastUpdate float32
@@ -20,18 +23,30 @@ type PhysicsScene struct {
 }
 
 type PhysicsBody struct {
-	Node *Node
-	Body *newton.Body
+	Node      *Node
+	Body      *newton.Body
+	destroyed bool
 }
 
 func initPhysics() {
 	newtonWorld = newton.CreateWorld()
 	physicsMatrix = make([]float32, 16)
+	physicsBodies = make([]*PhysicsBody, 10)
 }
 
 func updatePhysics() {
 	newtonWorld.Update(float32(GameTime()) - newtonLastUpdate)
-	for i := range physicsBodies {
+	//TODO: use callback 
+	for i := 0; i < len(physicsBodies); i++ {
+		if physicsBodies[i].destroyed {
+			if len(physicsBodies) > 1 {
+				physicsBodies = append(physicsBodies[:i], physicsBodies[i+1:]...)
+			} else {
+				physicsBodies = physicsBodies[0:0]
+				break
+			}
+
+		}
 		physicsBodies[i].Body.Matrix(physicsMatrix)
 		//TODO: Translate abs physics matrix to relative matrix?
 		//TODO: interpolate visual position from physics
@@ -43,7 +58,7 @@ func applyForceAndTorque(body *newton.Body, timestep float32, threadIndex int) {
 	var Ixx, Iyy, Izz, mass float32
 
 	body.MassMatrix(&mass, &Ixx, &Iyy, &Izz)
-	body.SetForce([]float32{0.0, mass * GRAVITY, 0.0, 1.0})
+	body.SetForce([]float32{0.0, mass * gravity, 0.0, 1.0})
 }
 
 func clearAllPhysics() {
@@ -67,7 +82,6 @@ func AddPhysicsScene(node *Node) *PhysicsScene {
 	mesh := NewtonMeshFromGeometry(node.Geometry())
 
 	collision := newtonWorld.CreateTreeCollsionFromMesh(mesh, int(node.H3DNode))
-
 	vmath.M4ToSlice(physicsMatrix, node.AbsoluteTransMat())
 	newScene.Body = newtonWorld.CreateDynamicBody(collision, physicsMatrix)
 
@@ -91,9 +105,9 @@ func AddPhysicsSceneFromGeometry(node *Node, geometry *Geometry) *PhysicsScene {
 }
 
 //Adds a physics body using the passed in node to determine the collision hull.
-// a convex hull will be built from the node's visible geometry.  If the node has
-// children a compound shape will be made from the children's nodes
-func AddPhysicsBody(node *Node) *PhysicsBody {
+// a convex hull will be built from the node's visible geometry.  If includeChildren
+// a compound shape will be made from the children's nodes as well
+func AddPhysicsBody(node *Node, includeChildren bool) *PhysicsBody {
 	newBody := new(PhysicsBody)
 	newBody.Node = node
 
@@ -104,25 +118,38 @@ func AddPhysicsBody(node *Node) *PhysicsBody {
 
 //Adds a physics body using the passed in geometry, but updates are transfered back to
 // the node for visual updates
-func AddPhysicsBodyFromGeometry(node *Node, geometry *Geometry) *PhysicsBody {
-	newBody := new(PhysicsBody)
-	newBody.Node = node
+func AddPhysicsBodyFromGeometry(node *Node, geometry *Geometry, mass float32) *PhysicsBody {
+	mesh := NewtonMeshFromGeometry(geometry)
+	collision := newtonWorld.CreateConvexHullFromMesh(mesh, convexTolerance, int(node.H3DNode))
 
-	//TODO: Write actual code
-	return newBody
-
+	return AddPhysicsBodyFromCollision(node, collision, mass)
 }
 
-//AddPhysicsBodyFromNewtonBody allows for creating a specific body in newton directly
-// with any collision primatives and associating it for engine updates via the passed in node
-func AddPhysicsBodyFromNewtonBody(node *Node, body *newton.Body) *PhysicsBody {
+//AddPhysicsBodyFromCollision allows for creating a specific collision in newton directly
+//  and associating it for engine updates via the passed in node
+// Also sets up body to have standard forces applied and associates user data to PhysicsBody
+func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass float32) *PhysicsBody {
 	newBody := new(PhysicsBody)
+	inertia := make([]float32, 3)
+	origin := make([]float32, 3)
+
 	newBody.Node = node
 
+	vmath.M4ToSlice(physicsMatrix, node.AbsoluteTransMat())
+	body := newtonWorld.CreateDynamicBody(collision, physicsMatrix)
+
+	//TODO: mass calculations
+	collision.CalculateInertialMatrix(inertia, origin)
+	body.SetMassMatrix(mass, mass*inertia[0], mass*inertia[1], mass*inertia[2])
+
+	body.SetCentreOfMass(origin)
+
 	body.SetForceAndTorqueCallback(applyForceAndTorque)
+	//TODO: Cleanup array entry on destroy
+	body.SetUserData(newBody)
+
 	newBody.Body = body
 
 	physicsBodies = append(physicsBodies, newBody)
 	return newBody
-
 }
