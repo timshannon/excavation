@@ -133,6 +133,8 @@ func StartMainLoop() {
 		glfw.SwapBuffers()
 	}
 
+	ClearAll()
+	newtonWorld.Destroy()
 	horde3d.Release()
 	glfw.Terminate()
 	glfw.CloseWindow()

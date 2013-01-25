@@ -343,6 +343,12 @@ func (n *Node) IsVisible(camera *Camera, checkOcclusion, calcLOD bool) int {
 	return horde3d.CheckNodeVisibility(n.H3DNode, camera.H3DNode, checkOcclusion, calcLOD)
 }
 
+func (n *Node) Geometry() *Geometry {
+	geom := &Geometry{new(Resource)}
+	geom.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(n.H3DNode, horde3d.Model_GeoResI))
+	return geom
+}
+
 type Group struct{ *Node }
 
 //Adds a new group node
