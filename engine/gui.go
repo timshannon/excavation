@@ -275,9 +275,13 @@ func (g *Gui) AddWidget(widget Widget) {
 
 //Removes a widget from the gui. 
 func (g *Gui) RemoveWidget(name string) {
-	for i := range g.Widgets {
+	for i := 0; i < len(g.Widgets); i++ {
 		if g.Widgets[i].Name() == name {
-			g.Widgets = append(g.Widgets[:i], g.Widgets[i+1:]...)
+			if len(g.Widgets) > 1 {
+				g.Widgets = append(g.Widgets[:i], g.Widgets[i+1:]...)
+			} else {
+				g.Widgets = g.Widgets[0:0]
+			}
 		}
 	}
 }
