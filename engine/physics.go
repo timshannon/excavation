@@ -15,50 +15,39 @@ var newtonWorld *newton.World
 var newtonLastUpdate float32
 var physicsMatrix []float32
 
-var physicsBodies []*PhysicsBody
-
 type PhysicsScene struct {
 	Node *Node
 	Body *newton.Body
 }
 
 type PhysicsBody struct {
-	Node      *Node
-	Body      *newton.Body
-	destroyed bool
+	Node *Node
+	Body *newton.Body
 }
 
 func initPhysics() {
 	newtonWorld = newton.CreateWorld()
 	physicsMatrix = make([]float32, 16)
-	physicsBodies = make([]*PhysicsBody, 10)
 }
 
 func updatePhysics() {
 	newtonWorld.Update(float32(GameTime()) - newtonLastUpdate)
-	//TODO: use callback 
-	for i := 0; i < len(physicsBodies); i++ {
-		if physicsBodies[i].destroyed {
-			if len(physicsBodies) > 1 {
-				physicsBodies = append(physicsBodies[:i], physicsBodies[i+1:]...)
-			} else {
-				physicsBodies = physicsBodies[0:0]
-				break
-			}
-
-		}
-		physicsBodies[i].Body.Matrix(physicsMatrix)
-		//TODO: Translate abs physics matrix to relative matrix?
-		//TODO: interpolate visual position from physics
-		horde3d.SetNodeTransMat(physicsBodies[i].Node.H3DNode, physicsMatrix)
-	}
 }
 
-func applyForceAndTorque(body *newton.Body, timestep float32, threadIndex int) {
+func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex int) {
 	var Ixx, Iyy, Izz, mass float32
 
 	body.MassMatrix(&mass, &Ixx, &Iyy, &Izz)
 	body.SetForce([]float32{0.0, mass * gravity, 0.0, 1.0})
+}
+
+func NewtonTransformUpdate(body *newton.Body, matrix []float32, threadIndex int) {
+	body.Matrix(physicsMatrix)
+	//TODO: Translate abs physics matrix to relative matrix?
+	//TODO: interpolate visual position from physics
+
+	pBody := body.UserData().(PhysicsBody)
+	horde3d.SetNodeTransMat(pBody.Node.H3DNode, physicsMatrix)
 }
 
 func clearAllPhysics() {
@@ -79,13 +68,7 @@ func AddPhysicsScene(node *Node) *PhysicsScene {
 	newScene := new(PhysicsScene)
 	newScene.Node = node
 
-	mesh := NewtonMeshFromGeometry(node.Geometry())
-
-	collision := newtonWorld.CreateTreeCollsionFromMesh(mesh, int(node.H3DNode))
-	vmath.M4ToSlice(physicsMatrix, node.AbsoluteTransMat())
-	newScene.Body = newtonWorld.CreateDynamicBody(collision, physicsMatrix)
-
-	return newScene
+	return AddPhysicsSceneFromGeometry(node, node.Geometry())
 }
 
 //AddPhysicsSceneFromGeometry adds a scene physics collision type built
@@ -107,13 +90,30 @@ func AddPhysicsSceneFromGeometry(node *Node, geometry *Geometry) *PhysicsScene {
 //Adds a physics body using the passed in node to determine the collision hull.
 // a convex hull will be built from the node's visible geometry.  If includeChildren
 // a compound shape will be made from the children's nodes as well
-func AddPhysicsBody(node *Node, includeChildren bool) *PhysicsBody {
+func AddPhysicsBody(node *Node, mass float32, includeChildren bool) *PhysicsBody {
 	newBody := new(PhysicsBody)
 	newBody.Node = node
 
-	//TODO: Write actual code
-	return newBody
+	if includeChildren {
+		children := node.Children()
+		if len(children) == 0 {
+			AddPhysicsBodyFromGeometry(node, node.Geometry(), mass)
+		}
+		collision := newtonWorld.CreateCompoundCollision(int(node.H3DNode))
 
+		collision.CompoundBeginAddRemove()
+		for i := range children {
+			mesh := NewtonMeshFromGeometry(children[i].Geometry())
+			subCollision := newtonWorld.CreateConvexHullFromMesh(mesh, convexTolerance,
+				int(node.H3DNode))
+			collision.CompoundAddSubCollision(subCollision)
+		}
+		collision.CompoundEndAddRemove()
+
+		return AddPhysicsBodyFromCollision(node, collision, mass)
+	}
+
+	return AddPhysicsBodyFromGeometry(node, node.Geometry(), mass)
 }
 
 //Adds a physics body using the passed in geometry, but updates are transfered back to
@@ -138,18 +138,16 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	vmath.M4ToSlice(physicsMatrix, node.AbsoluteTransMat())
 	body := newtonWorld.CreateDynamicBody(collision, physicsMatrix)
 
-	//TODO: mass calculations
 	collision.CalculateInertialMatrix(inertia, origin)
 	body.SetMassMatrix(mass, mass*inertia[0], mass*inertia[1], mass*inertia[2])
 
 	body.SetCentreOfMass(origin)
 
-	body.SetForceAndTorqueCallback(applyForceAndTorque)
-	//TODO: Cleanup array entry on destroy
+	body.SetForceAndTorqueCallback(NewtonApplyForceAndTorque)
+	body.SetTransformCallback(NewtonTransformUpdate)
 	body.SetUserData(newBody)
 
 	newBody.Body = body
 
-	physicsBodies = append(physicsBodies, newBody)
 	return newBody
 }
