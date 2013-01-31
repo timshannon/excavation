@@ -7,7 +7,6 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
-	vmath "github.com/timshannon/vectormath"
 	"io/ioutil"
 	"os"
 	"path"
@@ -198,10 +197,6 @@ func NewGeometry(name string) (*Geometry, error) {
 		return nil, err
 	}
 	return geo, nil
-}
-
-func (g *Geometry) VertexList() []vmath.Vector3 {
-
 }
 
 type Animation struct{ *Resource }

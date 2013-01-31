@@ -9,7 +9,9 @@ type PhysicsObject struct {
 }
 
 func (p *PhysicsObject) Add(node *engine.Node, args EntityArgs) {
-	p.body = engine.AddPhysicsBody(node, args.Float("mass"), args.Bool("includeChildren"))
+	matrix := make([]float32, 16)
+	p.body = engine.AddPhysicsBody(node, args.Float("mass"))
+
 }
 
 func (p *PhysicsObject) Trigger(value float32) {
