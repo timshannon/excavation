@@ -134,7 +134,7 @@ func StartMainLoop() {
 	}
 
 	ClearAll()
-	newtonWorld.Destroy()
+	phWorld.Destroy()
 	horde3d.Release()
 	glfw.Terminate()
 	glfw.CloseWindow()

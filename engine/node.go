@@ -247,7 +247,7 @@ func (n *Node) FindChild(name string, nodeType int) []*Node {
 	results := make([]*Node, size)
 
 	for i := range results {
-		results[i].H3DNode = horde3d.GetNodeFindResult(i)
+		results[i] = NewNode(horde3d.GetNodeFindResult(i))
 	}
 	return results
 }
@@ -341,12 +341,6 @@ func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector
 //the node is not visible, otherwise 0 (base LOD level) or the computed LOD level
 func (n *Node) IsVisible(camera *Camera, checkOcclusion, calcLOD bool) int {
 	return horde3d.CheckNodeVisibility(n.H3DNode, camera.H3DNode, checkOcclusion, calcLOD)
-}
-
-func (n *Node) Geometry() *Geometry {
-	geom := &Geometry{new(Resource)}
-	geom.H3DRes = horde3d.H3DRes(horde3d.GetNodeParamI(n.H3DNode, horde3d.Model_GeoResI))
-	return geom
 }
 
 type Group struct{ *Node }

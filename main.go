@@ -133,7 +133,8 @@ func loadScene(scene string) {
 		}
 
 	}
-	engine.AddTask("FPS", showFPS, nil, 0, 1)
+	//TODO: gui
+	//engine.AddTask("FPS", showFPS, nil, 0, 1)
 }
 
 func setCfgDefaults(cfg *engine.Config) {
