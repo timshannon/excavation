@@ -9,7 +9,6 @@ type PhysicsObject struct {
 }
 
 func (p *PhysicsObject) Add(node *engine.Node, args EntityArgs) {
-	matrix := make([]float32, 16)
 	p.body = engine.AddPhysicsBody(node, args.Float("mass"))
 
 }

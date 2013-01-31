@@ -51,6 +51,7 @@ func NewtonTransformUpdate(body *newton.Body, matrix []float32, threadIndex int)
 	//TODO: interpolate visual position from physics
 
 	pBody := body.UserData().(*PhysicsBody)
+	//Can only set relative matrix
 	horde3d.SetNodeTransMat(pBody.Node.H3DNode, phMatrix)
 }
 
@@ -66,7 +67,7 @@ func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 
 	for i := range hMeshes {
 		nMeshes[i] = phWorld.CreateMesh()
-		AddMeshToNewtonMesh(nMeshes[i], hMeshes[i])
+		AddMeshNodeToNewtonMesh(nMeshes[i], hMeshes[i].H3DNode)
 	}
 	return nMeshes
 }
@@ -78,7 +79,7 @@ func NewtonMeshFromNode(node *Node) *newton.Mesh {
 	hMeshes := node.FindChild("", NodeTypeMesh)
 
 	for i := range hMeshes {
-		AddMeshToNewtonMesh(mesh, hMeshes[i])
+		AddMeshNodeToNewtonMesh(mesh, hMeshes[i].H3DNode)
 	}
 
 	return mesh
@@ -86,20 +87,19 @@ func NewtonMeshFromNode(node *Node) *newton.Mesh {
 
 //AddNewtonMeshToMesh adds the passed in Mesh resource to the passed in
 // Newton Mesh
-func AddMeshToNewtonMesh(newtonMesh *newton.Mesh, mesh *Mesh) {
-	hNode := hMeshes[i].H3DNode
+func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hNode horde3d.H3DNode) {
 	//mesh
-	vertRStart := horde3d.GetNodeParamI(hNode, horde3d.Mesh_VertRStartI)
-	vertREnd := horde3d.GetNodeParamI(hNode, horde3d.Mesh_VertREndI)
-	batchStart := horde3d.GetNodeParamI(hNode, horde3d.Mesh_BatchStartI)
-	batchCount := horde3d.GetNodeParamI(hNode, horde3d.Mesh_BatchCountI)
+	//vertRStart := horde3d.GetNodeParamI(hNode, horde3d.Mesh_VertRStartI)
+	//vertREnd := horde3d.GetNodeParamI(hNode, horde3d.Mesh_VertREndI)
+	//batchStart := horde3d.GetNodeParamI(hNode, horde3d.Mesh_BatchStartI)
+	//batchCount := horde3d.GetNodeParamI(hNode, horde3d.Mesh_BatchCountI)
 	//geom
 	geom := horde3d.H3DRes(horde3d.GetNodeParamI(hNode, horde3d.Model_GeoResI))
-	isInt16 := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem,
+	isInt16 := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoIndices16I)
-	vertCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem,
+	vertCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoVertexCountI)
-	indexCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem,
+	indexCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoIndexCountI)
 
 	var byteSize int
@@ -109,11 +109,43 @@ func AddMeshToNewtonMesh(newtonMesh *newton.Mesh, mesh *Mesh) {
 		byteSize = 2
 	}
 
-	vertices := make([]float32, vertCount*3)
-	indices := make([]byte, indexCount*byteSize)
+	//Indices
+	var indices = make([]byte, indexCount*byteSize)
+	indexStream, err := horde3d.MapByteResStream(geom, horde3d.GeoRes_GeometryElem, 0, horde3d.GeoRes_GeoIndexStream,
+		true, false, indexCount*byteSize)
 
-	//func GetResParamI(res horde3d.H3DRes, elem int, elemIdx int, param int) int
-	//horde3d.GetResParamI(g.H3DRes, horde3d.GeoRes_GeometryElem
+	copy(indices, indexStream)
+	horde3d.UnmapResStream(geom)
+
+	if err != nil {
+		RaiseError(err)
+		return
+	}
+	//Vertices
+	vertices := make([]float32, vertCount*3)
+	vertStream, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0, horde3d.GeoRes_GeoVertPosStream,
+		true, false, vertCount*3)
+	copy(vertices, vertStream)
+	horde3d.UnmapResStream(geom)
+
+	if err != nil {
+		RaiseError(err)
+		return
+	}
+
+	//Tangents and Normals
+	tangent := make([]float32, vertCount*7)
+	tanStream, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0, horde3d.GeoRes_GeoVertTanStream,
+		true, false, vertCount*7)
+	copy(tangent, tanStream)
+	horde3d.UnmapResStream(geom)
+
+	if err != nil {
+		RaiseError(err)
+		return
+	}
+
+	//face := make([]float32, 
 
 	//TODO: Write actual code
 	//for (int i = 0; i < vertexCount; i ++) {
