@@ -3,6 +3,7 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"code.google.com/p/gonewton/newton"
+	"fmt"
 	vmath "github.com/timshannon/vectormath"
 )
 
@@ -64,10 +65,11 @@ func clearAllPhysics() {
 func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 	hMeshes := node.FindChild("", NodeTypeMesh)
 	nMeshes := make([]*newton.Mesh, len(hMeshes))
+	geom := horde3d.H3DRes(horde3d.GetNodeParamI(node.H3DNode, horde3d.Model_GeoResI))
 
 	for i := range hMeshes {
 		nMeshes[i] = phWorld.CreateMesh()
-		AddMeshNodeToNewtonMesh(nMeshes[i], hMeshes[i].H3DNode)
+		AddMeshNodeToNewtonMesh(nMeshes[i], hMeshes[i].H3DNode, geom)
 	}
 	return nMeshes
 }
@@ -77,9 +79,10 @@ func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 func NewtonMeshFromNode(node *Node) *newton.Mesh {
 	mesh := phWorld.CreateMesh()
 	hMeshes := node.FindChild("", NodeTypeMesh)
+	geom := horde3d.H3DRes(horde3d.GetNodeParamI(node.H3DNode, horde3d.Model_GeoResI))
 
 	for i := range hMeshes {
-		AddMeshNodeToNewtonMesh(mesh, hMeshes[i].H3DNode)
+		AddMeshNodeToNewtonMesh(mesh, hMeshes[i].H3DNode, geom)
 	}
 
 	return mesh
@@ -87,14 +90,13 @@ func NewtonMeshFromNode(node *Node) *newton.Mesh {
 
 //AddNewtonMeshToMesh adds the passed in Mesh resource to the passed in
 // Newton Mesh
-func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hNode horde3d.H3DNode) {
+func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, meshNode horde3d.H3DNode, geom horde3d.H3DRes) {
 	//mesh
-	//vertRStart := horde3d.GetNodeParamI(hNode, horde3d.Mesh_VertRStartI)
-	//vertREnd := horde3d.GetNodeParamI(hNode, horde3d.Mesh_VertREndI)
-	//batchStart := horde3d.GetNodeParamI(hNode, horde3d.Mesh_BatchStartI)
-	//batchCount := horde3d.GetNodeParamI(hNode, horde3d.Mesh_BatchCountI)
+	//vertRStart := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_VertRStartI)
+	//vertREnd := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_VertREndI)
+	batchStart := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_BatchStartI)
+	batchCount := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_BatchCountI)
 	//geom
-	geom := horde3d.H3DRes(horde3d.GetNodeParamI(hNode, horde3d.Model_GeoResI))
 	isInt16 := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoIndices16I)
 	vertCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
@@ -109,12 +111,15 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hNode horde3d.H3DNode) {
 		byteSize = 2
 	}
 
+	_ = byteSize
 	//Indices
-	var indices = make([]byte, indexCount*byteSize)
-	indexStream, err := horde3d.MapByteResStream(geom, horde3d.GeoRes_GeometryElem, 0, horde3d.GeoRes_GeoIndexStream,
-		true, false, indexCount*byteSize)
+	//indices, err := horde3d.MapByteResStream(geom, horde3d.GeoRes_GeometryElem, 0,
+	//horde3d.GeoRes_GeoIndexStream, true, false, indexCount*byteSize)
+	indices, err := horde3d.MapUint32ResStream(geom, horde3d.GeoRes_GeometryElem, 0,
+		horde3d.GeoRes_GeoIndexStream, true, false, indexCount)
 
-	copy(indices, indexStream)
+	fmt.Println("indices: ", indices)
+	panic("test")
 	horde3d.UnmapResStream(geom)
 
 	if err != nil {
@@ -122,29 +127,49 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hNode horde3d.H3DNode) {
 		return
 	}
 	//Vertices
-	vertices := make([]float32, vertCount*3)
-	vertStream, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0, horde3d.GeoRes_GeoVertPosStream,
-		true, false, vertCount*3)
-	copy(vertices, vertStream)
+	vertices, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0,
+		horde3d.GeoRes_GeoVertPosStream, true, false, vertCount*3)
+	//copy(vertices, vertStream)
 	horde3d.UnmapResStream(geom)
 
+	fmt.Println("vertices", vertices)
 	if err != nil {
 		RaiseError(err)
 		return
 	}
 
 	//Tangents and Normals
-	tangent := make([]float32, vertCount*7)
-	tanStream, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0, horde3d.GeoRes_GeoVertTanStream,
-		true, false, vertCount*7)
-	copy(tangent, tanStream)
-	horde3d.UnmapResStream(geom)
+	//tangent, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0,
+	//horde3d.GeoRes_GeoVertTanStream, true, false, vertCount*7)
+
+	//horde3d.UnmapResStream(geom)
 
 	if err != nil {
 		RaiseError(err)
 		return
 	}
 
+	//face := make([]float32, 10)
+
+	for j := batchStart; j < batchCount+batchStart-2; j += 3 {
+		//index0 := bytePosToIndex(indices, j, 0, byteSize)
+		//index1 := bytePosToIndex(indices, j, 1, byteSize)
+		//index2 := bytePosToIndex(indices, j, 2, byteSize)
+
+		//fmt.Println("indexes: ", index0, index1, index2)
+
+		////pos
+		//face[0] = vertices[index0]
+		//face[1] = vertices[index1]
+		//face[2] = vertices[index2]
+		////normal
+
+		////tangent
+
+		//newtonMesh.BeginFace()
+		//newtonMesh.AddFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
+		//newtonMesh.EndFace()
+	}
 	//face := make([]float32, 
 
 	//TODO: Write actual code
@@ -174,6 +199,14 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hNode horde3d.H3DNode) {
 
 }
 
+func bytePosToIndex(indices []byte, batch, index, byteSize int) int {
+	if byteSize == 2 {
+		return int((indices[(batch+index)*byteSize] + (indices[(batch+index)*byteSize+1] << 8)) * 3)
+	}
+	return int((indices[(batch+index)*byteSize] + (indices[(batch+index)*byteSize+1] << 8) +
+		(indices[(batch+index)*byteSize+2] << 16) + (indices[(batch+index)*byteSize+3] << 24)) * 3)
+}
+
 //AddPhysicsScene adds a scene physics collision type built from
 // the passed in node's geometry.  
 func AddPhysicsScene(node *Node) *PhysicsScene {
@@ -200,7 +233,7 @@ func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
 
 	meshes := NewtonMeshListFromNode(node)
 
-	if len(meshes) == 0 {
+	if len(meshes) == 1 {
 		collision := phWorld.CreateConvexHullFromMesh(meshes[0], CONVEXTOLERANCE,
 			int(node.H3DNode))
 		return AddPhysicsBodyFromCollision(node, collision, mass)
