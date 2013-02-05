@@ -179,10 +179,12 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geo
 		fmt.Println("face: ", face)
 
 		newtonMesh.BeginFace()
-		newtonMesh.AddFace(3, face, len(face)*4, phWorld.DefaultMaterialGroupID())
+		//3 verts * 4 bytes per 32bit float
+		newtonMesh.AddFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
 		newtonMesh.EndFace()
 	}
 
+	fmt.Println("MeshInfo: ", newtonMesh.FirstPoint())
 	return
 }
 
