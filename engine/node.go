@@ -72,7 +72,7 @@ func (n *Node) Parent() *Node {
 }
 
 //Relocates a node in the scene graph.
-func (n *Node) SetParent(parent Node) bool { return horde3d.SetNodeParent(n.H3DNode, parent.H3DNode) }
+func (n *Node) SetParent(parent *Node) bool { return horde3d.SetNodeParent(n.H3DNode, parent.H3DNode) }
 
 //Returns a slice of the children of the current node
 func (n *Node) Children() []*Node {

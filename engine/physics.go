@@ -69,8 +69,11 @@ func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 
 	for i := range hMeshes {
 		nMeshes[i] = phWorld.CreateMesh()
+
+		fmt.Println("Mesh #", i)
 		AddMeshNodeToNewtonMesh(nMeshes[i], hMeshes[i].H3DNode, geom)
 	}
+
 	return nMeshes
 }
 
@@ -90,12 +93,11 @@ func NewtonMeshFromNode(node *Node) *newton.Mesh {
 
 //AddNewtonMeshToMesh adds the passed in Mesh resource to the passed in
 // Newton Mesh
-func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, meshNode horde3d.H3DNode, geom horde3d.H3DRes) {
+func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geom horde3d.H3DRes) {
 	//mesh
-	//vertRStart := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_VertRStartI)
-	//vertREnd := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_VertREndI)
-	batchStart := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_BatchStartI)
-	batchCount := horde3d.GetNodeParamI(meshNode, horde3d.Mesh_BatchCountI)
+	batchStart := horde3d.GetNodeParamI(hMesh, horde3d.Mesh_BatchStartI)
+	batchCount := horde3d.GetNodeParamI(hMesh, horde3d.Mesh_BatchCountI)
+
 	//geom
 	isInt16 := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoIndices16I)
@@ -104,35 +106,35 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, meshNode horde3d.H3DNode, 
 	indexCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoIndexCountI)
 
-	var byteSize int
-	if isInt16 == 0 {
-		byteSize = 4
-	} else {
-		byteSize = 2
-	}
+	fmt.Println("vertCount: ", vertCount)
+	fmt.Println("indexCount: ", indexCount)
+	fmt.Println("batchStart: ", batchStart)
+	fmt.Println("batchCount: ", batchCount)
 
-	_ = byteSize
 	//Indices
-	//indices, err := horde3d.MapByteResStream(geom, horde3d.GeoRes_GeometryElem, 0,
-	//horde3d.GeoRes_GeoIndexStream, true, false, indexCount*byteSize)
-	indices, err := horde3d.MapUint32ResStream(geom, horde3d.GeoRes_GeometryElem, 0,
-		horde3d.GeoRes_GeoIndexStream, true, false, indexCount)
+	var indices16 []uint16
+	var indices32 []uint32
+	var err error
 
-	fmt.Println("indices: ", indices)
-	panic("test")
+	if isInt16 == 1 {
+		indices16, err = horde3d.MapUint16ResStream(geom, horde3d.GeoRes_GeometryElem, 0,
+			horde3d.GeoRes_GeoIndexStream, true, false, indexCount)
+	} else {
+		indices32, err = horde3d.MapUint32ResStream(geom, horde3d.GeoRes_GeometryElem, 0,
+			horde3d.GeoRes_GeoIndexStream, true, false, indexCount)
+	}
 	horde3d.UnmapResStream(geom)
 
 	if err != nil {
 		RaiseError(err)
 		return
 	}
+
 	//Vertices
 	vertices, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoVertPosStream, true, false, vertCount*3)
-	//copy(vertices, vertStream)
 	horde3d.UnmapResStream(geom)
 
-	fmt.Println("vertices", vertices)
 	if err != nil {
 		RaiseError(err)
 		return
@@ -142,69 +144,46 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, meshNode horde3d.H3DNode, 
 	//tangent, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0,
 	//horde3d.GeoRes_GeoVertTanStream, true, false, vertCount*7)
 
-	//horde3d.UnmapResStream(geom)
-
-	if err != nil {
-		RaiseError(err)
-		return
-	}
-
-	//face := make([]float32, 10)
-
-	for j := batchStart; j < batchCount+batchStart-2; j += 3 {
-		//index0 := bytePosToIndex(indices, j, 0, byteSize)
-		//index1 := bytePosToIndex(indices, j, 1, byteSize)
-		//index2 := bytePosToIndex(indices, j, 2, byteSize)
-
-		//fmt.Println("indexes: ", index0, index1, index2)
-
-		////pos
-		//face[0] = vertices[index0]
-		//face[1] = vertices[index1]
-		//face[2] = vertices[index2]
-		////normal
-
-		////tangent
-
-		//newtonMesh.BeginFace()
-		//newtonMesh.AddFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
-		//newtonMesh.EndFace()
-	}
-	//face := make([]float32, 
-
-	//TODO: Write actual code
-	//for (int i = 0; i < vertexCount; i ++) {
-	//dVector p1 (faceVertec[i * 3 + 0], faceVertec[i * 3 + 1], faceVertec[i * 3 + 2]);
-	//p1 += displacemnet;
-
-	//face[i][0] = p1.m_x; 
-	//face[i][1] = p1.m_y;  
-	//face[i][2] = p1.m_z;   
-
-	//face[i][3] = normal.m_x; 
-	//face[i][4] = normal.m_y;  
-	//face[i][5] = normal.m_z;  
-
-	//face[i][6] = 0.0f; 
-	//face[i][7] = 0.0f;  
-	//face[i][8] = 0.0f;  
-	//face[i][9] = 0.0f;  
+	//if err != nil {
+	//RaiseError(err)
+	//return
 	//}
 
-	//// add the face
-	//NewtonMeshAddFace (mesh, vertexCount, &face[0][0], 10 * sizeof (float), id);
+	face := make([]float32, 9)
+	var vIndex1, vIndex2, vIndex3 uint32
 
-	//import "encoding/binary"
-	// binary.Size(0.0)?
+	for index := 0; index < batchCount; index += 3 {
+		if isInt16 == 1 {
+			vIndex1 = uint32(indices16[index+batchStart])
+			vIndex2 = uint32(indices16[index+batchStart+1])
+			vIndex3 = uint32(indices16[index+batchStart+2])
+		} else {
+			vIndex1 = indices32[index+batchStart]
+			vIndex2 = indices32[index+batchStart+1]
+			vIndex3 = indices32[index+batchStart+2]
+		}
 
-}
+		//pos
+		face[0] = vertices[vIndex1*3]
+		face[1] = vertices[vIndex1*3+1]
+		face[2] = vertices[vIndex1*3+2]
 
-func bytePosToIndex(indices []byte, batch, index, byteSize int) int {
-	if byteSize == 2 {
-		return int((indices[(batch+index)*byteSize] + (indices[(batch+index)*byteSize+1] << 8)) * 3)
+		face[3] = vertices[vIndex2*3]
+		face[4] = vertices[vIndex2*3+1]
+		face[5] = vertices[vIndex2*3+2]
+
+		face[6] = vertices[vIndex3*3]
+		face[7] = vertices[vIndex3*3+1]
+		face[8] = vertices[vIndex3*3+2]
+
+		fmt.Println("face: ", face)
+
+		newtonMesh.BeginFace()
+		newtonMesh.AddFace(3, face, len(face)*4, phWorld.DefaultMaterialGroupID())
+		newtonMesh.EndFace()
 	}
-	return int((indices[(batch+index)*byteSize] + (indices[(batch+index)*byteSize+1] << 8) +
-		(indices[(batch+index)*byteSize+2] << 16) + (indices[(batch+index)*byteSize+3] << 24)) * 3)
+
+	return
 }
 
 //AddPhysicsScene adds a scene physics collision type built from
@@ -245,6 +224,7 @@ func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
 	for i := range meshes {
 		subCollision := phWorld.CreateConvexHullFromMesh(meshes[i], CONVEXTOLERANCE,
 			int(node.H3DNode))
+		fmt.Println("subcollision: ", subCollision)
 		collision.CompoundAddSubCollision(subCollision)
 	}
 	collision.CompoundEndAddRemove()
