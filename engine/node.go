@@ -42,6 +42,7 @@ func NewNode(hordeNode horde3d.H3DNode) *Node {
 		horde3d.H3DNode: hordeNode,
 		relMat:          new(vmath.Matrix4),
 		absMat:          new(vmath.Matrix4),
+		updateFrame:     -1,
 	}
 
 	return node
@@ -155,6 +156,7 @@ func (n *Node) SetTransform(translate, rotate, scale *vmath.Vector3) {
 func (n *Node) updateTransMats() {
 	//only jump into cgo code if the matrices haven't
 	// been updated for this frame
+	//TODO: Time CGO vs frame check is it worth it
 	if n.updateFrame != frames {
 		horde3d.GetNodeTransMats(n.H3DNode, tempRelMat, tempAbsMat)
 		vmath.SliceToM4(n.relMat, tempRelMat)

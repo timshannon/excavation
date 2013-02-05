@@ -70,7 +70,6 @@ func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 	for i := range hMeshes {
 		nMeshes[i] = phWorld.CreateMesh()
 
-		fmt.Println("Mesh #", i)
 		AddMeshNodeToNewtonMesh(nMeshes[i], hMeshes[i].H3DNode, geom)
 	}
 
@@ -105,11 +104,6 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geo
 		horde3d.GeoRes_GeoVertexCountI)
 	indexCount := horde3d.GetResParamI(geom, horde3d.GeoRes_GeometryElem, 0,
 		horde3d.GeoRes_GeoIndexCountI)
-
-	fmt.Println("vertCount: ", vertCount)
-	fmt.Println("indexCount: ", indexCount)
-	fmt.Println("batchStart: ", batchStart)
-	fmt.Println("batchCount: ", batchCount)
 
 	//Indices
 	var indices16 []uint16
@@ -176,15 +170,12 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geo
 		face[7] = vertices[vIndex3*3+1]
 		face[8] = vertices[vIndex3*3+2]
 
-		fmt.Println("face: ", face)
-
 		newtonMesh.BeginFace()
 		//3 verts * 4 bytes per 32bit float
 		newtonMesh.AddFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
 		newtonMesh.EndFace()
 	}
 
-	fmt.Println("MeshInfo: ", newtonMesh.FirstPoint())
 	return
 }
 
@@ -197,6 +188,7 @@ func AddPhysicsScene(node *Node) *PhysicsScene {
 	mesh := NewtonMeshFromNode(node)
 
 	collision := phWorld.CreateTreeCollsionFromMesh(mesh, int(node.H3DNode))
+	fmt.Println("Scene: ", collision)
 
 	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
 	newScene.Body = phWorld.CreateDynamicBody(collision, phMatrix)
@@ -226,7 +218,6 @@ func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
 	for i := range meshes {
 		subCollision := phWorld.CreateConvexHullFromMesh(meshes[i], CONVEXTOLERANCE,
 			int(node.H3DNode))
-		fmt.Println("subcollision: ", subCollision)
 		collision.CompoundAddSubCollision(subCollision)
 	}
 	collision.CompoundEndAddRemove()
@@ -245,6 +236,10 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	newBody.Node = node
 
 	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
+
+	fmt.Println("Node: ", node.Name())
+	fmt.Println("NodeMat: ", phMatrix)
+	fmt.Println("Collision: ", collision)
 	body := phWorld.CreateDynamicBody(collision, phMatrix)
 
 	collision.CalculateInertialMatrix(inertia, origin)
