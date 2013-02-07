@@ -60,6 +60,9 @@ func clearAllPhysics() {
 	phWorld.DestroyAllBodies()
 }
 
+//Allows me to share face access code between scene trees and regular meshes
+type hordeMeshFaceIterator func(face []float32)
+
 //NewtonMeshListFromNode Returns an array of newton meshes from the passed in Nodes child meshes
 // each child being a separate mesh
 func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
@@ -70,29 +73,34 @@ func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 	for i := range hMeshes {
 		nMeshes[i] = phWorld.CreateMesh()
 
-		AddMeshNodeToNewtonMesh(nMeshes[i], hMeshes[i].H3DNode, geom)
+		nMeshes[i].BeginFace()
+		iterateFacesInMesh(func(face []float32) {
+			nMeshes[i].AddFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
+		}, hMeshes[i].H3DNode, geom)
+		nMeshes[i].EndFace()
 	}
 
 	return nMeshes
 }
 
-//NewtonmeshFromNode returns a single mesh built from all of the child mesh
-// nodes in the passed in node
-func NewtonMeshFromNode(node *Node) *newton.Mesh {
-	mesh := phWorld.CreateMesh()
+func NewtonTreeFromNode(node *Node) *newton.Collision {
+	collision := phWorld.CreateTreeCollision(int(node.H3DNode))
+
 	hMeshes := node.FindChild("", NodeTypeMesh)
 	geom := horde3d.H3DRes(horde3d.GetNodeParamI(node.H3DNode, horde3d.Model_GeoResI))
 
+	collision.BeginTreeBuild()
 	for i := range hMeshes {
-		AddMeshNodeToNewtonMesh(mesh, hMeshes[i].H3DNode, geom)
+		iterateFacesInMesh(func(face []float32) {
+			collision.AddTreeFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
+		}, hMeshes[i].H3DNode, geom)
 	}
+	collision.EndTreeBuild(true)
 
-	return mesh
+	return collision
 }
 
-//AddNewtonMeshToMesh adds the passed in Mesh resource to the passed in
-// Newton Mesh
-func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geom horde3d.H3DRes) {
+func iterateFacesInMesh(iterator hordeMeshFaceIterator, hMesh horde3d.H3DNode, geom horde3d.H3DRes) {
 	//mesh
 	batchStart := horde3d.GetNodeParamI(hMesh, horde3d.Mesh_BatchStartI)
 	batchCount := horde3d.GetNodeParamI(hMesh, horde3d.Mesh_BatchCountI)
@@ -134,16 +142,7 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geo
 		return
 	}
 
-	//Tangents and Normals
-	//tangent, err := horde3d.MapFloatResStream(geom, horde3d.GeoRes_GeometryElem, 0,
-	//horde3d.GeoRes_GeoVertTanStream, true, false, vertCount*7)
-
-	//if err != nil {
-	//RaiseError(err)
-	//return
-	//}
-
-	face := make([]float32, 9)
+	face := make([]float32, 16)
 	var vIndex1, vIndex2, vIndex3 uint32
 
 	for index := 0; index < batchCount; index += 3 {
@@ -170,13 +169,9 @@ func AddMeshNodeToNewtonMesh(newtonMesh *newton.Mesh, hMesh horde3d.H3DNode, geo
 		face[7] = vertices[vIndex3*3+1]
 		face[8] = vertices[vIndex3*3+2]
 
-		newtonMesh.BeginFace()
-		//3 verts * 4 bytes per 32bit float
-		newtonMesh.AddFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
-		newtonMesh.EndFace()
+		iterator(face)
 	}
 
-	return
 }
 
 //AddPhysicsScene adds a scene physics collision type built from
@@ -185,9 +180,8 @@ func AddPhysicsScene(node *Node) *PhysicsScene {
 	newScene := new(PhysicsScene)
 	newScene.Node = node
 
-	mesh := NewtonMeshFromNode(node)
+	collision := NewtonTreeFromNode(node)
 
-	collision := phWorld.CreateTreeCollsionFromMesh(mesh, int(node.H3DNode))
 	fmt.Println("Scene: ", collision)
 
 	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
@@ -240,6 +234,7 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	fmt.Println("Node: ", node.Name())
 	fmt.Println("NodeMat: ", phMatrix)
 	fmt.Println("Collision: ", collision)
+	fmt.Println("collisionInfo: ", collision.CalculateVolume())
 	body := phWorld.CreateDynamicBody(collision, phMatrix)
 
 	collision.CalculateInertialMatrix(inertia, origin)
