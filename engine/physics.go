@@ -48,7 +48,7 @@ func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex 
 
 func NewtonTransformUpdate(body *newton.Body, matrix []float32, threadIndex int) {
 	body.Matrix(phMatrix)
-	//TODO: Translate abs physics matrix to relative matrix?
+	//TODO: Translate abs physics matrix to relative matrix or assume no children?
 	//TODO: interpolate visual position from physics
 
 	pBody := body.UserData().(*PhysicsBody)
@@ -93,6 +93,7 @@ func NewtonTreeFromNode(node *Node) *newton.Collision {
 	for i := range hMeshes {
 		iterateFacesInMesh(func(face []float32) {
 			collision.AddTreeFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
+			fmt.Println("face: ", face)
 		}, hMeshes[i].H3DNode, geom)
 	}
 	collision.EndTreeBuild(true)
@@ -235,6 +236,7 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	fmt.Println("NodeMat: ", phMatrix)
 	fmt.Println("Collision: ", collision)
 	fmt.Println("collisionInfo: ", collision.CalculateVolume())
+
 	body := phWorld.CreateDynamicBody(collision, phMatrix)
 
 	collision.CalculateInertialMatrix(inertia, origin)
