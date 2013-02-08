@@ -22,6 +22,8 @@ func NewEntity(typeName string) (Entity, error) {
 		return new(PhysicsObject), nil
 	case "physicsscene":
 		return new(PhysicsScene), nil
+	case "physicsbox":
+		return new(PhysicsBox), nil
 
 	}
 	return nil, errors.New("Entity of type " + typeName + " not found.")
