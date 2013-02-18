@@ -3,13 +3,13 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"code.google.com/p/gonewton/newton"
-	"fmt"
 	vmath "github.com/timshannon/vectormath"
+	"strconv"
 )
 
 const (
 	GRAVITY         = -9.8
-	CONVEXTOLERANCE = 0.1
+	CONVEXTOLERANCE = 0.01
 )
 
 var phWorld *newton.World
@@ -18,12 +18,12 @@ var phMatrix []float32
 
 type PhysicsScene struct {
 	Node *Node
-	Body *newton.Body
+	*newton.Body
 }
 
 type PhysicsBody struct {
 	Node *Node
-	Body *newton.Body
+	*newton.Body
 }
 
 func initPhysics() {
@@ -93,7 +93,6 @@ func NewtonTreeFromNode(node *Node) *newton.Collision {
 	for i := range hMeshes {
 		iterateFacesInMesh(func(face []float32) {
 			collision.AddTreeFace(3, face, 3*4, phWorld.DefaultMaterialGroupID())
-			fmt.Println("face: ", face)
 		}, hMeshes[i].H3DNode, geom)
 	}
 	collision.EndTreeBuild(true)
@@ -183,8 +182,6 @@ func AddPhysicsScene(node *Node) *PhysicsScene {
 
 	collision := NewtonTreeFromNode(node)
 
-	fmt.Println("Scene: ", collision)
-
 	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
 	newScene.Body = phWorld.CreateDynamicBody(collision, phMatrix)
 
@@ -232,11 +229,6 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 
 	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
 
-	fmt.Println("Node: ", node.Name())
-	fmt.Println("NodeMat: ", phMatrix)
-	fmt.Println("Collision: ", collision)
-	fmt.Println("collisionInfo: ", collision.CalculateVolume())
-
 	body := phWorld.CreateDynamicBody(collision, phMatrix)
 
 	collision.CalculateInertialMatrix(inertia, origin)
@@ -251,4 +243,70 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	newBody.Body = body
 
 	return newBody
+}
+
+var phI int
+
+func collisionIterator(userData interface{}, vertexCount int, faceArray []float32, faceID int) {
+	indexData := make([]uint32, vertexCount)
+
+	phI++
+
+	for i := range indexData {
+		indexData[i] = uint32(i)
+	}
+
+	strIt := strconv.Itoa(phI)
+	geoRes := horde3d.CreateGeometryRes("geomRes"+strIt, 4, 6, faceArray, indexData, nil, nil, nil, nil, nil)
+	model := horde3d.AddModelNode(Root.H3DNode, "DynGeoModelNode"+strIt, geoRes)
+
+	matRes, _ := NewMaterial("overlays/gui/default/background.material.xml")
+	matRes.Load()
+
+	horde3d.AddMeshNode(model, "DynGeoMesh"+strIt, matRes.H3DRes, 0, 6, 0, 3)
+	//fmt.Println("node: ", node)
+
+	//node.SetParent(userData.(*Node))
+
+}
+
+func showDebugGeometry(b *newton.Body, node *Node) {
+	horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
+
+	collision := b.Collision()
+	if collision == nil {
+		return
+	}
+
+	b.Matrix(phMatrix)
+
+	collision.ForEachPolygonDo(phMatrix, collisionIterator, node)
+	//testDynGeometry(b.Node)
+}
+
+func (b *PhysicsBody) ShowDebugGeometry() {
+	showDebugGeometry(b.Body, b.Node)
+}
+
+func (s *PhysicsScene) ShowDebugGeometry() {
+	showDebugGeometry(s.Body, s.Node)
+}
+
+func testDynGeometry(parent *Node) {
+
+	posData := []float32{
+		0, 0, 0,
+		10, 0, 0,
+		0, 10, 0,
+		10, 10, 0}
+
+	indexData := []uint32{0, 1, 2, 2, 1, 3}
+
+	geoRes := horde3d.CreateGeometryRes("geoRes", 4, 6, posData, indexData, nil, nil, nil, nil, nil)
+	model := horde3d.AddModelNode(parent.H3DNode, "DynGeoModelNode", geoRes)
+
+	matRes, _ := NewMaterial("overlays/gui/default/background.material.xml")
+	matRes.Load()
+
+	horde3d.AddMeshNode(model, "DynGeoMesh", matRes.H3DRes, 0, 6, 0, 3)
 }
