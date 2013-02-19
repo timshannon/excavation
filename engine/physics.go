@@ -1,3 +1,7 @@
+// Copyright 2012 Tim Shannon. All rights reserved.
+// Use of this source code is governed by the MIT license
+// that can be found in the LICENSE file.
+
 package engine
 
 import (
@@ -14,7 +18,7 @@ const (
 
 var phWorld *newton.World
 var phLastUpdate float32
-var phMatrix []float32
+var phMatrix = [16]float32{}
 
 type PhysicsScene struct {
 	Node *Node
@@ -28,7 +32,6 @@ type PhysicsBody struct {
 
 func initPhysics() {
 	phWorld = newton.CreateWorld()
-	phMatrix = make([]float32, 16)
 }
 
 func PhysicsWorld() *newton.World {
@@ -47,13 +50,13 @@ func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex 
 }
 
 func NewtonTransformUpdate(body *newton.Body, matrix []float32, threadIndex int) {
-	body.Matrix(phMatrix)
+	body.Matrix(phMatrix[:])
 	//TODO: Translate abs physics matrix to relative matrix or assume no children?
 	//TODO: interpolate visual position from physics
 
 	pBody := body.UserData().(*PhysicsBody)
 	//Can only set relative matrix
-	horde3d.SetNodeTransMat(pBody.Node.H3DNode, phMatrix)
+	horde3d.SetNodeTransMat(pBody.Node.H3DNode, &phMatrix)
 }
 
 func clearAllPhysics() {
@@ -175,21 +178,21 @@ func iterateFacesInMesh(iterator hordeMeshFaceIterator, hMesh horde3d.H3DNode, g
 }
 
 //AddPhysicsScene adds a scene physics collision type built from
-// the passed in node's geometry.  
+// the passed in node's geometry.
 func AddPhysicsScene(node *Node) *PhysicsScene {
 	newScene := new(PhysicsScene)
 	newScene.Node = node
 
 	collision := NewtonTreeFromNode(node)
 
-	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
-	newScene.Body = phWorld.CreateDynamicBody(collision, phMatrix)
+	vmath.M4ToSlice(phMatrix[:], node.AbsoluteTransMat())
+	newScene.Body = phWorld.CreateDynamicBody(collision, phMatrix[:])
 
 	return newScene
 }
 
 //Adds a physics body using the passed in node to determine the collision hull.
-// a convex hull will be built from the node's visible geometry. Include all children 
+// a convex hull will be built from the node's visible geometry. Include all children
 // if more than one submesh is found in the node, or it's children, then the newton
 // body will be built as a compound collision
 func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
@@ -227,9 +230,9 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 
 	newBody.Node = node
 
-	vmath.M4ToSlice(phMatrix, node.AbsoluteTransMat())
+	vmath.M4ToSlice(phMatrix[:], node.AbsoluteTransMat())
 
-	body := phWorld.CreateDynamicBody(collision, phMatrix)
+	body := phWorld.CreateDynamicBody(collision, phMatrix[:])
 
 	collision.CalculateInertialMatrix(inertia, origin)
 	body.SetMassMatrix(mass, mass*inertia[0], mass*inertia[1], mass*inertia[2])
@@ -271,16 +274,16 @@ func collisionIterator(userData interface{}, vertexCount int, faceArray []float3
 }
 
 func showDebugGeometry(b *newton.Body, node *Node) {
-	horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
+	//horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
 
 	collision := b.Collision()
 	if collision == nil {
 		return
 	}
 
-	b.Matrix(phMatrix)
+	b.Matrix(phMatrix[:])
 
-	collision.ForEachPolygonDo(phMatrix, collisionIterator, node)
+	collision.ForEachPolygonDo(phMatrix[:], collisionIterator, node)
 	//testDynGeometry(b.Node)
 }
 
