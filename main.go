@@ -1,6 +1,6 @@
-// Copyright 2012 Tim Shannon. All rights reserved. 
+// Copyright 2012 Tim Shannon. All rights reserved.
 // Use of this source code is governed by the MIT license
-// that can be found in the LICENSE file. 
+// that can be found in the LICENSE file.
 
 package main
 
@@ -134,7 +134,7 @@ func loadScene(scene string) {
 
 	}
 	//TODO: gui
-	//engine.AddTask("FPS", showFPS, nil, 0, 1)
+	engine.AddTask("FPS", showFPS, nil, 0, 1)
 }
 
 func setCfgDefaults(cfg *engine.Config) {

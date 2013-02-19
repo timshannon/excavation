@@ -1,6 +1,6 @@
-// Copyright 2012 Tim Shannon. All rights reserved. 
+// Copyright 2012 Tim Shannon. All rights reserved.
 // Use of this source code is governed by the MIT license
-// that can be found in the LICENSE file. 
+// that can be found in the LICENSE file.
 
 package engine
 
@@ -24,11 +24,11 @@ const (
 //temp variables used to keep the GC from thrashing
 // by retaining temporary memory space for the conversion from horde's float arrays
 // to vectormath's structs, we should be able to keep gc collection to a minimum
-// Multiple threads shouldnt' be an issue, as Horde3d is singlethreaded. 
+// Multiple threads shouldnt' be an issue, as Horde3d is singlethreaded.
 // This may need to change in the future.
-var tempRelMat = make([]float32, 16)
-var tempAbsMat = make([]float32, 16)
-var tempHordeVector = make([]float32, 3)
+var tempRelMat = [16]float32{}
+var tempAbsMat = [16]float32{}
+var tempHordeVector = [3]float32{}
 
 type Node struct {
 	horde3d.H3DNode
@@ -39,10 +39,10 @@ type Node struct {
 
 func NewNode(hordeNode horde3d.H3DNode) *Node {
 	node := &Node{
-		horde3d.H3DNode: hordeNode,
-		relMat:          new(vmath.Matrix4),
-		absMat:          new(vmath.Matrix4),
-		updateFrame:     -1,
+		H3DNode:     hordeNode,
+		relMat:      new(vmath.Matrix4),
+		absMat:      new(vmath.Matrix4),
+		updateFrame: -1,
 	}
 
 	return node
@@ -59,7 +59,7 @@ func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
 	return node, nil
 }
 
-//This function returns the type of a specified scene node.  If the node handle is invalid, 
+//This function returns the type of a specified scene node.  If the node handle is invalid,
 //the function returns the node type Unknown.
 func (n *Node) Type() int {
 	intType := horde3d.GetNodeType(n.H3DNode)
@@ -91,17 +91,17 @@ func (n *Node) Children() []*Node {
 //removes the node from the scene
 func (n *Node) Remove() { horde3d.RemoveNode(n.H3DNode) }
 
-//This function checks if a scene node has been transformed by the engine 
-//since the last time the transformation flag was reset.  Therefore, it stores 
-//a flag that is set to true when a setTransformation function is called 
-//explicitely by the application or when the node transformation has been 
-//updated by the animation system.  The function also makes it possible to 
+//This function checks if a scene node has been transformed by the engine
+//since the last time the transformation flag was reset.  Therefore, it stores
+//a flag that is set to true when a setTransformation function is called
+//explicitely by the application or when the node transformation has been
+//updated by the animation system.  The function also makes it possible to
 //reset the transformation flag.
 func (n *Node) CheckTransFlag(reset bool) bool {
 	return horde3d.CheckNodeTransFlag(n.H3DNode, reset)
 }
 
-//This function gets the translation, rotation and scale of a specified scene node object. 
+//This function gets the translation, rotation and scale of a specified scene node object.
 // The coordinates are in local space and contain the transformation of the node relative to its parent.
 func (n *Node) Transform(translate, rotate, scale *vmath.Vector3) {
 	var tx, ty, tz float32
@@ -144,8 +144,8 @@ func (n *Node) Occluded() bool {
 	return false
 }
 
-//This function sets the relative translation, rotation and scale of a 
-//specified scene node object.  The coordinates are in local space and 
+//This function sets the relative translation, rotation and scale of a
+//specified scene node object.  The coordinates are in local space and
 //contain the transformation of the node relative to its parent.
 func (n *Node) SetTransform(translate, rotate, scale *vmath.Vector3) {
 	horde3d.SetNodeTransform(n.H3DNode, translate.X, translate.Y, translate.Z,
@@ -158,9 +158,9 @@ func (n *Node) updateTransMats() {
 	// been updated for this frame
 	//TODO: Time CGO vs frame check is it worth it
 	if n.updateFrame != frames {
-		horde3d.GetNodeTransMats(n.H3DNode, tempRelMat, tempAbsMat)
-		vmath.SliceToM4(n.relMat, tempRelMat)
-		vmath.SliceToM4(n.absMat, tempAbsMat)
+		horde3d.GetNodeTransMats(n.H3DNode, &tempRelMat, &tempAbsMat)
+		vmath.SliceToM4(n.relMat, tempRelMat[:])
+		vmath.SliceToM4(n.absMat, tempAbsMat[:])
 		n.updateFrame = frames
 	}
 }
@@ -182,8 +182,8 @@ func (n *Node) SetRelativeTransMat(matrix *vmath.Matrix4) {
 	//reset update frame so that changes to local matrix
 	// will be refreshed from c code
 	n.updateFrame = 0
-	vmath.M4ToSlice(tempRelMat, matrix)
-	horde3d.SetNodeTransMat(n.H3DNode, tempRelMat)
+	vmath.M4ToSlice(tempRelMat[:], matrix)
+	horde3d.SetNodeTransMat(n.H3DNode, &tempRelMat)
 }
 
 func (n *Node) SetLocalTransform(translate, rotate *vmath.Vector3) {
@@ -191,7 +191,7 @@ func (n *Node) SetLocalTransform(translate, rotate *vmath.Vector3) {
 	n.SetTransformRelativeTo(n, translate, rotate)
 }
 
-//SetTransformRelativeTo sets the transform relative 
+//SetTransformRelativeTo sets the transform relative
 // to another node's position and rotation
 // Note this function creates a lot of temp variables, and may
 // cause GC collection performance issues
@@ -236,14 +236,14 @@ func (n *Node) BoundingBox(min, max *vmath.Vector3) {
 	max.Z = maxZ
 }
 
-//FindChild: This function loops recursively over all children of startNode and adds 
-//them to an internal list of results if they match the specified name and type.  
-//The result list is cleared each time this function is called.  
+//FindChild: This function loops recursively over all children of startNode and adds
+//them to an internal list of results if they match the specified name and type.
+//The result list is cleared each time this function is called.
 //The function returns the number of nodes which were found and added to the list.
 
 //Parameters
-//name name of nodes to be searched (empty string for all nodes) 
-//nodeType type of nodes to be searched (NodeTypes_Undefined for all types) 
+//name name of nodes to be searched (empty string for all nodes)
+//nodeType type of nodes to be searched (NodeTypes_Undefined for all types)
 func (n *Node) FindChild(name string, nodeType int) []*Node {
 	size := horde3d.FindNodes(n.H3DNode, name, nodeType)
 	results := make([]*Node, size)
@@ -293,12 +293,12 @@ func (n *Node) SetName(name string) {
 	horde3d.SetNodeParamStr(n.H3DNode, horde3d.NodeParams_NameStr, name)
 }
 
-//Optional application-specific meta data for a node encapsulated in an Attachment XML string 
+//Optional application-specific meta data for a node encapsulated in an Attachment XML string
 func (n *Node) Attachment() string {
 	return horde3d.GetNodeParamStr(n.H3DNode, horde3d.NodeParams_AttachmentStr)
 }
 
-//Optional application-specific meta data for a node encapsulated in an Attachment XML string 
+//Optional application-specific meta data for a node encapsulated in an Attachment XML string
 func (n *Node) SetAttachment(value string) {
 	horde3d.SetNodeParamStr(n.H3DNode, horde3d.NodeParams_AttachmentStr, value)
 }
@@ -314,10 +314,10 @@ type CastRayResult struct {
 	Intersection *vmath.Vector3
 }
 
-//This function checks recursively if the specified ray intersects the specified node or one of its children.  
-//The function finds intersections relative to the ray origin and returns the number of intersecting scene nodes.  
-//The ray is a line segment and is specified by a starting point (the origin) and a finite direction vector 
-//which also defines its length.  Currently this function is limited to returning intersections with Meshes.  
+//This function checks recursively if the specified ray intersects the specified node or one of its children.
+//The function finds intersections relative to the ray origin and returns the number of intersecting scene nodes.
+//The ray is a line segment and is specified by a starting point (the origin) and a finite direction vector
+//which also defines its length.  Currently this function is limited to returning intersections with Meshes.
 //For Meshes, the base LOD (LOD0) is always used for performing the ray-triangle intersection tests.
 func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector3) {
 	size := horde3d.CastRay(n.H3DNode, origin.X, origin.Y, origin.Z,
@@ -327,19 +327,19 @@ func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector
 	for i := range results {
 		results[i].ResultNode = NewNode(0)
 		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, results[i].Distance,
-			tempHordeVector)
+			&tempHordeVector)
 
 		newVec := &vmath.Vector3{}
-		vmath.SliceToV3(newVec, tempHordeVector)
+		vmath.SliceToV3(newVec, tempHordeVector[:])
 		results[i].Intersection = newVec
 	}
 }
 
-//This function checks if a specified node is visible from the perspective of a specified camera.  
-//The function always checks if the node is in the camera.s frustum.  If checkOcclusion is true, 
-//the function will take into account the occlusion culling information from the previous frame 
-//(if occlusion culling is disabled the flag is ignored).  The flag calcLod determines whether the 
-//detail level for the node should be returned in case it is visible.  The function returns -1 if 
+//This function checks if a specified node is visible from the perspective of a specified camera.
+//The function always checks if the node is in the camera.s frustum.  If checkOcclusion is true,
+//the function will take into account the occlusion culling information from the previous frame
+//(if occlusion culling is disabled the flag is ignored).  The flag calcLod determines whether the
+//detail level for the node should be returned in case it is visible.  The function returns -1 if
 //the node is not visible, otherwise 0 (base LOD level) or the computed LOD level
 func (n *Node) IsVisible(camera *Camera, checkOcclusion, calcLOD bool) int {
 	return horde3d.CheckNodeVisibility(n.H3DNode, camera.H3DNode, checkOcclusion, calcLOD)
@@ -561,8 +561,8 @@ func (c *Camera) SetupView(FOV, aspect, nearDist, farDist float32) {
 }
 
 func (c *Camera) ProjectionMatrix(result *vmath.Matrix4) {
-	horde3d.GetCameraProjMat(c.H3DNode, tempRelMat)
-	vmath.SliceToM4(result, tempRelMat)
+	horde3d.GetCameraProjMat(c.H3DNode, &tempRelMat)
+	vmath.SliceToM4(result, tempRelMat[:])
 }
 
 func (c *Camera) Pipeline() *Pipeline {
