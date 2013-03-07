@@ -123,7 +123,7 @@ type Audio struct {
 	minDistance float32
 	maxDistance float32
 	gain        float32
-	position    openal.Vector
+	position    *openal.Vector
 	source      *audioSource
 	//TODO: optional velocity
 }
@@ -315,8 +315,7 @@ func updateAudio() {
 			//sources[i].Set3f(openal.AlPosition, sources[i].audio.node.AbsoluteTransMat().Col3.X,
 			//sources[i].audio.node.AbsoluteTransMat().Col3.Y,
 			//sources[i].audio.node.AbsoluteTransMat().Col3.Z)
-			sources[i].audio.node.AbsoluteTransMat().Translation(&vmath.Vector3(sources[i].audio.position))
-
+			sources[i].audio.node.AbsoluteTransMat().Translation((*vmath.Vector3)(sources[i].audio.position))
 			sources[i].SetPosition(sources[i].audio.position)
 			//sources[i].audio.node.AbsoluteTransMat().Translation(&vmath.Vector3(sources[i].audio.position))
 			//sources[i].SetPosition(sources[i].audio.position)
@@ -337,7 +336,7 @@ func (s *audioSource) occluded() bool {
 func (l *Listener) updatePositionOrientation() {
 
 	l.node.AbsoluteTransMat().Translation(l.curVec)
-	l.Set3f(openal.AlPosition, l.curVec.X, l.curVec.Y, l.curVec.Z)
+	//l.Set3f(openal.AlPosition, l.curVec.X, l.curVec.Y, l.curVec.Z)
 
 	//forward
 	vmath.V4MakeZAxis(l.tempVec)
@@ -359,11 +358,13 @@ func (l *Listener) updatePositionOrientation() {
 }
 
 func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vmath.Vector4, matrix *vmath.Matrix4) {
-	vmath.M4MulV4(v4, matrix, v4)
-	v4.Normalize()
+	//vmath.M4MulV4(v4, matrix, v4)
+	v4.MulM4Self(matrix)
+	//v4.Normalize()
+	v4.NormalizeSelf()
 
-	alVec.X = v4.X
-	alVec.Y = v4.Y
-	alVec.Z = v4.Z
+	alVec[0] = v4[0]
+	alVec[1] = v4[1]
+	alVec[2] = v4[2]
 
 }
