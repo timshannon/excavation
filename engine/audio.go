@@ -312,9 +312,12 @@ func updateAudio() {
 				}
 			}
 			//position
-			sources[i].Set3f(openal.AlPosition, sources[i].audio.node.AbsoluteTransMat().Col3.X,
-				sources[i].audio.node.AbsoluteTransMat().Col3.Y,
-				sources[i].audio.node.AbsoluteTransMat().Col3.Z)
+			//sources[i].Set3f(openal.AlPosition, sources[i].audio.node.AbsoluteTransMat().Col3.X,
+			//sources[i].audio.node.AbsoluteTransMat().Col3.Y,
+			//sources[i].audio.node.AbsoluteTransMat().Col3.Z)
+			sources[i].audio.node.AbsoluteTransMat().Translation(&vmath.Vector3(sources[i].audio.position))
+
+			sources[i].SetPosition(sources[i].audio.position)
 			//sources[i].audio.node.AbsoluteTransMat().Translation(&vmath.Vector3(sources[i].audio.position))
 			//sources[i].SetPosition(sources[i].audio.position)
 
