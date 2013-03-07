@@ -1,8 +1,8 @@
 package engine
 
 import (
+	"code.google.com/p/vmath"
 	"github.com/timshannon/go-openal/openal"
-	vmath "github.com/timshannon/vectormath"
 )
 
 const (
@@ -123,6 +123,7 @@ type Audio struct {
 	minDistance float32
 	maxDistance float32
 	gain        float32
+	position    openal.Vector
 	source      *audioSource
 	//TODO: optional velocity
 }
@@ -314,6 +315,8 @@ func updateAudio() {
 			sources[i].Set3f(openal.AlPosition, sources[i].audio.node.AbsoluteTransMat().Col3.X,
 				sources[i].audio.node.AbsoluteTransMat().Col3.Y,
 				sources[i].audio.node.AbsoluteTransMat().Col3.Z)
+			//sources[i].audio.node.AbsoluteTransMat().Translation(&vmath.Vector3(sources[i].audio.position))
+			//sources[i].SetPosition(sources[i].audio.position)
 
 			//direction
 			//Only needed for sound cones, may not implement
