@@ -28,7 +28,7 @@ func LoadAllResources() error {
 	var err error
 
 	for {
-		res.H3DRes = horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)
+		res.H3DRes = horde3d.NextResource(horde3d.ResTypes_Undefined, res.H3DRes)
 		if int(res.H3DRes) != 0 {
 			err = res.Load()
 			//fmt.Println("Loading: ", res.Name())
@@ -47,7 +47,7 @@ func ResourcesNotLoaded() []*Resource {
 	var res = &Resource{horde3d.H3DRes(0)}
 
 	for {
-		res = &Resource{horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)}
+		res = &Resource{horde3d.NextResource(horde3d.ResTypes_Undefined, res.H3DRes)}
 		if int(res.H3DRes) != 0 {
 			if !res.IsLoaded() {
 				notLoaded = append(notLoaded, res)
@@ -65,7 +65,7 @@ func ResourceList() []*Resource {
 	res := &Resource{horde3d.H3DRes(0)}
 
 	for {
-		res = &Resource{horde3d.GetNextResource(horde3d.ResTypes_Undefined, res.H3DRes)}
+		res = &Resource{horde3d.NextResource(horde3d.ResTypes_Undefined, res.H3DRes)}
 		if int(res.H3DRes) != 0 {
 			resList = append(resList, res)
 		} else {
@@ -97,9 +97,9 @@ const (
 	ResTypePipeline       = horde3d.ResTypes_Pipeline
 )
 
-func (res *Resource) Type() int { return horde3d.GetResType(res.H3DRes) }
+func (res *Resource) Type() int { return res.H3DRes.Type() }
 
-func (res *Resource) Name() string { return horde3d.GetResName(res.H3DRes) }
+func (res *Resource) Name() string { return res.H3DRes.Name() }
 
 //Resources will be loaded either from a directory or from a
 // tar.gz data file.  If the both the data folder and data tar.gz
@@ -112,7 +112,7 @@ func (res *Resource) Load() error {
 		if err != nil {
 			return err
 		}
-		good := horde3d.LoadResource(res.H3DRes, data)
+		good := res.H3DRes.Load(data)
 		if !good {
 			err := errors.New("Horde3D was unable to load the resource " + res.FullPath() + ".")
 			RaiseError(err)
@@ -158,15 +158,15 @@ func (res *Resource) FullPath() string {
 
 func (res *Resource) Clone(cloneName string) *Resource {
 	clone := new(Resource)
-	clone.H3DRes = horde3d.CloneResource(res.H3DRes, cloneName)
+	clone.H3DRes = res.H3DRes.Clone(cloneName)
 	return clone
 }
 
-func (res *Resource) Remove() { horde3d.RemoveResource(res.H3DRes) }
+func (res *Resource) Remove() { res.H3DRes.Remove() }
 
-func (res *Resource) IsLoaded() bool { return horde3d.IsResLoaded(res.H3DRes) }
+func (res *Resource) IsLoaded() bool { return res.H3DRes.IsLoaded() }
 
-func (res *Resource) Unload() { horde3d.UnloadResource(res.H3DRes) }
+func (res *Resource) Unload() { res.H3DRes.Unload() }
 
 type Scene struct{ *Resource }
 

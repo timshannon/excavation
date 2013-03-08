@@ -65,7 +65,7 @@ func (n *Node) Children() []*Node {
 	var hNode horde3d.H3DNode = -1
 	var children []*Node
 	for i := 0; hNode != 0; i++ {
-		hNode = n.H3DNode.GetChild(i)
+		hNode = n.H3DNode.Child(i)
 		if hNode != 0 {
 			children = append(children, NewNode(hNode))
 		}
@@ -106,7 +106,7 @@ func (n *Node) Occluded() bool {
 //specified scene node object.  The coordinates are in local space and
 //contain the transformation of the node relative to its parent.
 func (n *Node) SetTransform(translate, rotate, scale *vmath.Vector3) {
-	horde3d.SetNodeTransform(n.H3DNode, translate[0], translate[1], translate[2],
+	n.H3DNode.SetTransform(translate[0], translate[1], translate[2],
 		rotate[0], rotate[1], rotate[2],
 		scale[0], scale[1], scale[2])
 }
@@ -153,14 +153,15 @@ func (n *Node) SetLocalTransform(translate, rotate *vmath.Vector3) {
 func (n *Node) SetTransformRelativeTo(otherNode *Node, trans, rotate *vmath.Vector3) {
 	transform := &vmath.Transform3{}
 	m3 := &vmath.Matrix3{}
-	translate := vmath.Vector3{}
-	newTranslate := vmath.Vector3{}
-	rotM3 := vmath.Matrix3{}
+	translate := &vmath.Vector3{}
+	newTranslate := &vmath.Vector3{}
+	rotM3 := &vmath.Matrix3{}
 
 	//vmath.M3MakeRotationZYX(rotM3, rotate)
 	rotM3.MakeRotationZYX(rotate)
+
 	//vmath.V3Copy(newTranslate, trans)
-	copy(newTranslate[:], trans[:])
+	newTranslate.Copy(trans)
 
 	matrix := otherNode.RelativeTransMat()
 	//vmath.M4GetTranslation(translate, matrix)
@@ -259,14 +260,14 @@ type CastRayResult struct {
 //which also defines its length.  Currently this function is limited to returning intersections with Meshes.
 //For Meshes, the base LOD (LOD0) is always used for performing the ray-triangle intersection tests.
 func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector3) {
-	size := horde3d.CastRay(n.H3DNode, origin[0], origin[1], origin[2],
+	size := n.H3DNode.CastRay(origin[0], origin[1], origin[2],
 		direction[0], direction[1], direction[2], len(results))
 
 	results = results[:size]
 	for i := range results {
 		results[i].ResultNode = NewNode(0)
 		results[i].Intersection = &vmath.Vector3{}
-		_ = horde3d.GetCastRayResult(i, &results[i].ResultNode.H3DNode, &results[i].Distance,
+		_ = horde3d.CastRayResult(i, &results[i].ResultNode.H3DNode, &results[i].Distance,
 			results[i].Intersection.Array())
 	}
 }
@@ -278,7 +279,7 @@ func (n *Node) CastRay(results []*CastRayResult, origin, direction *vmath.Vector
 //detail level for the node should be returned in case it is visible.  The function returns -1 if
 //the node is not visible, otherwise 0 (base LOD level) or the computed LOD level
 func (n *Node) IsVisible(camera *Camera, checkOcclusion, calcLOD bool) int {
-	return horde3d.CheckNodeVisibility(n.H3DNode, camera.H3DNode, checkOcclusion, calcLOD)
+	return n.H3DNode.CheckNodeVisibility(camera.H3DNode, checkOcclusion, calcLOD)
 }
 
 type Group struct{ *Node }
@@ -306,7 +307,7 @@ func AddModel(parent *Node, name string, geometry *Geometry) (*Model, error) {
 //Gets the Geometry resource for the given model
 func (m *Model) Geometry() *Geometry {
 	geom := &Geometry{new(Resource)}
-	geom.H3DRes = horde3d.H3DRes(m.GetNodeParamI(horde3d.Model_GeoResI))
+	geom.H3DRes = horde3d.H3DRes(m.H3DNode.NodeParamI(horde3d.Model_GeoResI))
 	return geom
 }
 

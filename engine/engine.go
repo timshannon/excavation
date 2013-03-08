@@ -154,8 +154,8 @@ func Fps() float64 {
 
 func SetMainCamera(camera *Camera) {
 	mainCam.camera = camera
-	mainCam.nearPlane = horde3d.GetNodeParamF(camera.H3DNode, horde3d.Camera_NearPlaneF, 0)
-	mainCam.farPlane = horde3d.GetNodeParamF(camera.H3DNode, horde3d.Camera_FarPlaneF, 0)
+	mainCam.nearPlane = camera.H3DNode.NodeParamF(horde3d.Camera_NearPlaneF, 0)
+	mainCam.farPlane = camera.H3DNode.NodeParamF(horde3d.Camera_FarPlaneF, 0)
 	resetView()
 }
 
