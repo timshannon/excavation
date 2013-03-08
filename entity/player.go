@@ -1,8 +1,8 @@
 package entity
 
 import (
+	"code.google.com/p/vmath"
 	"excavation/engine"
-	vmath "github.com/timshannon/vectormath"
 	"math"
 )
 
@@ -12,7 +12,7 @@ const (
 	mouseMultiplier = 0.001 // makes for some saner numbers in the config file
 )
 
-var inX, inY, inZ int
+var input [3]int
 var vX, vY int
 
 type Player struct {
@@ -29,9 +29,9 @@ type Player struct {
 	mouseSensitivity float32
 
 	//movement
-	lastUpdate             float64
-	speedX, speedY, speedZ float32
-	curVx, curVy           int
+	lastUpdate   float64
+	speed        *vmath.Vector3
+	curVx, curVy int
 }
 
 func (p *Player) Add(node *engine.Node, args EntityArgs) {
@@ -46,6 +46,7 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 	p.rotationMatrix = new(vmath.Matrix3)
 	p.curTranslate = new(vmath.Vector3)
 	p.relM3 = new(vmath.Matrix3)
+	p.speed = new(vmath.Vector3)
 
 	p.invert = engine.Cfg().Bool("InvertMouse")
 	p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
@@ -84,35 +85,23 @@ func updatePlayer(t *engine.Task) {
 	elapsedTime := float32(engine.GameTime() - p.lastUpdate)
 	p.lastUpdate = engine.GameTime()
 
-	if inX == 0 {
-		p.speedX = deccelerate(p.speedX, elapsedTime)
-	} else {
-		p.speedX = accelerate(p.speedX, elapsedTime, inX)
+	for i := 0; i < 3; i++ {
+		if input[i] == 0 {
+			p.speed[i] = deccelerate(p.speed[i], elapsedTime)
+		} else {
+			p.speed[i] = accelerate(p.speed[i], elapsedTime, input[i])
+		}
 	}
 
-	if inY == 0 {
-		p.speedY = deccelerate(p.speedY, elapsedTime)
-	} else {
-		p.speedY = accelerate(p.speedY, elapsedTime, inY)
-	}
-
-	if inZ == 0 {
-		p.speedZ = deccelerate(p.speedZ, elapsedTime)
-	} else {
-		p.speedZ = accelerate(p.speedZ, elapsedTime, inZ)
-	}
-
-	p.translate.X = (p.speedX * elapsedTime)
-	p.translate.Y = (p.speedY * elapsedTime)
-	p.translate.Z = (p.speedZ * elapsedTime)
+	p.translate.ScalarMul(p.speed, elapsedTime)
 
 	if !p.invert {
-		p.rotate.Y = (float32(vY-p.curVy) * p.mouseSensitivity)
+		p.rotate[2] = (float32(vY-p.curVy) * p.mouseSensitivity)
 	} else {
-		p.rotate.Y = (float32(vY-p.curVy) * (p.mouseSensitivity * -1))
+		p.rotate[2] = (float32(vY-p.curVy) * (p.mouseSensitivity * -1))
 	}
 
-	p.rotate.X = (float32(vX-p.curVx) * p.mouseSensitivity)
+	p.rotate[0] = (float32(vX-p.curVx) * p.mouseSensitivity)
 
 	p.localTransform()
 
@@ -150,25 +139,19 @@ func deccelerate(speed, time float32) float32 {
 func (p *Player) localTransform() {
 	matrix := p.node.RelativeTransMat()
 	matrix.Translation(p.curTranslate)
-	vmath.M3MakeRotationZYX(p.rotationMatrix, p.rotate)
+	p.rotationMatrix.MakeRotationZYX(p.rotate)
 	matrix.Upper3x3(p.relM3)
 
-	vmath.M3MulV3(p.translate, p.relM3, p.translate)
-	vmath.M3Mul(p.rotationMatrix, p.relM3, p.rotationMatrix)
+	p.translate.MulM3Self(p.relM3)
+	p.rotationMatrix.MulSelf(p.relM3)
 
-	vmath.V3Add(p.translate, p.curTranslate, p.translate)
+	p.translate.AddToSelf(p.curTranslate)
 
-	vmath.M4MakeFromM3V3(matrix, p.rotationMatrix, p.translate)
+	matrix.MakeFromM3V3(p.rotationMatrix, p.translate)
 	p.node.SetRelativeTransMat(matrix)
 
-	zeroVector(p.translate)
-	zeroVector(p.rotate)
-}
-
-func zeroVector(vector *vmath.Vector3) {
-	vector.X = 0
-	vector.Y = 0
-	vector.Z = 0
+	p.translate.ScalarMulSelf(0)
+	p.rotate.ScalarMulSelf(0)
 }
 
 func handlePlayerInput(i *engine.Input) {
@@ -182,17 +165,17 @@ func handlePlayerInput(i *engine.Input) {
 
 	switch i.ControlName() {
 	case "Forward":
-		inZ += -1 * modifier
+		input[2] += -1 * modifier
 	case "Backward":
-		inZ += 1 * modifier
+		input[2] += 1 * modifier
 	case "StrafeLeft":
-		inX += -1 * modifier
+		input[0] += -1 * modifier
 	case "StrafeRight":
-		inX += 1 * modifier
+		input[0] += 1 * modifier
 	case "MoveUp":
-		inY += 1 * modifier
+		input[1] += 1 * modifier
 	case "MoveDown":
-		inY += -1 * modifier
+		input[1] += -1 * modifier
 	}
 
 }

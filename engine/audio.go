@@ -336,24 +336,26 @@ func (s *audioSource) occluded() bool {
 func (l *Listener) updatePositionOrientation() {
 
 	l.node.AbsoluteTransMat().Translation(l.curVec)
-	//l.Set3f(openal.AlPosition, l.curVec.X, l.curVec.Y, l.curVec.Z)
 
 	//forward
-	vmath.V4MakeZAxis(l.tempVec)
-	l.tempVec.Z = -1 //horde has flipped z
+	l.tempVec.MakeZAxis()
+	l.tempVec[2] = -1 //horde has flipped z
 	setOpenAlRelativeVector(l.atOrient, l.tempVec, l.node.AbsoluteTransMat())
 
 	//up
-	vmath.V4MakeYAxis(l.tempVec)
+	//vmath.V4MakeYAxis(l.tempVec)
+	l.tempVec.MakeYAxis()
 	setOpenAlRelativeVector(l.upOrient, l.tempVec, l.node.AbsoluteTransMat())
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
 
-	vmath.V3Velocity(l.prevVec, l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
+	//vmath.V3Velocity(l.prevVec, l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
+	l.prevVec.Velocity(l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
 
-	l.Set3f(openal.AlVelocity, l.prevVec.X, l.prevVec.Y, l.prevVec.Z)
+	l.Set3f(openal.AlVelocity, l.prevVec[0], l.prevVec[1], l.prevVec[2])
 
-	vmath.V3Copy(l.prevVec, l.curVec)
+	//vmath.V3Copy(l.prevVec, l.curVec)
+	l.prevVec.Copy(l.curVec)
 	l.prevTime = GameTime()
 }
 
