@@ -70,7 +70,7 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 }
 
 func (p *Player) Trigger(value float32) {
-	//TODO: Fade view as camera changes
+	//TODO: Fade view as camera changes?
 	if value > 0 {
 		engine.SetMainCamera(&engine.Camera{p.node})
 		l := engine.AudioListener()
@@ -212,6 +212,6 @@ func handlePitchYaw(i *engine.Input) {
 	}
 }
 
-//TODO: Split into two different types, one for ship movement, one for human movement, 
+//TODO: Split into two different types, one for ship movement, one for human movement,
 // use trigger to switch between them
 // Share one player type which holds player data.
