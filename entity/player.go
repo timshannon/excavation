@@ -96,9 +96,9 @@ func updatePlayer(t *engine.Task) {
 	p.translate.ScalarMul(p.speed, elapsedTime)
 
 	if !p.invert {
-		p.rotate[2] = (float32(vY-p.curVy) * p.mouseSensitivity)
+		p.rotate[1] = (float32(vY-p.curVy) * p.mouseSensitivity)
 	} else {
-		p.rotate[2] = (float32(vY-p.curVy) * (p.mouseSensitivity * -1))
+		p.rotate[1] = (float32(vY-p.curVy) * (p.mouseSensitivity * -1))
 	}
 
 	p.rotate[0] = (float32(vX-p.curVx) * p.mouseSensitivity)

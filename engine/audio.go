@@ -139,6 +139,7 @@ func AddAudioNode(node *Node, audioFile string, minDistance,
 		Occlude:  false,
 		loaded:   false,
 		gain:     1.0, //openal default
+		position: new(openal.Vector),
 	}
 
 	aNode.minDistance = minDistance
@@ -312,13 +313,8 @@ func updateAudio() {
 				}
 			}
 			//position
-			//sources[i].Set3f(openal.AlPosition, sources[i].audio.node.AbsoluteTransMat().Col3.X,
-			//sources[i].audio.node.AbsoluteTransMat().Col3.Y,
-			//sources[i].audio.node.AbsoluteTransMat().Col3.Z)
 			sources[i].audio.node.AbsoluteTransMat().Translation((*vmath.Vector3)(sources[i].audio.position))
 			sources[i].SetPosition(sources[i].audio.position)
-			//sources[i].audio.node.AbsoluteTransMat().Translation(&vmath.Vector3(sources[i].audio.position))
-			//sources[i].SetPosition(sources[i].audio.position)
 
 			//direction
 			//Only needed for sound cones, may not implement
@@ -349,12 +345,10 @@ func (l *Listener) updatePositionOrientation() {
 
 	l.SetOrientation(listener.atOrient, listener.upOrient)
 
-	//vmath.V3Velocity(l.prevVec, l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
 	l.prevVec.Velocity(l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
 
 	l.Set3f(openal.AlVelocity, l.prevVec[0], l.prevVec[1], l.prevVec[2])
 
-	//vmath.V3Copy(l.prevVec, l.curVec)
 	l.prevVec.Copy(l.curVec)
 	l.prevTime = GameTime()
 }
