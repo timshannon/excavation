@@ -1,6 +1,6 @@
-// Copyright 2012 Tim Shannon. All rights reserved. 
+// Copyright 2012 Tim Shannon. All rights reserved.
 // Use of this source code is governed by the MIT license
-// that can be found in the LICENSE file. 
+// that can be found in the LICENSE file.
 
 package engine
 
@@ -10,7 +10,7 @@ import (
 	"github.com/jteeuwen/glfw"
 )
 
-//Used to hold resize parms between cameras 
+//Used to hold resize parms between cameras
 // the render cam will lookup near and far plane,
 // but FOV will have to be set separately
 type renderCam struct {
@@ -87,7 +87,6 @@ func Init(name string) error {
 
 	initInput()
 
-	initGui()
 	initPhysics()
 
 	//setup base camera
@@ -95,6 +94,8 @@ func Init(name string) error {
 	if err != nil {
 		panic(err)
 	}
+
+	initGui()
 
 	mainCam = new(renderCam)
 	mainCam.fallbackCam = AddCamera(Root, "FallbackCamera", pipeline)
@@ -219,6 +220,8 @@ func ClearAll() {
 	}
 
 	horde3d.ReleaseUnusedResources()
+
+	initDebugPrint()
 
 	SetMainCamera(mainCam.fallbackCam)
 	//LoadAllResources()

@@ -10,7 +10,7 @@ import (
 const (
 	//position is based on the aspect ratio of the screen
 	ScreenRelativeAspect = iota
-	//position is independant of the aspect ratio and position from the left 
+	//position is independant of the aspect ratio and position from the left
 	ScreenRelativeLeft
 	//position is independant of the aspect ratio and position from the right (0 is right 1 is left)
 	ScreenRelativeRight
@@ -25,6 +25,11 @@ var activeGuis []*Gui
 func initGui() {
 	glfw.SetCharCallback(charCollector)
 	activeGuis = make([]*Gui, 0, 5)
+
+	//res := &Resource{horde3d.AddResource(horde3d.ResTypes_Shader, "shaders/overlay.shader", 0)}
+	//res.Load()
+
+	initDebugPrint()
 }
 
 //LoadGui pushes a gui onto a stack of guis, only top most in the stack
@@ -45,7 +50,7 @@ func UnloadGui() {
 
 	activeGuis = activeGuis[1:]
 	if len(activeGuis) != 0 {
-		//Reset input and mouse 
+		//Reset input and mouse
 		activeGuis[0].load()
 	}
 }
@@ -60,6 +65,7 @@ func UnloadAllGuis() {
 }
 
 func updateGui() {
+	horde3d.ClearOverlays()
 	for i := range activeGuis {
 		if i == 0 {
 			activeGuis[i].handleInput()
@@ -68,6 +74,8 @@ func updateGui() {
 			activeGuis[i].update()
 		}
 	}
+
+	updateDebugPrint()
 }
 
 func charCollector(key, state int) {
@@ -87,22 +95,22 @@ var gCharCollector CharCollector
 func (s *ScreenArea) toVertex(result []float32) {
 	//Y is not relative to aspect
 	//verts are added counter clockwise
-	//vert1 
+	//vert1
 	result[0] = s.X()
 	result[1] = s.Position.Y
 	result[2] = 0
 	result[3] = 1
-	//vert2 
+	//vert2
 	result[4] = s.X()
 	result[5] = (s.Position.Y + s.Height)
 	result[6] = 0
 	result[7] = 0
-	//vert3 
+	//vert3
 	result[8] = s.X2()
 	result[9] = (s.Position.Y + s.Height)
 	result[10] = 1
 	result[11] = 0
-	//vert4 
+	//vert4
 	result[12] = s.X2()
 	result[13] = s.Position.Y
 	result[14] = 1
@@ -165,15 +173,27 @@ func NewColor(r, g, b, a int) *Color {
 func (c *Color) R() float32 {
 	return c.toHordeColor(c.r)
 }
+
+func (c *Color) SetR(r int) { c.r = r }
+
 func (c *Color) G() float32 {
-	return c.toHordeColor(c.r)
+	return c.toHordeColor(c.g)
 }
+
+func (c *Color) SetG(g int) { c.g = g }
+
 func (c *Color) B() float32 {
-	return c.toHordeColor(c.r)
+	return c.toHordeColor(c.b)
 }
+
+func (c *Color) SetB(b int) { c.b = b }
+
 func (c *Color) A() float32 {
-	return c.toHordeColor(c.r)
+	return c.toHordeColor(c.a)
 }
+
+func (c *Color) SetA(a int) { c.a = a }
+
 func (c *Color) toHordeColor(color int) float32 {
 	return float32(color) / 255.0
 }
@@ -186,7 +206,12 @@ type Overlay struct {
 
 func NewOverlay(materialLocation string, color *Color, dimensions *ScreenArea) *Overlay {
 	material, _ := NewMaterial(materialLocation)
+	material.Load()
 	return &Overlay{dimensions, color, material}
+}
+
+func NewScreenPosition(X, Y float32, relativeTo int) *ScreenPosition {
+	return &ScreenPosition{X, Y, relativeTo}
 }
 
 type Text struct {
@@ -200,6 +225,7 @@ type Text struct {
 func NewText(text string, size float32, materialLocation string,
 	color *Color, position *ScreenPosition) *Text {
 	material, _ := NewMaterial(materialLocation)
+	material.Load()
 
 	return &Text{text, position, size, material, color}
 }
@@ -273,7 +299,7 @@ func (g *Gui) AddWidget(widget Widget) {
 	g.Widgets = append(g.Widgets, widget)
 }
 
-//Removes a widget from the gui. 
+//Removes a widget from the gui.
 func (g *Gui) RemoveWidget(name string) {
 	for i := 0; i < len(g.Widgets); i++ {
 		if g.Widgets[i].Name() == name {
@@ -353,7 +379,6 @@ func (g *Gui) handleInput() {
 }
 
 func (g *Gui) update() {
-	horde3d.ClearOverlays()
 
 	for i := range g.Widgets {
 		g.Widgets[i].Update()
