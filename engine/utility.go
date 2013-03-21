@@ -87,26 +87,25 @@ func Printf(format string, a ...interface{}) {
 // and show up a the top
 func Println(a ...interface{}) {
 	dPrintAddToQueue(fmt.Sprint(a...))
-
 }
 
 func dPrintAddToQueue(text string) {
-	if len(dPrintQueue) >= dPrintQueueSize {
-		dPrintQueue = dPrintQueue[:dPrintQueueSize-1]
-	}
-	dPrintQueue = append([]*dPrintItem{&dPrintItem{
+	newItem := &dPrintItem{
 		NewText(text, dPrint.text.Size, dPrint.text.FontMaterial.Name(),
-			dPrint.text.Color, dPrint.text.Position),
-		-1,
-	}}, dPrintQueue...)
-
-	//TODO: Change loop type to allow removal
-	for i, v := range dPrintQueue {
-		if v.timer < Time() {
-			//remove item
-		}
-		v.text.Position.Y = float32(i) * (v.text.Size + 0.01)
+			dPrint.text.Color, NewScreenPosition(0.01, 0.01, ScreenRelativeLeft)),
+		Time() + 3,
 	}
+	dPrintQueue = append(dPrintQueue, newItem)
+
+	if len(dPrintQueue) > dPrintQueueSize {
+		over := len(dPrintQueue) - dPrintQueueSize
+		dPrintQueue = dPrintQueue[over:]
+	}
+
+	for i := range dPrintQueue {
+		dPrintQueue[i].text.Position.Y = (dPrintQueue[i].text.Size) * float32(len(dPrintQueue)-i)
+	}
+
 }
 
 //Printfln prints a stack of messages to the screen similar to Println
@@ -120,10 +119,15 @@ func updateDebugPrint() {
 		dPrint.text.Place()
 	}
 
+	var timedOut int
 	for i := range dPrintQueue {
 		if dPrintQueue[i].timer >= Time() {
 			dPrintQueue[i].text.Place()
+		} else {
+			//last index of timed out item
+			timedOut = i
 		}
 
 	}
+	dPrintQueue = dPrintQueue[timedOut:]
 }

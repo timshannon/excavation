@@ -206,7 +206,6 @@ type Overlay struct {
 
 func NewOverlay(materialLocation string, color *Color, dimensions *ScreenArea) *Overlay {
 	material, _ := NewMaterial(materialLocation)
-	material.Load()
 	return &Overlay{dimensions, color, material}
 }
 
@@ -225,7 +224,6 @@ type Text struct {
 func NewText(text string, size float32, materialLocation string,
 	color *Color, position *ScreenPosition) *Text {
 	material, _ := NewMaterial(materialLocation)
-	material.Load()
 
 	return &Text{text, position, size, material, color}
 }
