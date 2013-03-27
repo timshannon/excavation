@@ -103,7 +103,7 @@ func dPrintAddToQueue(text string) {
 	}
 
 	for i := range dPrintQueue {
-		dPrintQueue[i].text.Position.Y = (dPrintQueue[i].text.Size) * float32(len(dPrintQueue)-i)
+		dPrintQueue[i].text.Position.Y += (dPrintQueue[i].text.Size)
 	}
 
 }

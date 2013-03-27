@@ -213,6 +213,8 @@ func NewScreenPosition(X, Y float32, relativeTo int) *ScreenPosition {
 	return &ScreenPosition{X, Y, relativeTo}
 }
 
+//TODO: Replace with freetype rasterization
+//  it'll look better, and overcome the overlay limits
 type Text struct {
 	Text         string
 	Position     *ScreenPosition

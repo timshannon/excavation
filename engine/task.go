@@ -1,6 +1,6 @@
-// Copyright 2012 Tim Shannon. All rights reserved. 
+// Copyright 2012 Tim Shannon. All rights reserved.
 // Use of this source code is governed by the MIT license
-// that can be found in the LICENSE file. 
+// that can be found in the LICENSE file.
 
 package engine
 
@@ -143,4 +143,8 @@ func runTasks() {
 
 	//empty queue
 	taskQueue = taskQueue[0:0]
+}
+
+func DelayFunc(f func(), waitSeconds float64) {
+	AddTask("tempFunc", func(t *Task) { f()}, nil, 0, waitSeconds)
 }
