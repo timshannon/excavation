@@ -75,7 +75,7 @@ func errHandler(err error) {
 }
 
 func showFPS(t *engine.Task) {
-	engine.Print("FPS: ", engine.Fps())
+	//engine.Print("FPS: ", engine.Fps())
 	t.Wait(1)
 }
 
