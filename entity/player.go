@@ -137,41 +137,21 @@ func deccelerate(speed, time float32) float32 {
 }
 
 func (p *Player) localTransform() {
-	//FIXME
-	//vRotMatrix := new(vectormath.Matrix3)
-	//vRelM3 := new(vectormath.Matrix3)
-	//vTranslate := new(vectormath.Vector3)
-	//vCurTranslate := new(vectormath.Vector3)
-	//vRotate := new(vectormath.Vector3)
-	//vMatrix := new(vectormath.Matrix4)
-
 	matrix := p.node.RelativeTransMat()
-	//vectormath.SliceToM4(vMatrix, matrix[:])
 
 	matrix.Translation(p.curTranslate)
-	//vMatrix.Translation(vCurTranslate)
 
-	//vectormath.SliceToV3(vRotate, p.rotate[:])
 	p.rotationMatrix.MakeRotationZYX(p.rotate)
-	//vectormath.M3MakeRotationZYX(vRotMatrix, vRotate)
 
 	matrix.Upper3x3(p.relM3)
-	//vMatrix.Upper3x3(vRelM3)
 
-	//vectormath.SliceToV3(vTranslate, p.translate[:])
 	p.translate.MulM3(p.translate, p.relM3)
-	//vectormath.M3MulV3(vTranslate, vRelM3, vTranslate)
 
 	p.rotationMatrix.Mul(p.relM3, p.rotationMatrix)
-	//vectormath.M3Mul(vRotMatrix,  vRelM3,vRotMatrix)
 
 	p.translate.Add(p.curTranslate, p.translate)
-	//vectormath.V3Add(vTranslate, vCurTranslate, vTranslate)
 
 	matrix.MakeFromM3V3(p.rotationMatrix, p.translate)
-	//vectormath.M4MakeFromM3V3(vMatrix, vRotMatrix, vTranslate)
-
-	//vectormath.M4ToSlice(matrix[:], vMatrix)
 
 	p.node.SetRelativeTransMat(matrix)
 
