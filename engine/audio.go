@@ -329,38 +329,38 @@ func (s *audioSource) occluded() bool {
 	return s.audio.node.Occluded()
 }
 
+
 func (l *Listener) updatePositionOrientation() {
 
-	l.node.AbsoluteTransMat().Translation(l.curVec)
+        l.node.AbsoluteTransMat().Translation(l.curVec)
+        l.Set3f(openal.AlPosition, l.curVec[0], l.curVec[1], l.curVec[2])
 
-	//forward
+        //forward
 	l.tempVec.MakeZAxis()
-	l.tempVec[2] = -1 //horde has flipped z
-	setOpenAlRelativeVector(l.atOrient, l.tempVec, l.node.AbsoluteTransMat())
+        l.tempVec[2] = -1 //horde has flipped z
+        setOpenAlRelativeVector(l.atOrient, l.tempVec, l.node.AbsoluteTransMat())
 
-	//up
-	//vmath.V4MakeYAxis(l.tempVec)
+        //up
 	l.tempVec.MakeYAxis()
-	setOpenAlRelativeVector(l.upOrient, l.tempVec, l.node.AbsoluteTransMat())
+        setOpenAlRelativeVector(l.upOrient, l.tempVec, l.node.AbsoluteTransMat())
 
-	l.SetOrientation(listener.atOrient, listener.upOrient)
+        l.SetOrientation(listener.atOrient, listener.upOrient)
 
-	l.prevVec.Velocity(l.prevVec, l.curVec, float32(GameTime()-l.prevTime))
+	l.prevVec.Velocity(l.prevVec, l.curVec, float32(GameTime() -l.prevTime))
 
-	l.Set3f(openal.AlVelocity, l.prevVec[0], l.prevVec[1], l.prevVec[2])
+        l.Set3f(openal.AlVelocity, l.prevVec[0], l.prevVec[1], l.prevVec[2])
 
 	l.prevVec.Copy(l.curVec)
-	l.prevTime = GameTime()
+        l.prevTime = GameTime()
 }
 
 func setOpenAlRelativeVector(alVec *openal.Vector, v4 *vmath.Vector4, matrix *vmath.Matrix4) {
-	//vmath.M4MulV4(v4, matrix, v4)
-	v4.MulM4Self(matrix)
-	//v4.Normalize()
+	v4.MulM4(v4, matrix)
 	v4.NormalizeSelf()
 
-	alVec[0] = v4[0]
-	alVec[1] = v4[1]
-	alVec[2] = v4[2]
+        alVec[0] = v4[0]
+        alVec[1] = v4[1]
+        alVec[2] = v4[2]
 
 }
+
