@@ -64,6 +64,7 @@ type dPrintItem struct {
 
 var dPrint *dPrintItem
 var dPrintQueue []*dPrintItem
+var PrintTime float64 = 5
 
 //Print prints a message to the upper right hand side of the screen.
 //  Message will fade after a few seconds,  Any new calls to print will replace
@@ -71,14 +72,14 @@ var dPrintQueue []*dPrintItem
 // if you want to print a list of messages, use Println
 func Print(a ...interface{}) {
 	dPrint.text.Text = fmt.Sprint(a...)
-	dPrint.timer = Time() + 3
+	dPrint.timer = Time() + PrintTime
 }
 
 //Printf is similar to Print, but accepts a format string
 // see http://golang.org/pkg/fmt/#pkg-overview for format details
 func Printf(format string, a ...interface{}) {
 	dPrint.text.Text = fmt.Sprintf(format, a...)
-	dPrint.timer = Time() + 3
+	dPrint.timer = Time() + PrintTime
 }
 
 //Println prints a message to the upper right hand side of the screen
@@ -93,7 +94,7 @@ func dPrintAddToQueue(text string) {
 	newItem := &dPrintItem{
 		NewText(text, dPrint.text.Size, dPrint.text.FontMaterial.Name(),
 			dPrint.text.Color, NewScreenPosition(0.01, 0.01, ScreenRelativeLeft)),
-		Time() + 3,
+		Time() + PrintTime,
 	}
 	dPrintQueue = append(dPrintQueue, newItem)
 
