@@ -10,7 +10,6 @@ type PhysicsScene struct {
 
 func (p *PhysicsScene) Add(node *engine.Node, args EntityArgs) {
 	p.body = engine.AddPhysicsScene(node)
-	p.body.ShowDebugGeometry()
 }
 
 func (p *PhysicsScene) Trigger(value float32) {

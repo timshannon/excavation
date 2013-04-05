@@ -8,7 +8,6 @@ import (
 	"code.google.com/p/gohorde/horde3d"
 	"code.google.com/p/gonewton/newton"
 	"code.google.com/p/vmath"
-	"strconv"
 )
 
 const (
@@ -28,11 +27,13 @@ type PhysicsScene struct {
 type PhysicsBody struct {
 	Node *Node
 	*newton.Body
+	Force vmath.Vector3
 }
 
 func initPhysics() {
 	phWorld = newton.CreateWorld()
 }
+
 
 func PhysicsWorld() *newton.World {
 	return phWorld
@@ -47,6 +48,12 @@ func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex 
 
 	body.MassMatrix(&mass, &Ixx, &Iyy, &Izz)
 	body.SetForce(&[3]float32{0.0, mass * GRAVITY, 0.0})
+
+	pBody := body.UserData().(*PhysicsBody)
+	body.AddForce(pBody.Force.Array())
+
+	//TODO: Temp
+	pBody.Force.ScalarMulSelf(0)
 }
 
 func NewtonTransformUpdate(body *newton.Body, matrix *[16]float32, threadIndex int) {
@@ -56,7 +63,7 @@ func NewtonTransformUpdate(body *newton.Body, matrix *[16]float32, threadIndex i
 
 	pBody := body.UserData().(*PhysicsBody)
 	//Can only set relative matrix
-	pBody.Node.SetRelativeTransMat((*vmath.Matrix4)(&phMatrix))
+	pBody.Node.SetNodeTransMat(&phMatrix)
 }
 
 func clearAllPhysics() {
@@ -72,7 +79,6 @@ func NewtonMeshListFromNode(node *Node) []*newton.Mesh {
 	hMeshes := node.FindChild("", NodeTypeMesh)
 	nMeshes := make([]*newton.Mesh, len(hMeshes))
 	geom := horde3d.H3DRes(node.H3DNode.NodeParamI(horde3d.Model_GeoResI))
-
 	for i := range hMeshes {
 		nMeshes[i] = phWorld.CreateMesh()
 
@@ -144,7 +150,20 @@ func iterateFacesInMesh(iterator hordeMeshFaceIterator, hMesh horde3d.H3DNode, g
 		return
 	}
 
-	face := make([]float32, 16)
+	face := make([]float32, 9)
+
+	mat4 := new(vmath.Matrix4)
+	mat3 := new(vmath.Matrix3)
+	transform := new(vmath.Transform3)
+	translate := new(vmath.Vector3)
+
+	hMesh.TransMats(nil, mat4.Array())
+
+	mat4.Upper3x3(mat3)
+	mat4.Translation(translate)
+
+	transform.MakeFromM3V3(mat3, translate)
+
 	var vIndex1, vIndex2, vIndex3 uint32
 
 	for index := 0; index < batchCount; index += 3 {
@@ -171,7 +190,21 @@ func iterateFacesInMesh(iterator hordeMeshFaceIterator, hMesh horde3d.H3DNode, g
 		face[7] = vertices[vIndex3*3+1]
 		face[8] = vertices[vIndex3*3+2]
 
+		//applyTransformToFace(face, transform)
+
 		iterator(face)
+	}
+
+}
+
+func applyTransformToFace(face []float32, transform *vmath.Transform3) {
+	vert := new(vmath.Vector3)
+
+	for i := 0; i < len(face); i += 3 {
+		copy(vert[:], face[i:i+3])
+		vert.ScalarMulSelf(2)
+
+		copy(face[i:i+3], vert[:])
 	}
 
 }
@@ -202,7 +235,8 @@ func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
 	if len(meshes) == 1 {
 		collision := phWorld.CreateConvexHullFromMesh(meshes[0], CONVEXTOLERANCE,
 			int(node.H3DNode))
-		return AddPhysicsBodyFromCollision(node, collision, mass)
+			return AddPhysicsBodyFromCollision(node, collision, mass)
+
 	}
 
 	collision := phWorld.CreateCompoundCollision(int(node.H3DNode))
@@ -216,6 +250,7 @@ func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
 	collision.CompoundEndAddRemove()
 
 	return AddPhysicsBodyFromCollision(node, collision, mass)
+
 }
 
 //AddPhysicsBodyFromCollision allows for creating a specific collision in newton directly
@@ -242,71 +277,4 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	newBody.Body = body
 
 	return newBody
-}
-
-var phI int
-
-func collisionIterator(userData interface{}, vertexCount int, faceArray []float32, faceID int) {
-	indexData := make([]uint32, vertexCount)
-
-	phI++
-
-	for i := range indexData {
-		indexData[i] = uint32(i)
-	}
-
-	strIt := strconv.Itoa(phI)
-	geoRes := horde3d.CreateGeometryRes("geomRes"+strIt, 4, 6, faceArray, indexData, nil, nil, nil, nil, nil)
-	model := Root.H3DNode.AddModelNode("DynGeoModelNode"+strIt, geoRes)
-
-	matRes, _ := NewMaterial("overlays/gui/default/background.material.xml")
-	matRes.Load()
-
-	model.AddMeshNode("DynGeoMesh"+strIt, matRes.H3DRes, 0, 6, 0, 3)
-
-	//fmt.Println("node: ", node)
-
-	//node.SetParent(userData.(*Node))
-
-}
-
-func showDebugGeometry(b *newton.Body, node *Node) {
-	//horde3d.SetOption(horde3d.Options_DebugViewMode, 1)
-
-	collision := b.Collision()
-	if collision == nil {
-		return
-	}
-
-	b.Matrix(&phMatrix)
-
-	collision.ForEachPolygonDo(&phMatrix, collisionIterator, node)
-	//testDynGeometry(b.Node)
-}
-
-func (b *PhysicsBody) ShowDebugGeometry() {
-	showDebugGeometry(b.Body, b.Node)
-}
-
-func (s *PhysicsScene) ShowDebugGeometry() {
-	showDebugGeometry(s.Body, s.Node)
-}
-
-func testDynGeometry(parent *Node) {
-
-	posData := []float32{
-		0, 0, 0,
-		10, 0, 0,
-		0, 10, 0,
-		10, 10, 0}
-
-	indexData := []uint32{0, 1, 2, 2, 1, 3}
-
-	geoRes := horde3d.CreateGeometryRes("geoRes", 4, 6, posData, indexData, nil, nil, nil, nil, nil)
-	model := parent.H3DNode.AddModelNode("DynGeoModelNode", geoRes)
-
-	matRes, _ := NewMaterial("overlays/gui/default/background.material.xml")
-	matRes.Load()
-
-	model.AddMeshNode("DynGeoMesh", matRes.H3DRes, 0, 6, 0, 3)
 }
