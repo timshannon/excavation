@@ -13,7 +13,7 @@ import (
 
 func initDebugPrint() {
 	dPrint = &dPrintItem{
-		NewText("", 0.02, defaultFont, NewColor(100, 100, 100, 255),
+		NewBitmapText("", 0.02, defaultFont, NewColor(100, 100, 100, 255),
 			NewScreenPosition(0.01, 0.01, ScreenRelativeLeft)),
 		-1,
 	}
@@ -58,7 +58,7 @@ func UserDir() (string, error) {
 
 //Debug Printing
 type dPrintItem struct {
-	text  *Text
+	text  *BitmapText
 	timer float64
 }
 
@@ -92,7 +92,7 @@ func Println(a ...interface{}) {
 
 func dPrintAddToQueue(text string) {
 	newItem := &dPrintItem{
-		NewText(text, dPrint.text.Size, dPrint.text.FontMaterial.Name(),
+		NewBitmapText(text, dPrint.text.Size, dPrint.text.FontMaterial.Name(),
 			dPrint.text.Color, NewScreenPosition(0.01, 0.01, ScreenRelativeLeft)),
 		Time() + PrintTime,
 	}

@@ -26,9 +26,6 @@ func initGui() {
 	glfw.SetCharCallback(charCollector)
 	activeGuis = make([]*Gui, 0, 5)
 
-	//res := &Resource{horde3d.AddResource(horde3d.ResTypes_Shader, "shaders/overlay.shader", 0)}
-	//res.Load()
-
 	initDebugPrint()
 }
 
@@ -156,6 +153,18 @@ func (s *ScreenArea) X2() float32 {
 	return 0
 }
 
+//PixelHeight is the height in actual pixels as relating to the current
+// screen resolution
+func (s *ScreenArea) PixelHeight() int {
+	return int(float32(screenHeight) * s.Height)
+}
+
+//PixelWidth is the width in actual pixels as relating to the current
+// screen resolution
+func (s *ScreenArea) PixelWidth() int {
+	return int(float32(screenWidth) * s.Width)
+}
+
 func NewScreenArea(x, y, height, width float32, relativeTo int) *ScreenArea {
 	return &ScreenArea{&ScreenPosition{x, y, relativeTo}, height, width}
 }
@@ -205,7 +214,12 @@ type Overlay struct {
 }
 
 func NewOverlay(materialLocation string, color *Color, dimensions *ScreenArea) *Overlay {
-	material, _ := NewMaterial(materialLocation)
+	material, err := NewMaterial(materialLocation)
+	err = material.Load()
+	if err != nil {
+		RaiseError(err)
+	}
+
 	return &Overlay{dimensions, color, material}
 }
 
@@ -213,9 +227,16 @@ func NewScreenPosition(X, Y float32, relativeTo int) *ScreenPosition {
 	return &ScreenPosition{X, Y, relativeTo}
 }
 
-//TODO: Replace with freetype rasterization
-//  it'll look better, and overcome the overlay limits
-type Text struct {
+//BitmapText is text drawn on the screen using a bitmap based fonts
+//  Can be faster for small sets of text vs freetype raster
+//  Doesn't require regerating and reloading the resource
+//  Limited by horde's overlay limit.
+//  Recommended for use in small quick text changes (debug messages)
+//  For large font sizes, or large amounts of text use the
+//  Text type which uses a freetype rasterizer to genrate the text
+//  and only ever uses one resource, but any changes made to that
+//  text need to be re-rasterized
+type BitmapText struct {
 	Text         string
 	Position     *ScreenPosition
 	Size         float32
@@ -223,20 +244,17 @@ type Text struct {
 	Color        *Color
 }
 
-func NewText(text string, size float32, materialLocation string,
-	color *Color, position *ScreenPosition) *Text {
-	material, _ := NewMaterial(materialLocation)
-
-	return &Text{text, position, size, material, color}
+func NewBitmapText(text string, size float32, materialLocation string,
+	color *Color, position *ScreenPosition) *BitmapText {
+	material, err := NewMaterial(materialLocation)
+	err = material.Load()
+	if err != nil {
+		RaiseError(err)
+	}
+	return &BitmapText{text, position, size, material, color}
 }
 
-func (o *Overlay) Place() {
-	o.Dimensions.toVertex(tempArray[:])
-	horde3d.ShowOverlays(tempArray[:], 4, o.Color.R(), o.Color.G(),
-		o.Color.B(), o.Color.A(), o.Material.H3DRes, 0)
-}
-
-func (t *Text) Place() {
+func (t *BitmapText) Place() {
 	var newX float32
 	switch t.Position.RelativeTo {
 	case ScreenRelativeAspect:
@@ -251,8 +269,14 @@ func (t *Text) Place() {
 
 }
 
-func (t *Text) Width() float32 {
+func (t *BitmapText) Width() float32 {
 	return (float32(len(t.Text)) * t.Size * .5) + (t.Size * .25)
+}
+
+func (o *Overlay) Place() {
+	o.Dimensions.toVertex(tempArray[:])
+	horde3d.ShowOverlays(tempArray[:], 4, o.Color.R(), o.Color.G(),
+		o.Color.B(), o.Color.A(), o.Material.H3DRes, 0)
 }
 
 //Widget is a collection of Overlays

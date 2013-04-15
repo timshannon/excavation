@@ -16,9 +16,9 @@ type Button struct {
 	BackgroundHoverOverlay *engine.Overlay
 	BackgroundClickOverlay *engine.Overlay
 	//text
-	Text           *engine.Text
-	TextHover      *engine.Text
-	TextClick      *engine.Text
+	Text           *engine.BitmapText
+	TextHover      *engine.BitmapText
+	TextClick      *engine.BitmapText
 	hover          bool
 	showBackground bool
 	ClickEvent     func(sender string)
@@ -40,9 +40,9 @@ func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenAr
 		BackgroundHoverOverlay: engine.NewOverlay(defaultBackground, hoverColor, dimensions),
 		BackgroundClickOverlay: engine.NewOverlay(defaultBackground, hoverColor, dimensions),
 		showBackground:         true,
-		Text:                   engine.NewText(text, textSize, defaultFont, textColor, textPosition),
-		TextHover:              engine.NewText(text, textSize, defaultFont, textColor, textPosition),
-		TextClick:              engine.NewText(text, textSize, defaultFont, textColor, textPosition),
+		Text:                   engine.NewBitmapText(text, textSize, defaultFont, textColor, textPosition),
+		TextHover:              engine.NewBitmapText(text, textSize, defaultFont, textColor, textPosition),
+		TextClick:              engine.NewBitmapText(text, textSize, defaultFont, textColor, textPosition),
 	}
 	button.dimensions = button.BackgroundOverlay.Dimensions
 	return button
