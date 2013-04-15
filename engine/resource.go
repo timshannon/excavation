@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 )
 
 var (
@@ -101,8 +102,31 @@ func (res *Resource) Type() int { return res.H3DRes.Type() }
 
 func (res *Resource) Name() string { return res.H3DRes.Name() }
 
+//virtualData stores resource data dynamically created
+// during the operation of the engine.  Overlays,
+// geometry, etc
+var virtualData = make(map[string][]byte)
+
+//AddVirtualResource adds the passed in data array
+// as resource in memory,
+func SetVirtualResource(resourceName string, data []byte) {
+	virtualData[resourceName] = data
+}
+
+func NewVirtualResource(name string, resType int) *Resource {
+	newRes := &Resource{horde3d.AddResource(resType,
+		"virtual://"+name, 0)}
+	if newRes.H3DRes == 0 {
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		RaiseError(err)
+		return nil
+	}
+
+	return newRes
+}
+
 //Resources will be loaded either from a directory or from a
-// tar.gz data file.  If the both the data folder and data tar.gz
+// zip data file.  If the both the data folder and data
 // file exist, it will first attempt to load from the data folder.
 // if the resource doesn't exist in the data folder, then it will
 // try to load it from the data file
@@ -125,6 +149,13 @@ func (res *Resource) Load() error {
 }
 
 func loadEngineData(resourcePath string) ([]byte, error) {
+
+	//TODO: http:// load from web?
+	//TODO: Virtual Resource Path virtual://
+	//	Loads from memory
+	if strings.HasPrefix(resourcePath, "virtual://") {
+	}
+
 	if !path.IsAbs(resourcePath) {
 		resourcePath = path.Join(dataDir, resourcePath)
 	}
@@ -133,13 +164,8 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 
 	if os.IsNotExist(err) {
 		//err = nil
-		//TODO: load from tar or tar.gz data file
-		// or if a tar.gz file is found, unzip it and leave the tar
+		//TODO: load from zip
 		//remove respath root
-		// Open data file on first request
-		// close datafile on clear all
-		// or stream buffered data
-		// package datafile?
 		RaiseError(err)
 		return nil, err
 	}
