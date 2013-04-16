@@ -18,6 +18,10 @@ var (
 	dataFile string
 )
 
+const (
+	virtualPath = "virtual://"
+)
+
 func init() {
 	wd, _ := os.Getwd()
 	dataDir = path.Join(wd, "data")
@@ -115,7 +119,7 @@ func SetVirtualResource(resourceName string, data []byte) {
 
 func NewVirtualResource(name string, resType int) *Resource {
 	newRes := &Resource{horde3d.AddResource(resType,
-		"virtual://"+name, 0)}
+		virtualPath+name, 0)}
 	if newRes.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
 		RaiseError(err)
@@ -148,12 +152,20 @@ func (res *Resource) Load() error {
 
 }
 
+func (res *Resource) IsVirtual() bool {
+	return strings.HasPrefix(res.Name(), virtualPath)
+}
+
 func loadEngineData(resourcePath string) ([]byte, error) {
 
 	//TODO: http:// load from web?
-	//TODO: Virtual Resource Path virtual://
-	//	Loads from memory
-	if strings.HasPrefix(resourcePath, "virtual://") {
+	//	Loads virtual resource from memory
+	if strings.HasPrefix(resourcePath, virtualPath) {
+		data, ok := virtualData[resourcePath]
+		if !ok {
+			return nil, errors.New("Virtual resource not found: " + resourcePath)
+		}
+		return data, nil
 	}
 
 	if !path.IsAbs(resourcePath) {
@@ -179,6 +191,9 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 }
 
 func (res *Resource) FullPath() string {
+	if res.IsVirtual() {
+		return res.Name()
+	}
 	return path.Join(dataDir, res.Name())
 }
 
