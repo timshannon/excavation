@@ -1,0 +1,19 @@
+Below is a list of libraries, tools, music, images, fonts, etc, that made this game
+possible.  As you can see, I haven't done much more than bring together the talented work
+of many people. 
+
+"If I have seen further it is by standing on the shoulders of giants." - Isaac Newton
+
+
+Library/Work - Author - License	- Website
+
+Go - The Go Authors - (BSD) http://golang.org/LICENSE - http://golang.org/
+Vim - Bram Moolenaar - (GPL-Compatible) http://vimdoc.sourceforge.net/htmldoc/uganda.html#license  - http://vim.org
+Horde3d - Nicolas Schulz and the Horde3D Team  - (EPL) http://www.eclipse.org/legal/epl-v10.html - http://horde3d.org
+GLFW - Marcus Geelnard, Camilla Berglund  - (zlib/libpng) http://www.glfw.org/license.html - http://www.glfw.org
+SDL -http://www.libsdl.org/credits.php - (zlib) http://www.gzip.org/zlib/zlib_license.html - http://www.libsdl.org
+Newton Game Dynamics -Julio Jerez and Alain Suero - (zlib) http://newtondynamics.com/forum/newton.php - http://newtondynamics.com/
+Blender - Blender Foundation - (GPL) https://gnu.org/licenses/gpl.html - http://blender.org/ 
+GIMP - Spencer Kimball, Peter Mattis and The GIMP Development Team - (GPL) https://gnu.org/licenses/gpl.html - http://www.gimp.org/ 
+freetype-go - Freetype-Go Authors - (The FreeType License / GPL) http://freetype.sourceforge.net/license.html - https://code.google.com/p/freetype-go/
+ 
