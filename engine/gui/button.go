@@ -16,9 +16,9 @@ type Button struct {
 	BackgroundHoverOverlay *engine.Overlay
 	BackgroundClickOverlay *engine.Overlay
 	//text
-	Text           *engine.BitmapText
-	TextHover      *engine.BitmapText
-	TextClick      *engine.BitmapText
+	Text           *engine.Text
+	TextHover      *engine.Text
+	TextClick      *engine.Text
 	hover          bool
 	showBackground bool
 	ClickEvent     func(sender string)
