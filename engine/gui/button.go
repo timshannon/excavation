@@ -6,7 +6,7 @@ import (
 
 const (
 	defaultBackground = "overlays/gui/default/background.material.xml"
-	defaultFont       = "overlays/gui/default/font.material.xml"
+	defaultFont       = "fonts/newscycle-regular.ttf"
 )
 
 type Button struct {
@@ -26,13 +26,15 @@ type Button struct {
 
 //MakeButton returns a button with the default background and colors
 //  changes from default can be made by accessing exported variables
-func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenArea) *Button {
+func MakeButton(name, text string, textSize float64, dimensions *engine.ScreenArea) *Button {
 	defaultColor := engine.NewColor(118, 118, 118, 255)
 	hoverColor := engine.NewColor(155, 155, 155, 50)
 	textColor := engine.NewColor(255, 255, 255, 0)
+
+	textSlice := []string{text}
 	//TODO: Determine text position
 	// Auto size button to hold text, center text vertically
-	textPosition := dimensions.Position
+	textPosition := dimensions
 
 	button := &Button{
 		name:                   name,
@@ -40,9 +42,9 @@ func MakeButton(name, text string, textSize float32, dimensions *engine.ScreenAr
 		BackgroundHoverOverlay: engine.NewOverlay(defaultBackground, hoverColor, dimensions),
 		BackgroundClickOverlay: engine.NewOverlay(defaultBackground, hoverColor, dimensions),
 		showBackground:         true,
-		Text:                   engine.NewBitmapText(text, textSize, defaultFont, textColor, textPosition),
-		TextHover:              engine.NewBitmapText(text, textSize, defaultFont, textColor, textPosition),
-		TextClick:              engine.NewBitmapText(text, textSize, defaultFont, textColor, textPosition),
+		Text:                   engine.NewText(textSlice, defaultFont, textSize, textColor, textPosition),
+		TextHover:              engine.NewText(textSlice, defaultFont, textSize, textColor, textPosition),
+		TextClick:              engine.NewText(textSlice, defaultFont, textSize, textColor, textPosition),
 	}
 	button.dimensions = button.BackgroundOverlay.Dimensions
 	return button
@@ -54,8 +56,7 @@ func (b *Button) ShowBackground(value bool) {
 		b.dimensions = b.BackgroundOverlay.Dimensions
 	} else {
 		//If no background, base mouse area on text
-		b.dimensions = engine.NewScreenArea(b.Text.Position.X, b.Text.Position.Y,
-			b.Text.Size, b.Text.Width(), b.Text.Position.RelativeTo)
+		b.dimensions = b.Text.Area()
 	}
 	b.showBackground = value
 }
@@ -76,7 +77,7 @@ func (b *Button) Update() {
 		if b.showBackground {
 			b.BackgroundHoverOverlay.Place()
 		}
-		if b.TextHover.Text != "" {
+		if len(b.TextHover.Text()) != 0 {
 			b.TextHover.Place()
 		}
 		b.hover = false
@@ -84,7 +85,7 @@ func (b *Button) Update() {
 		if b.showBackground {
 			b.BackgroundOverlay.Place()
 		}
-		if b.Text.Text != "" {
+		if len(b.Text.Text()) != 0 {
 			b.Text.Place()
 		}
 	}
@@ -95,7 +96,7 @@ func (b *Button) Click(button int) {
 		if b.showBackground {
 			b.BackgroundClickOverlay.Place()
 		}
-		if b.Text.Text != "" {
+		if len(b.Text.Text()) != 0 {
 			b.TextClick.Place()
 		}
 		b.ClickEvent(b.name)
