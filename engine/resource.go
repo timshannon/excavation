@@ -117,9 +117,29 @@ func SetVirtualResource(resourceName string, data []byte) {
 	virtualData[resourceName] = data
 }
 
+func RemoveVirtualResource(resourceName string) {
+	delete(virtualData, resourceName)
+}
+
 func NewVirtualResource(name string, resType int) *Resource {
+	if resType == ResTypeTexture {
+		RaiseError(errors.New("Virtualized Textures must use NewVirtualTexture"))
+		return nil
+	}
 	newRes := &Resource{horde3d.AddResource(resType,
 		virtualPath+name, 0)}
+	if newRes.H3DRes == 0 {
+		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		RaiseError(err)
+		return nil
+	}
+
+	return newRes
+}
+
+//NewVirtualTexture adds a new texture in memory.  fmt refers to horde stream format enum
+func NewVirtualTexture(name string, width, height, fmt int) *Texture {
+	newRes := &Texture{&Resource{horde3d.CreateTexture(virtualPath+name, width, height, fmt, 0)}}
 	if newRes.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
 		RaiseError(err)
@@ -158,7 +178,6 @@ func (res *Resource) IsVirtual() bool {
 
 func loadEngineData(resourcePath string) ([]byte, error) {
 
-	//TODO: http:// load from web?
 	//	Loads virtual resource from memory
 	if strings.HasPrefix(resourcePath, virtualPath) {
 		data, ok := virtualData[resourcePath]
@@ -203,11 +222,18 @@ func (res *Resource) Clone(cloneName string) *Resource {
 	return clone
 }
 
-func (res *Resource) Remove() { res.H3DRes.Remove() }
+func (res *Resource) Remove() {
+	if res.IsVirtual() {
+		RemoveVirtualResource(res.Name())
+	}
+	res.H3DRes.Remove()
+}
 
 func (res *Resource) IsLoaded() bool { return res.H3DRes.IsLoaded() }
 
-func (res *Resource) Unload() { res.H3DRes.Unload() }
+func (res *Resource) Unload() {
+	res.H3DRes.Unload()
+}
 
 type Scene struct{ *Resource }
 

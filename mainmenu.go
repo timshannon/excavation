@@ -33,7 +33,7 @@ func loadMainMenu() {
 	//Quit
 	btnQuit := gui.MakeButton("quit", "Quit", 0.05,
 		engine.NewScreenArea(0.1, .75, .03, .5, engine.ScreenRelativeLeft))
-	btnQuit.ShowBackground(false)
+	//btnQuit.ShowBackground(false)
 	btnQuit.Text.SetColor(engine.NewColor(75, 75, 75, 255))
 	btnQuit.TextHover.SetColor(engine.NewColor(100, 100, 100, 255))
 	btnQuit.TextClick.SetColor(engine.NewColor(100, 100, 100, 255))
