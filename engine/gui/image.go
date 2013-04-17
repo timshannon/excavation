@@ -30,3 +30,4 @@ func (i *Image) Name() string {
 func (i *Image) Hover()           { return }
 func (i *Image) Click(mouse int)  { return }
 func (i *Image) Scroll(delta int) { return }
+func (i *Image) Unload()          { return }

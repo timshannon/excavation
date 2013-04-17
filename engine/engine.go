@@ -134,7 +134,7 @@ func StartMainLoop() {
 		glfw.SwapBuffers()
 	}
 
-	horde3d.DumpMessages()
+	horde3d.DumpMessages() //remove
 	ClearAll()
 	phWorld.Destroy()
 	horde3d.Release()
@@ -206,7 +206,6 @@ func ClearAll() {
 	UnloadAllGuis()
 	clearAllAudio()
 	clearAllPhysics()
-	//TODO: Close compressed data file if open
 	//horde3d.Clear()
 
 	children := Root.Children()

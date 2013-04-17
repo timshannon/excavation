@@ -107,3 +107,9 @@ func (b *Button) Scroll(delta int) {
 	//Nothing
 	return
 }
+
+func (b *Button) Unload() {
+	b.Text.Unload()
+	b.TextClick.Unload()
+	b.TextHover.Unload()
+}

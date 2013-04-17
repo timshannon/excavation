@@ -287,6 +287,7 @@ type Widget interface {
 	Hover()
 	Click(int)
 	Scroll(int)
+	Unload()
 }
 
 //Gui is a collection of Widgets
@@ -365,6 +366,9 @@ func (g *Gui) unload() {
 	glfw.PollEvents()
 	unloadInputGroup()
 	gCharCollector = nil
+	for i := range g.Widgets {
+		g.Widgets[i].Unload()
+	}
 }
 
 func (g *Gui) mouseClick(button int) bool {
