@@ -113,15 +113,16 @@ var virtualData = make(map[string][]byte)
 
 //AddVirtualResource adds the passed in data array
 // as resource in memory,
-func SetVirtualResource(resourceName string, data []byte) {
+func setVirtualResource(resourceName string, data []byte) {
 	virtualData[resourceName] = data
 }
 
-func RemoveVirtualResource(resourceName string) {
+func removeVirtualResource(resourceName string) {
 	delete(virtualData, resourceName)
 }
 
-func NewVirtualResource(name string, resType int) *Resource {
+//NewVirtualResource Creates a new virtual resource from the passed in byte array 
+func NewVirtualResource(name string, resType int, data []byte) *Resource {
 	if resType == ResTypeTexture {
 		RaiseError(errors.New("Virtualized Textures must use NewVirtualTexture"))
 		return nil
@@ -134,18 +135,20 @@ func NewVirtualResource(name string, resType int) *Resource {
 		return nil
 	}
 
+	setVirtualResource(virtualPath+name, data)
+
+
 	return newRes
 }
 
 //NewVirtualTexture adds a new texture in memory.  fmt refers to horde stream format enum
-func NewVirtualTexture(name string, width, height, fmt int) *Texture {
-	newRes := &Texture{&Resource{horde3d.CreateTexture(virtualPath+name, width, height, fmt, 0)}}
+func NewVirtualTexture(name string, width, height, fmt, flags int) *Texture {
+	newRes := &Texture{&Resource{horde3d.CreateTexture(virtualPath+name, width, height, fmt, flags)}}
 	if newRes.H3DRes == 0 {
 		err := errors.New("Unable to add resource " + name + " in Horde3D.")
 		RaiseError(err)
 		return nil
 	}
-
 	return newRes
 }
 
@@ -180,6 +183,7 @@ func loadEngineData(resourcePath string) ([]byte, error) {
 
 	//	Loads virtual resource from memory
 	if strings.HasPrefix(resourcePath, virtualPath) {
+		Println(resourcePath)
 		data, ok := virtualData[resourcePath]
 		if !ok {
 			return nil, errors.New("Virtual resource not found: " + resourcePath)
@@ -224,7 +228,7 @@ func (res *Resource) Clone(cloneName string) *Resource {
 
 func (res *Resource) Remove() {
 	if res.IsVirtual() {
-		RemoveVirtualResource(res.Name())
+		removeVirtualResource(res.Name())
 	}
 	res.H3DRes.Remove()
 }
@@ -303,6 +307,18 @@ type ShaderCode struct{ *Resource }
 
 type Shader struct{ *Resource }
 type Texture struct{ *Resource }
+
+func (t *Texture) SetData(data []byte) {
+	stream, err := t.MapByteResStream(horde3d.TexRes_ImageElem, 0, horde3d.TexRes_ImgPixelStream,
+		false, true, len(data))
+
+	if err != nil {
+		RaiseError(err)
+		return
+	}
+	copy(stream, data)
+	t.UnmapResStream()
+}
 
 type ParticleEffect struct{ *Resource }
 
