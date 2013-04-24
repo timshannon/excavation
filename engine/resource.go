@@ -7,10 +7,10 @@ package engine
 import (
 	"code.google.com/p/gohorde/horde3d"
 	"errors"
+	"image"
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 )
 
 var (
@@ -121,7 +121,7 @@ func removeVirtualResource(resourceName string) {
 	delete(virtualData, resourceName)
 }
 
-//NewVirtualResource Creates a new virtual resource from the passed in byte array 
+//NewVirtualResource Creates a new virtual resource from the passed in byte array
 func NewVirtualResource(name string, resType int, data []byte) *Resource {
 	if resType == ResTypeTexture {
 		RaiseError(errors.New("Virtualized Textures must use NewVirtualTexture"))
@@ -137,18 +137,21 @@ func NewVirtualResource(name string, resType int, data []byte) *Resource {
 
 	setVirtualResource(virtualPath+name, data)
 
-
 	return newRes
 }
 
 //NewVirtualTexture adds a new texture in memory.  fmt refers to horde stream format enum
 func NewVirtualTexture(name string, width, height, fmt, flags int) *Texture {
-	newRes := &Texture{&Resource{horde3d.CreateTexture(virtualPath+name, width, height, fmt, flags)}}
+	newRes := &Texture{&Resource{horde3d.CreateTexture(name, width, height, fmt, flags)}}
 	if newRes.H3DRes == 0 {
-		err := errors.New("Unable to add resource " + name + " in Horde3D.")
+		err := errors.New("Unable to add virtual texture resource " + name + " in Horde3D.")
 		RaiseError(err)
 		return nil
 	}
+
+	//set empty virtual data, because texture data is set in Texture.SetData()
+	setVirtualResource(name, []byte{0})
+
 	return newRes
 }
 
@@ -176,18 +179,14 @@ func (res *Resource) Load() error {
 }
 
 func (res *Resource) IsVirtual() bool {
-	return strings.HasPrefix(res.Name(), virtualPath)
+	_, ok := virtualData[res.Name()]
+	return ok
 }
 
 func loadEngineData(resourcePath string) ([]byte, error) {
 
 	//	Loads virtual resource from memory
-	if strings.HasPrefix(resourcePath, virtualPath) {
-		Println(resourcePath)
-		data, ok := virtualData[resourcePath]
-		if !ok {
-			return nil, errors.New("Virtual resource not found: " + resourcePath)
-		}
+	if data, ok := virtualData[resourcePath]; ok {
 		return data, nil
 	}
 
@@ -308,15 +307,31 @@ type ShaderCode struct{ *Resource }
 type Shader struct{ *Resource }
 type Texture struct{ *Resource }
 
-func (t *Texture) SetData(data []byte) {
-	stream, err := t.MapByteResStream(horde3d.TexRes_ImageElem, 0, horde3d.TexRes_ImgPixelStream,
-		false, true, len(data))
+func (t *Texture) SetData(data image.Image) {
+	width := data.Bounds().Size().X
+	height := data.Bounds().Size().Y
+
+	stream, err := t.MapFloatResStream(horde3d.TexRes_ImageElem, 0, horde3d.TexRes_ImgPixelStream,
+		false, true, (width*height)*4)
 
 	if err != nil {
 		RaiseError(err)
 		return
 	}
-	copy(stream, data)
+
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			r, g, b, a := data.At(x, y).RGBA()
+			index := (y * (width * 4)) + x
+
+			stream[index] = float32(r)
+			stream[index+1] = float32(g)
+			stream[index+2] = float32(b)
+			stream[index+3] = float32(a)
+		}
+
+	}
+
 	t.UnmapResStream()
 }
 
@@ -354,7 +369,7 @@ func NewPipeline(name string) (*Pipeline, error) {
 
 //loadPipeline loads the default pipeline for the engine
 func loadDefaultPipeline() (*Pipeline, error) {
-	pipeline, err := NewPipeline("pipelines/hdr.pipeline.xml")
+	pipeline, err := NewPipeline("pipelines/default.pipeline.xml")
 	if err != nil {
 		return nil, err
 	}
