@@ -42,6 +42,12 @@ func loadMainMenu() {
 
 	mainMenu.AddWidget(btnNew)
 	mainMenu.AddWidget(btnQuit)
+
+	btnTest := gui.MakeButton("test", "test a lot of text ", 75,
+			engine.NewScreenArea(0.3, .1, .3, .5, engine.ScreenRelativeLeft))
+	btnTest.ShowBackground(false)
+	mainMenu.AddWidget(btnTest)
+
 	engine.LoadGui(mainMenu)
 
 }
