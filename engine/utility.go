@@ -64,7 +64,7 @@ type dPrintItem struct {
 
 var dPrint *dPrintItem
 var dPrintQueue []*dPrintItem
-var PrintTime float64 = 5
+var PrintTime float64 = 300 
 
 //Print prints a message to the upper right hand side of the screen.
 //  Message will fade after a few seconds,  Any new calls to print will replace
