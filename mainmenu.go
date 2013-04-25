@@ -43,10 +43,13 @@ func loadMainMenu() {
 	mainMenu.AddWidget(btnNew)
 	mainMenu.AddWidget(btnQuit)
 
-	btnTest := gui.MakeButton("test", "test a lot of text ", 75,
-			engine.NewScreenArea(0.3, .1, .3, .5, engine.ScreenRelativeLeft))
-	btnTest.ShowBackground(false)
+	btnTest := gui.MakeButton("test", "test a lot of text ", 72,
+		engine.NewScreenArea(0.3, .1, .25, .25, engine.ScreenRelativeLeft))
+	btnTest.Text.SetColor(engine.NewColor(100, 100, 100, 255))
+	//btnTest.ShowBackground(false)
 	mainMenu.AddWidget(btnTest)
+	engine.Println("Width: ", btnTest.MouseArea().PixelWidth())
+	engine.Println("Height: ", btnTest.MouseArea().PixelHeight())
 
 	engine.LoadGui(mainMenu)
 
@@ -57,9 +60,7 @@ func mainMenuButtons(sender string) {
 	case "quit":
 		engine.StopMainLoop()
 	case "new":
-		//TODO: Fix
 		loadScene("test")
-		//engine.ClearAll()
 		engine.Resume()
 	}
 }

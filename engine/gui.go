@@ -162,7 +162,13 @@ func (s *ScreenArea) PixelHeight() int {
 //PixelWidth is the width in actual pixels as relating to the current
 // screen resolution
 func (s *ScreenArea) PixelWidth() int {
-	return int(float32(screenWidth) * s.Width)
+	switch s.Position.RelativeTo {
+	case ScreenRelativeAspect:
+		return int(s.Width * float32(screenWidth))
+	case ScreenRelativeLeft, ScreenRelativeRight:
+		return int((float32(screenWidth) / screenRatio) * s.Width)
+	}
+	return 0
 }
 
 func NewScreenArea(x, y, height, width float32, relativeTo int) *ScreenArea {

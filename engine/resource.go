@@ -319,6 +319,7 @@ func (t *Texture) SetData(data image.Image) {
 		return
 	}
 
+	//TODO: Fix format
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			r, g, b, a := data.At(x, y).RGBA()
