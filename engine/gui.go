@@ -121,7 +121,7 @@ type ScreenPosition struct {
 
 type ScreenArea struct {
 	Position      *ScreenPosition
-	Height, Width float32
+	Width, Height float32
 }
 
 //X1 Returns the first x vertex position
@@ -171,8 +171,8 @@ func (s *ScreenArea) PixelWidth() int {
 	return 0
 }
 
-func NewScreenArea(x, y, height, width float32, relativeTo int) *ScreenArea {
-	return &ScreenArea{&ScreenPosition{x, y, relativeTo}, height, width}
+func NewScreenArea(x, y, width, height float32, relativeTo int) *ScreenArea {
+	return &ScreenArea{&ScreenPosition{x, y, relativeTo}, width, height}
 }
 
 //255 based color
