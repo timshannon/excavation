@@ -36,7 +36,6 @@ func LoadAllResources() error {
 		res.H3DRes = horde3d.NextResource(horde3d.ResTypes_Undefined, res.H3DRes)
 		if int(res.H3DRes) != 0 {
 			err = res.Load()
-			//fmt.Println("Loading: ", res.Name())
 			if err != nil {
 				return err
 			}
@@ -311,7 +310,7 @@ func (t *Texture) SetData(data image.Image) {
 	width := data.Bounds().Size().X
 	height := data.Bounds().Size().Y
 
-	stream, err := t.MapFloatResStream(horde3d.TexRes_ImageElem, 0, horde3d.TexRes_ImgPixelStream,
+	stream, err := t.MapUint8ResStream(horde3d.TexRes_ImageElem, 0, horde3d.TexRes_ImgPixelStream,
 		false, true, (width*height)*4)
 
 	if err != nil {
@@ -323,12 +322,12 @@ func (t *Texture) SetData(data image.Image) {
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			r, g, b, a := data.At(x, y).RGBA()
-			index := (y * (width * 4)) + x
+			index := (y * (width * 4)) + (x * 4)
 
-			stream[index] = float32(r)
-			stream[index+1] = float32(g)
-			stream[index+2] = float32(b)
-			stream[index+3] = float32(a)
+			stream[index] = uint8(r)
+			stream[index+1] = uint8(g)
+			stream[index+2] = uint8(b)
+			stream[index+3] = uint8(a)
 		}
 
 	}

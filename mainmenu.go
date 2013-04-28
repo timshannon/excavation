@@ -21,8 +21,8 @@ func loadMainMenu() {
 	mainMenu.AddWidget(img)
 
 	//New
-	btnNew := gui.MakeButton("new", "New Game", 0.05,
-		engine.NewScreenArea(0.1, .7, .03, .5, engine.ScreenRelativeLeft))
+	btnNew := gui.MakeButton("new", "New Game", 25,
+		engine.NewScreenArea(0.1, .7, .05, .5, engine.ScreenRelativeLeft))
 	btnNew.ShowBackground(false)
 	btnNew.Text.SetColor(engine.NewColor(75, 75, 75, 255))
 	btnNew.TextHover.SetColor(engine.NewColor(100, 100, 100, 255))
@@ -31,9 +31,9 @@ func loadMainMenu() {
 	btnNew.ClickEvent = mainMenuButtons
 
 	//Quit
-	btnQuit := gui.MakeButton("quit", "Quit", 0.05,
-		engine.NewScreenArea(0.1, .75, .03, .5, engine.ScreenRelativeLeft))
-	//btnQuit.ShowBackground(false)
+	btnQuit := gui.MakeButton("quit", "Quit", 25,
+		engine.NewScreenArea(0.1, .75, .05, .5, engine.ScreenRelativeLeft))
+	btnQuit.ShowBackground(false)
 	btnQuit.Text.SetColor(engine.NewColor(75, 75, 75, 255))
 	btnQuit.TextHover.SetColor(engine.NewColor(100, 100, 100, 255))
 	btnQuit.TextClick.SetColor(engine.NewColor(100, 100, 100, 255))
@@ -42,14 +42,6 @@ func loadMainMenu() {
 
 	mainMenu.AddWidget(btnNew)
 	mainMenu.AddWidget(btnQuit)
-
-	btnTest := gui.MakeButton("test", "test a lot of text ", 72,
-		engine.NewScreenArea(0.3, .1, .25, .25, engine.ScreenRelativeLeft))
-	btnTest.Text.SetColor(engine.NewColor(100, 100, 100, 255))
-	//btnTest.ShowBackground(false)
-	mainMenu.AddWidget(btnTest)
-	engine.Println("Width: ", btnTest.MouseArea().PixelWidth())
-	engine.Println("Height: ", btnTest.MouseArea().PixelHeight())
 
 	engine.LoadGui(mainMenu)
 
