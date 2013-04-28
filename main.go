@@ -75,7 +75,7 @@ func errHandler(err error) {
 }
 
 func showFPS(t *engine.Task) {
-	//engine.Print("FPS: ", engine.Fps())
+	engine.Print("FPS: ", engine.Fps())
 	t.Wait(1)
 }
 
@@ -86,8 +86,10 @@ func ToggleVSync(input *engine.Input) {
 		if state == engine.StatePressed {
 			if vsync == 0 {
 				vsync = 1
+				engine.Println("VSYNC On")
 			} else {
 				vsync = 0
+				engine.Println("VSYNC Off")
 			}
 			glfw.SetSwapInterval(vsync)
 		}

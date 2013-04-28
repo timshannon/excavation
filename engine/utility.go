@@ -11,19 +11,10 @@ import (
 	"path"
 )
 
-func initDebugPrint() {
-	dPrint = &dPrintItem{
-		NewBitmapText("", 0.02, defaultFont, NewColor(100, 100, 100, 255),
-			NewScreenPosition(0.01, 0.01, ScreenRelativeLeft)),
-		-1,
-	}
-	dPrintQueue = make([]*dPrintItem, 0, dPrintQueueSize)
-}
-
 var appName string = "excavation"
 
 const (
-	defaultFont     = "overlays/gui/default/font.material.xml"
+	defaultFont     = "fonts/ubuntu/Ubuntu-L.ttf"
 	dPrintQueueSize = 30
 )
 
@@ -57,29 +48,39 @@ func UserDir() (string, error) {
 }
 
 //Debug Printing
-type dPrintItem struct {
-	text  *BitmapText
-	timer float64
-}
-
-var dPrint *dPrintItem
-var dPrintQueue []*dPrintItem
-var PrintTime float64 = 300 
+var dPrintText *Text
+var dPrintString []string
+var dPrintTimer []float64
+var PrintTime float64 = 300
 
 //Print prints a message to the upper right hand side of the screen.
 //  Message will fade after a few seconds,  Any new calls to print will replace
 // the current message and reset the timer
 // if you want to print a list of messages, use Println
 func Print(a ...interface{}) {
-	dPrint.text.Text = fmt.Sprint(a...)
-	dPrint.timer = Time() + PrintTime
+	initDebugPrint()
+	dPrintString[0] = fmt.Sprint(a...)
+	dPrintTimer[0] = Time() + PrintTime
+
+	fmt.Println(dPrintString)
+}
+
+func initDebugPrint() {
+	if dPrintText == nil {
+		dPrintString = make([]string, dPrintQueueSize)
+		dPrintTimer = make([]float64, dPrintQueueSize)
+		dPrintText = NewText(dPrintString, defaultFont, 12, NewColor(255, 255, 255, 255),
+			NewScreenArea(0, 0, 1, 1, ScreenRelativeLeft))
+	}
 }
 
 //Printf is similar to Print, but accepts a format string
 // see http://golang.org/pkg/fmt/#pkg-overview for format details
 func Printf(format string, a ...interface{}) {
-	dPrint.text.Text = fmt.Sprintf(format, a...)
-	dPrint.timer = Time() + PrintTime
+	initDebugPrint()
+	dPrintString[0] = fmt.Sprintf(format, a...)
+	dPrintTimer[0] = Time() + PrintTime
+	dPrintText.SetText(dPrintString)
 }
 
 //Println prints a message to the upper right hand side of the screen
@@ -91,22 +92,18 @@ func Println(a ...interface{}) {
 }
 
 func dPrintAddToQueue(text string) {
-	newItem := &dPrintItem{
-		NewBitmapText(text, dPrint.text.Size, dPrint.text.FontMaterial.Name(),
-			dPrint.text.Color, NewScreenPosition(0.01, 0.01, ScreenRelativeLeft)),
-		Time() + PrintTime,
-	}
-	dPrintQueue = append(dPrintQueue, newItem)
+	initDebugPrint()
 
-	if len(dPrintQueue) > dPrintQueueSize {
-		over := len(dPrintQueue) - dPrintQueueSize
-		dPrintQueue = dPrintQueue[over:]
-	}
+	dPrintString = append(dPrintString, text)
+	dPrintTimer = append(dPrintTimer, Time()+PrintTime)
 
-	for i := range dPrintQueue {
-		dPrintQueue[i].text.Position.Y += (dPrintQueue[i].text.Size)
+	if len(dPrintString) > dPrintQueueSize {
+		over := len(dPrintString) - dPrintQueueSize
+		dPrintString = dPrintString[over:]
+		dPrintTimer = dPrintTimer[over:]
 	}
 
+	dPrintText.SetText(dPrintString)
 }
 
 //Printfln prints a stack of messages to the screen similar to Println
@@ -116,19 +113,17 @@ func Printfln(format string, a ...interface{}) {
 }
 
 func updateDebugPrint() {
-	if dPrint.timer >= Time() {
-		dPrint.text.Place()
-	}
+	if dPrintText != nil && len(dPrintString) > 0 {
+		var timedOut int
+		for i := range dPrintString {
+			if dPrintTimer[i] < Time() {
+				//last index of timed out item
+				timedOut = i
+			}
 
-	var timedOut int
-	for i := range dPrintQueue {
-		if dPrintQueue[i].timer >= Time() {
-			dPrintQueue[i].text.Place()
-		} else {
-			//last index of timed out item
-			timedOut = i
 		}
-
+		dPrintTimer = dPrintTimer[timedOut:]
+		dPrintString = dPrintString[timedOut:]
+		dPrintText.Place()
 	}
-	dPrintQueue = dPrintQueue[timedOut:]
 }

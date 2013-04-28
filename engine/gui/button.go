@@ -6,7 +6,7 @@ import (
 
 const (
 	defaultBackground = "overlays/gui/default/background.material.xml"
-	defaultFont       = "fonts/newscycle-regular.ttf"
+	defaultFont       = "fonts/ubuntu/Ubuntu-M.ttf"
 )
 
 type Button struct {
