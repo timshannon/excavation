@@ -14,7 +14,7 @@ import (
 var appName string = "excavation"
 
 const (
-	defaultFont     = "fonts/ubuntu/Ubuntu-L.ttf"
+	defaultFont     = "fonts/ubuntu/Ubuntu-R.ttf"
 	dPrintQueueSize = 30
 )
 
@@ -51,7 +51,7 @@ func UserDir() (string, error) {
 var dPrintText *Text
 var dPrintString []string
 var dPrintTimer []float64
-var PrintTime float64 = 300
+var PrintTime float64 = 120
 
 //Print prints a message to the upper right hand side of the screen.
 //  Message will fade after a few seconds,  Any new calls to print will replace
@@ -61,15 +61,14 @@ func Print(a ...interface{}) {
 	initDebugPrint()
 	dPrintString[0] = fmt.Sprint(a...)
 	dPrintTimer[0] = Time() + PrintTime
-
-	fmt.Println(dPrintString)
+	dPrintText.SetText(dPrintString)
 }
 
 func initDebugPrint() {
-	if dPrintText == nil {
+	if dPrintText == nil || !dPrintText.Overlay().Material.IsValid() {
 		dPrintString = make([]string, dPrintQueueSize)
 		dPrintTimer = make([]float64, dPrintQueueSize)
-		dPrintText = NewText(dPrintString, defaultFont, 12, NewColor(255, 255, 255, 255),
+		dPrintText = NewText(dPrintString, defaultFont, 18, NewColor(75, 75, 75, 255),
 			NewScreenArea(0, 0, 1, 1, ScreenRelativeLeft))
 	}
 }
@@ -122,8 +121,11 @@ func updateDebugPrint() {
 			}
 
 		}
-		dPrintTimer = dPrintTimer[timedOut:]
-		dPrintString = dPrintString[timedOut:]
+		if timedOut != 0 {
+			dPrintTimer = dPrintTimer[timedOut:]
+			dPrintString = dPrintString[timedOut:]
+			dPrintText.SetText(dPrintString)
+		}
 		dPrintText.Place()
 	}
 }

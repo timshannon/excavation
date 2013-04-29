@@ -49,6 +49,14 @@ func main() {
 
 	//todo: temp for testing frame independence
 	engine.BindInput(ToggleVSync, "Key_F1")
+
+	//temp
+	engine.BindInput(func(input *engine.Input) {
+		if state, ok := input.ButtonState(); ok && state == engine.StatePressed {
+			engine.Println("test a lot of text")
+		}
+	}, "Key_F3")
+
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
@@ -86,10 +94,8 @@ func ToggleVSync(input *engine.Input) {
 		if state == engine.StatePressed {
 			if vsync == 0 {
 				vsync = 1
-				engine.Println("VSYNC On")
 			} else {
 				vsync = 0
-				engine.Println("VSYNC Off")
 			}
 			glfw.SetSwapInterval(vsync)
 		}
