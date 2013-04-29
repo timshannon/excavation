@@ -224,6 +224,15 @@ func (res *Resource) Clone(cloneName string) *Resource {
 	return clone
 }
 
+//IsValid Returns if the resource this struct points to is still a valid
+// resource
+func (res *Resource) IsValid() bool {
+	if res.Type() == ResTypeUndefined {
+		return false
+	}
+	return true
+}
+
 func (res *Resource) Remove() {
 	if res.IsVirtual() {
 		removeVirtualResource(res.Name())

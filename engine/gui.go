@@ -25,8 +25,6 @@ var activeGuis []*Gui
 func initGui() {
 	glfw.SetCharCallback(charCollector)
 	activeGuis = make([]*Gui, 0, 5)
-
-	initDebugPrint()
 }
 
 //LoadGui pushes a gui onto a stack of guis, only top most in the stack
