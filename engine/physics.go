@@ -34,13 +34,13 @@ func initPhysics() {
 	phWorld = newton.CreateWorld()
 }
 
-
 func PhysicsWorld() *newton.World {
 	return phWorld
 }
 
 func updatePhysics() {
 	phWorld.Update(float32(GameTime()) - phLastUpdate)
+	phLastUpdate = float32(GameTime())
 }
 
 func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex int) {
@@ -52,8 +52,6 @@ func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex 
 	pBody := body.UserData().(*PhysicsBody)
 	body.AddForce(pBody.Force.Array())
 
-	//TODO: Temp
-	pBody.Force.ScalarMulSelf(0)
 }
 
 func NewtonTransformUpdate(body *newton.Body, matrix *[16]float32, threadIndex int) {
@@ -235,7 +233,7 @@ func AddPhysicsBody(node *Node, mass float32) *PhysicsBody {
 	if len(meshes) == 1 {
 		collision := phWorld.CreateConvexHullFromMesh(meshes[0], CONVEXTOLERANCE,
 			int(node.H3DNode))
-			return AddPhysicsBodyFromCollision(node, collision, mass)
+		return AddPhysicsBodyFromCollision(node, collision, mass)
 
 	}
 
