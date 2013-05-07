@@ -50,13 +50,6 @@ func main() {
 	//todo: temp for testing frame independence
 	engine.BindInput(ToggleVSync, "Key_F1")
 
-	//temp
-	engine.BindInput(func(input *engine.Input) {
-		if state, ok := input.ButtonState(); ok && state == engine.StatePressed {
-			engine.Println("test a lot of text")
-		}
-	}, "Key_F3")
-
 	//starting the loop should be the last thing
 	// after setting up the game
 	engine.StartMainLoop()
@@ -84,7 +77,7 @@ func errHandler(err error) {
 
 func showFPS(t *engine.Task) {
 	engine.Print("FPS: ", engine.Fps())
-	t.Wait(1)
+	t.Wait(0.25)
 }
 
 var vsync int
@@ -142,7 +135,7 @@ func loadScene(scene string) {
 
 	}
 	//TODO: gui
-	engine.AddTask("FPS", showFPS, nil, 0, 1)
+	engine.AddTask("FPS", showFPS, nil, 0, 0.25)
 }
 
 func setCfgDefaults(cfg *engine.Config) {
