@@ -20,7 +20,6 @@ const (
 //cmd line options
 var (
 	sceneFlag string
-	camera    *engine.Node
 )
 
 func init() {
