@@ -12,16 +12,23 @@ import (
 
 //cmd line options
 var (
-	sceneFlag string
-	camera    *engine.Node
+	collisionType string
 )
 
 func init() {
-	flag.StringVar(&sceneFlag, "scene", "", "Load a specific scene directly, instead of the main menu.")
+	flag.StringVar(&collisionType, "type", "scene", "Type of collision to serialize: scene or compound.")
 
 	flag.Parse()
 }
 
 func main() {
+	switch collisionType {
+	case "scene":
+		fmt.Println("Processing Scene Collision.")
+	case "compound":
+		fmt.Println("Processing Compound Collision.")
+	default:
+		fmt.Println("Invalid collision type. Must be scene or compound.")
 
+	}
 }
