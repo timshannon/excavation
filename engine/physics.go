@@ -30,7 +30,7 @@ type PhysicsBody struct {
 	Force vmath.Vector3
 }
 
-func initPhysics() {
+func InitPhysics() {
 	phWorld = newton.CreateWorld()
 }
 

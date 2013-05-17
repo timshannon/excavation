@@ -87,7 +87,7 @@ func Init(name string) error {
 
 	initInput()
 
-	initPhysics()
+	InitPhysics()
 
 	//setup base camera
 	pipeline, err := loadDefaultPipeline()
