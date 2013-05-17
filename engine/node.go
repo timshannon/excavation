@@ -40,9 +40,8 @@ func NewNode(hordeNode horde3d.H3DNode) *Node {
 }
 
 //Adds nodes from a SceneGraph resource to the scene.
-func AddNodes(parent *Node, sceneResource *Scene) (*Node, error) {
-	//node := NewNode(horde3d.AddNodes(parent.H3DNode, sceneResource.H3DRes))
-	node := NewNode(parent.AddNodes(sceneResource.H3DRes))
+func (parent *Node) AddNodes(sceneResource *Scene) (*Node, error) {
+	node := NewNode(parent.H3DNode.AddNodes(sceneResource.H3DRes))
 
 	if node.H3DNode == 0 {
 		return nil, errors.New("Error adding nodes to the scene")

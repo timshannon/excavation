@@ -116,7 +116,7 @@ func loadScene(scene string) {
 	}
 
 	err = engine.LoadAllResources()
-	sceneNode, err := engine.AddNodes(engine.Root, sceneRes)
+	sceneNode, err := engine.Root.AddNodes(sceneRes)
 
 	if err != nil {
 		panic(err)
@@ -125,6 +125,7 @@ func loadScene(scene string) {
 	children := sceneNode.Children()
 	for c := range children {
 		//load entities
+		//TODO: Recurse Tree?
 		if children[c].Attachment() != "" {
 			err = entity.LoadEntity(children[c], children[c].Attachment())
 		}

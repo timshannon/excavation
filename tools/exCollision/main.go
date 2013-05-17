@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&collisionType, "type", "scene", "Type of collision to serialize: scene or single, or compound.")
+	flag.StringVar(&collisionType, "type", "scene", "Type of collision to serialize: scene or compound.")
 	flag.StringVar(&outputFile, "file", "", "Output file name. If no name is specified the current node name will be used. <type>.ngd will be added.")
 	flag.Float64Var(&convexTolerance, "tolerance", 0.01, "Tolerance allowed when converting mesh to convex collision. A higher number will simplify the mesh more, and is useful for highly detailed models.")
 	flag.Parse()
@@ -29,22 +29,27 @@ func init() {
 
 func main() {
 	engine.InitPhysics()
-	var node *engine.Scene
+	var scene *engine.Scene
 	var collision *newton.Collision
 
 	nodeName := flag.Arg(0)
 
-	node, err := engine.NewScene(nodeName)
+	scene, err := engine.NewScene(nodeName)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	err = node.Load()
+	err = scene.Load()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
+	node, err := engine.Root.AddNodes(scene)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 	if outputFile == "" {
 		outputFile = node.Name()
 	}
@@ -52,7 +57,6 @@ func main() {
 		outputFile += "." + collisionType + ".ngd"
 
 	}
-
 	switch collisionType {
 	case "scene":
 		//Scene is a concave, static collision model with no overlapping polygons
@@ -62,12 +66,9 @@ func main() {
 		//Compound is a convex only, dynamic collision which breaks the individual
 		// horde meshes into separate parts of the compound collision
 		fmt.Println("Processing Compound Collision.")
-	case "single":
-		//Single is a convex only, dynamic collision which adds all horde meshes into
-		// one single collision and generates a convex hull from the entire group
-		fmt.Println("Processing Single Collision.")
+		collision = buildCompoundCollision(node)
 	default:
-		fmt.Println("Invalid collision type. Must be scene, single or compound.")
+		fmt.Println("Invalid collision type. Must be scene or compound.")
 		return
 	}
 
@@ -77,11 +78,40 @@ func main() {
 	}
 
 	engine.PhysicsWorld().SerializeCollision(collision, writeToCollisionFile, file)
+	err = file.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func writeToCollisionFile(file interface{}, buffer []byte) {
-	_, err := file.(os.File).Write(buffer)
+	_, err := file.(*os.File).Write(buffer)
 	if err != nil {
+		file.(*os.File).Close()
 		panic(err)
 	}
+}
+
+func buildCompoundCollision(node *engine.Node) *newton.Collision {
+
+	meshes := engine.NewtonMeshListFromNode(node)
+
+	if len(meshes) == 1 {
+		collision := engine.PhysicsWorld().CreateConvexHullFromMesh(meshes[0], float32(convexTolerance),
+			int(node.H3DNode))
+		return collision
+
+	}
+
+	collision := engine.PhysicsWorld().CreateCompoundCollision(int(node.H3DNode))
+
+	collision.CompoundBeginAddRemove()
+	for i := range meshes {
+		subCollision := engine.PhysicsWorld().CreateConvexHullFromMesh(meshes[i], float32(convexTolerance),
+			int(node.H3DNode))
+		collision.CompoundAddSubCollision(subCollision)
+	}
+	collision.CompoundEndAddRemove()
+
+	return collision
 }
