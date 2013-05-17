@@ -11,12 +11,14 @@ import (
 )
 
 const (
-	GRAVITY         = -9.8
-	CONVEXTOLERANCE = 0.01
+	GRAVITY                = -9.8
+	CONVEXTOLERANCE        = 0.01
+	PHYSICS_FPS            = 60.0
+	PHYSICS_MINIMUM_UPDATE = 1 / PHYSICS_FPS
 )
 
 var phWorld *newton.World
-var phLastUpdate float32
+var phLastUpdate float64
 var phMatrix = [16]float32{}
 
 type PhysicsScene struct {
@@ -39,8 +41,10 @@ func PhysicsWorld() *newton.World {
 }
 
 func updatePhysics() {
-	phWorld.Update(float32(GameTime()) - phLastUpdate)
-	phLastUpdate = float32(GameTime())
+	if (GameTime() - phLastUpdate) >= PHYSICS_MINIMUM_UPDATE {
+		phWorld.Update(float32(GameTime() - phLastUpdate))
+		phLastUpdate = GameTime()
+	}
 }
 
 func NewtonApplyForceAndTorque(body *newton.Body, timestep float32, threadIndex int) {
@@ -275,4 +279,36 @@ func AddPhysicsBodyFromCollision(node *Node, collision *newton.Collision, mass f
 	newBody.Body = body
 
 	return newBody
+}
+
+//AddPhysicsBodyFromFile creates a physics Body from a serialized collision file for faster loading
+// or for processing collision hulls that are different (less detailed) than their visual mesh
+func AddPhysicsBodyFromFile(node *Node, collisionFile string, mass float32) *PhysicsBody {
+	collision := LoadCollisionFromFile(collisionFile)
+	return AddPhysicsBodyFromCollision(node, collision, mass)
+}
+
+//AddPhysicsSceneFromFile creates a physics scene from a serialized collision file for faster loading
+// and / or processing collision hulls that are different (less detailed) from their visual mesh
+func AddPhysicsSceneFromFile(node *Node, collisionFile string) *PhysicsScene {
+	newScene := new(PhysicsScene)
+	newScene.Node = node
+
+	collision := LoadCollisionFromFile(collisionFile)
+
+	newScene.Body = phWorld.CreateDynamicBody(collision, node.AbsoluteTransMat().Array())
+
+	return newScene
+}
+
+//LoadCollisionFromFile loads a newton collision from a serialized file
+func LoadCollisionFromFile(filePath string) *newton.Collision {
+	return phWorld.CreateCollisionFromSerialization(newtonLoadFile, filePath)
+}
+
+func newtonLoadFile(filePath interface{}, buffer []byte) {
+	buffer, err := loadEngineData(filePath.(string))
+	if err != nil {
+		RaiseError(err)
+	}
 }
