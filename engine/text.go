@@ -1,8 +1,8 @@
 package engine
 
 import (
+	"bitbucket.org/tshannon/gohorde/horde3d"
 	"code.google.com/p/freetype-go/freetype"
-	"code.google.com/p/gohorde/horde3d"
 	"errors"
 	"image"
 	"image/draw"
@@ -98,6 +98,7 @@ func (t *Text) rasterize() {
 	c.SetSrc(image.White)
 	t.background = back
 
+	//TODO: Make resolution independent
 	err := errors.New("")
 	pt := freetype.Pt(5, int(c.PointToFix32(t.size)>>8))
 	for _, s := range t.text {

@@ -5,8 +5,8 @@
 package engine
 
 import (
-	"code.google.com/p/gohorde/horde3d"
-	"code.google.com/p/vmath"
+	"bitbucket.org/tshannon/gohorde/horde3d"
+	"bitbucket.org/tshannon/vmath"
 	"errors"
 )
 
@@ -40,7 +40,7 @@ func NewNode(hordeNode horde3d.H3DNode) *Node {
 }
 
 //Adds nodes from a SceneGraph resource to the scene.
-func (parent *Node) AddNodes(sceneResource *Scene) (*Node, error) {
+func (parent *Node) AddScene(sceneResource *Scene) (*Node, error) {
 	node := NewNode(parent.H3DNode.AddNodes(sceneResource.H3DRes))
 
 	if node.H3DNode == 0 {

@@ -5,7 +5,7 @@
 package engine
 
 import (
-	"code.google.com/p/gohorde/horde3d"
+	"bitbucket.org/tshannon/gohorde/horde3d"
 	"errors"
 	"image"
 	"io/ioutil"
@@ -140,8 +140,8 @@ func NewVirtualResource(name string, resType int, data []byte) *Resource {
 }
 
 //NewVirtualTexture adds a new texture in memory.  fmt refers to horde stream format enum
-func NewVirtualTexture(name string, width, height, fmt, flags int) *Texture {
-	newRes := &Texture{&Resource{horde3d.CreateTexture(name, width, height, fmt, flags)}}
+func NewVirtualTexture(name string, width, height, format, flags int) *Texture {
+	newRes := &Texture{&Resource{horde3d.CreateTexture(name, width, height, format, flags)}}
 	if newRes.H3DRes == 0 {
 		err := errors.New("Unable to add virtual texture resource " + name + " in Horde3D.")
 		RaiseError(err)

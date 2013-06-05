@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"code.google.com/p/gohorde/horde3d"
+	"bitbucket.org/tshannon/gohorde/horde3d"
 	"github.com/jteeuwen/glfw"
 )
 

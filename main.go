@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/jteeuwen/glfw"
 	"strings"
+	"runtime"
 )
 
 const (
@@ -24,11 +25,10 @@ var (
 
 func init() {
 	flag.StringVar(&sceneFlag, "scene", "", "Load a specific scene directly, instead of the main menu.")
-
-	flag.Parse()
 }
 
 func main() {
+	flag.Parse()
 
 	engine.SetDefaultConfigHandler(setCfgDefaults)
 	engine.SetErrorHandler(errHandler)
@@ -102,6 +102,7 @@ func loadScene(scene string) {
 	}
 	//Clear any old scene data and resources
 	engine.ClearAll()
+	runtime.GC()
 	//TODO:  Loading screen, and camera management
 
 	sceneRes, err := engine.NewScene(scene)
@@ -116,7 +117,7 @@ func loadScene(scene string) {
 	}
 
 	err = engine.LoadAllResources()
-	sceneNode, err := engine.Root.AddNodes(sceneRes)
+	sceneNode, err := engine.Root.AddScene(sceneRes)
 
 	if err != nil {
 		panic(err)
@@ -125,7 +126,7 @@ func loadScene(scene string) {
 	children := sceneNode.Children()
 	for c := range children {
 		//load entities
-		//TODO: Recurse Tree?
+		//TODO: Recurse Tree? Only first level entities get loaded now
 		if children[c].Attachment() != "" {
 			err = entity.LoadEntity(children[c], children[c].Attachment())
 		}

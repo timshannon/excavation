@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"code.google.com/p/vmath"
+	"bitbucket.org/tshannon/vmath"
 	"excavation/engine"
 	"math"
 )
@@ -51,7 +51,6 @@ func (p *Player) Add(node *engine.Node, args EntityArgs) {
 	p.invert = engine.Cfg().Bool("InvertMouse")
 	p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
 
-	//test: does this actually work?
 	engine.Cfg().RegisterOnWriteHandler(func(cfg *engine.Config) {
 		p.invert = engine.Cfg().Bool("InvertMouse")
 		p.mouseSensitivity = engine.Cfg().Float("MouseSensitivity") * mouseMultiplier
