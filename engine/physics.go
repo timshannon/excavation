@@ -5,9 +5,9 @@
 package engine
 
 import (
-	"code.google.com/p/gohorde/horde3d"
-	"code.google.com/p/gonewton/newton"
-	"code.google.com/p/vmath"
+	"bitbucket.org/tshannon/gohorde/horde3d"
+	"bitbucket.org/tshannon/gonewton/newton"
+	"bitbucket.org/tshannon/vmath"
 )
 
 const (
@@ -69,7 +69,8 @@ func NewtonTransformUpdate(body *newton.Body, matrix *[16]float32, threadIndex i
 }
 
 func clearAllPhysics() {
-	phWorld.DestroyAllBodies()
+	phWorld.Destroy()
+	phWorld = newton.CreateWorld()
 }
 
 //Allows me to share face access code between scene trees and regular meshes

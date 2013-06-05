@@ -5,7 +5,7 @@
 package main
 
 import (
-	"code.google.com/p/gonewton/newton"
+	"bitbucket.org/tshannon/gonewton/newton"
 	"excavation/engine"
 	"flag"
 	"fmt"
@@ -45,7 +45,7 @@ func main() {
 		return
 	}
 
-	node, err := engine.Root.AddNodes(scene)
+	node, err := engine.Root.AddScene(scene)
 	if err != nil {
 		fmt.Println(err.Error())
 		return

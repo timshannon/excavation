@@ -7,6 +7,7 @@ import (
 
 var mainMenu *engine.Gui
 
+//TODO: Main Menu vs Game Menu
 func loadMainMenu() {
 
 	mainMenu = engine.NewGui()
@@ -30,6 +31,7 @@ func loadMainMenu() {
 	btnNew.TextClick.SetColor(engine.NewColor(255, 255, 255, 255))
 
 	btnNew.ClickEvent = mainMenuButtons
+	mainMenu.AddWidget(btnNew)
 
 	//Quit
 	btnQuit := gui.MakeButton("quit", "Quit", 32,
@@ -42,7 +44,6 @@ func loadMainMenu() {
 
 	btnQuit.ClickEvent = mainMenuButtons
 
-	mainMenu.AddWidget(btnNew)
 	mainMenu.AddWidget(btnQuit)
 
 	engine.LoadGui(mainMenu)
