@@ -10,8 +10,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/jteeuwen/glfw"
-	"strings"
 	"runtime"
+	"strings"
 )
 
 const (

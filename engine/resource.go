@@ -25,7 +25,7 @@ const (
 func init() {
 	wd, _ := os.Getwd()
 	dataDir = path.Join(wd, "data")
-	dataFile = path.Join(dataDir, "exData.tar.gz")
+	dataFile = path.Join(dataDir, "exData.zip")
 }
 
 func LoadAllResources() error {

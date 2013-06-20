@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	freeTypeDPI = 72
+	freeTypeDPI    = 72
+	freeTypeMargin = 0.001
 )
 
 var textIncrementer = 0
@@ -23,6 +24,7 @@ var textIncrementer = 0
 // an slice of strings is rasterized using 72 dpi
 // Each entry in the slice is a separate line spaced
 // according to the lineSpacing value 2 = doublespaced
+// Font Size is not point based, but screen ratio based like the gui system
 type Text struct {
 	text        []string
 	area        *ScreenArea
@@ -38,6 +40,7 @@ type Text struct {
 func NewText(text []string, fontFile string, size float64,
 	color *Color, area *ScreenArea) *Text {
 
+	size = float64(screenHeight) * size
 	newText := &Text{
 		text:        text,
 		area:        area,
@@ -77,7 +80,6 @@ func NewText(text []string, fontFile string, size float64,
 	newText.context = freetype.NewContext()
 	newText.context.SetDPI(freeTypeDPI)
 	newText.context.SetFont(font)
-	newText.context.SetFontSize(size)
 
 	newText.textureRes = NewVirtualTexture(name, newText.area.PixelWidth(),
 		newText.area.PixelHeight(), horde3d.Formats_TEX_BGRA8, horde3d.ResFlags_NoTexMipmaps)
@@ -94,6 +96,8 @@ func NewText(text []string, fontFile string, size float64,
 
 func (t *Text) rasterize() {
 	c := t.context
+	t.context.SetFontSize(t.size)
+
 	back := image.NewRGBA(image.Rect(0, 0, t.area.PixelWidth(), t.area.PixelHeight()))
 	draw.Draw(back, back.Bounds(), image.Transparent, image.ZP, draw.Src)
 
@@ -102,9 +106,8 @@ func (t *Text) rasterize() {
 	c.SetSrc(image.White)
 	t.background = back
 
-	//TODO: Make resolution independent
 	err := errors.New("")
-	pt := freetype.Pt(5, int(c.PointToFix32(t.size)>>8))
+	pt := freetype.Pt(int(freeTypeMargin*float32(screenWidth)), int(c.PointToFix32(t.size)>>8))
 	for _, s := range t.text {
 		_, err = c.DrawString(s, pt)
 		if err != nil {
@@ -125,7 +128,7 @@ func (t *Text) Place() {
 
 func (t *Text) Overlay() *Overlay { return t.overlay }
 func (t *Text) Text() []string    { return t.text }
-func (t *Text) SetText(text []string) {
+func (t *Text) SetText(text ...string) {
 	t.text = text
 	t.rasterize()
 }
