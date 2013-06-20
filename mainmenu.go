@@ -22,7 +22,7 @@ func loadMainMenu() {
 	mainMenu.AddWidget(img)
 
 	//New
-	btnNew := gui.MakeButton("new", "New Game", 32,
+	btnNew := gui.MakeButton("new", "New Game", .04,
 		engine.NewScreenArea(0.1, .7, .21, .05, engine.ScreenRelativeLeft))
 	btnNew.ShowBackground(false)
 
@@ -34,7 +34,7 @@ func loadMainMenu() {
 	mainMenu.AddWidget(btnNew)
 
 	//Quit
-	btnQuit := gui.MakeButton("quit", "Quit", 32,
+	btnQuit := gui.MakeButton("quit", "Quit", .04,
 		engine.NewScreenArea(0.1, .75, .1, .05, engine.ScreenRelativeLeft))
 	btnQuit.ShowBackground(false)
 
