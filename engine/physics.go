@@ -42,8 +42,9 @@ func PhysicsWorld() *newton.World {
 
 func updatePhysics() {
 	//FIXME: Not limiting properly and not frame independent
-	if (GameTime() - phLastUpdate) >= PHYSICS_MINIMUM_UPDATE {
-		phWorld.Update(float32(GameTime() - phLastUpdate))
+	step := float32(GameTime() - phLastUpdate)
+	if step >= PHYSICS_MINIMUM_UPDATE && step > 0 {
+		phWorld.Update(step)
 		phLastUpdate = GameTime()
 	}
 }

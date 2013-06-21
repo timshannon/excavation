@@ -10,6 +10,7 @@ var mainMenu *engine.Gui
 //TODO: Main Menu vs Game Menu
 func loadMainMenu() {
 
+	engine.Pause()
 	mainMenu = engine.NewGui()
 	mainMenu.UseMouse = true
 	mainMenu.HaltInput = true
@@ -17,9 +18,9 @@ func loadMainMenu() {
 	mainMenu.Bind(closeMenu, "Key_Esc")
 
 	//background Image
-	img := gui.MakeImage("jupiterBackground", "overlays/gui/mainMenu/jupiter.material.xml",
-		engine.NewScreenArea(0, 0, 1.8, 1, engine.ScreenRelativeLeft))
-	mainMenu.AddWidget(img)
+	//img := gui.MakeImage("jupiterBackground", "overlays/gui/mainMenu/jupiter.material.xml",
+	//engine.NewScreenArea(0, 0, 1.8, 1, engine.ScreenRelativeLeft))
+	//mainMenu.AddWidget(img)
 
 	//New
 	btnNew := gui.MakeButton("new", "New Game", .04,
