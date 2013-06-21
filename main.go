@@ -47,7 +47,7 @@ func main() {
 	engine.BindInput(loadMenu, "Key_Esc")
 
 	//todo: temp for testing frame independence
-	engine.BindInput(ToggleVSync, "Key_F1")
+	engine.BindInput(ToggleVSync, "Key_F3")
 
 	//starting the loop should be the last thing
 	// after setting up the game
@@ -56,6 +56,7 @@ func main() {
 
 func loadMenu(input *engine.Input) {
 	if state, ok := input.ButtonState(); ok && state == engine.StateReleased {
+		engine.Pause()
 		loadMainMenu()
 	}
 }

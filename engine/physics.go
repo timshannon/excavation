@@ -11,15 +11,18 @@ import (
 )
 
 const (
-	GRAVITY                = -9.8
-	CONVEXTOLERANCE        = 0.01
-	PHYSICS_FPS            = 60.0
-	PHYSICS_MINIMUM_UPDATE = 1 / PHYSICS_FPS
+	GRAVITY         = -9.8
+	CONVEXTOLERANCE = 0.01
+	PHYSICS_FPS     = 60.0
+	PHYSICS_DT      = 1 / PHYSICS_FPS
 )
 
-var phWorld *newton.World
-var phLastUpdate float64
-var phMatrix = [16]float32{}
+var (
+	phWorld       *newton.World
+	phLastUpdate  float64
+	phAccumulator float64
+	phMatrix      = [16]float32{}
+)
 
 type PhysicsScene struct {
 	Node *Node
@@ -41,11 +44,14 @@ func PhysicsWorld() *newton.World {
 }
 
 func updatePhysics() {
-	//FIXME: Not limiting properly and not frame independent
-	step := float32(GameTime() - phLastUpdate)
-	if step >= PHYSICS_MINIMUM_UPDATE && step > 0 {
-		phWorld.Update(step)
-		phLastUpdate = GameTime()
+	newTime := GameTime()
+	frameTime := newTime - phLastUpdate
+	phLastUpdate = newTime
+
+	phAccumulator += frameTime
+	for phAccumulator >= PHYSICS_DT {
+		phWorld.Update(PHYSICS_DT)
+		phAccumulator -= PHYSICS_DT
 	}
 }
 
