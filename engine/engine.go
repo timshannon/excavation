@@ -28,7 +28,7 @@ var frames int
 var startTime float64
 var controlCfg *Config
 var standardCfg *Config
-var paused bool
+var paused bool = false
 
 func init() {
 	Root = new(Node)
@@ -115,7 +115,6 @@ func Init(name string) error {
 
 func StartMainLoop() {
 	running = true
-	paused = false
 
 	resetView()
 	startTime = Time()
@@ -223,7 +222,6 @@ func ClearAll() {
 	initDebugPrint()
 
 	SetMainCamera(mainCam.fallbackCam)
-	//LoadAllResources()
 }
 
 func Pause() {
@@ -231,7 +229,6 @@ func Pause() {
 	pauseStart = Time()
 	pauseAllAudio()
 	PauseMusic()
-	//TODO: Pause physics?
 }
 
 func Resume() {
@@ -239,7 +236,6 @@ func Resume() {
 	pausedTime += Time() - pauseStart
 	resumeAllAudio()
 	ResumeMusic()
-	//TODO: Resume Physics?
 
 }
 
