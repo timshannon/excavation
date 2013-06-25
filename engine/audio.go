@@ -164,6 +164,7 @@ func (a *Audio) Load() error {
 	//TODO: Streaming - Stream based on maxBufferSize.
 	// if total size of file > maxBuffer size, then split into buffers the
 	// size of maxBufferSize
+	// Look at https://github.com/vova616/go-openal/blob/master/example.go
 	a.SetData(openal.FormatMono16, data, AudioFrequency)
 	a.loaded = true
 	return nil

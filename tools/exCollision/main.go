@@ -5,10 +5,13 @@
 package main
 
 import (
+	"bitbucket.org/tshannon/gohorde/horde3d"
 	"bitbucket.org/tshannon/gonewton/newton"
 	"excavation/engine"
 	"flag"
 	"fmt"
+	"github.com/jteeuwen/glfw"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -22,13 +25,30 @@ var (
 
 func init() {
 	flag.StringVar(&collisionType, "type", "scene", "Type of collision to serialize: scene or compound.")
-	flag.StringVar(&outputFile, "file", "", "Output file name. If no name is specified the current node name will be used. <type>.ngd will be added.")
-	flag.Float64Var(&convexTolerance, "tolerance", 0.01, "Tolerance allowed when converting mesh to convex collision. A higher number will simplify the mesh more, and is useful for highly detailed models.")
+	flag.StringVar(&outputFile, "file", "", "Output file name. If no name is specified the current node "+
+		"name will be used. <type>.ngd will be added.")
+	flag.Float64Var(&convexTolerance, "tolerance", 0.01, "Tolerance allowed when converting mesh to convex "+
+		"collision. A higher number will simplify the mesh more, and is useful for highly detailed models.")
 	flag.Parse()
 }
 
 func main() {
+	if err := glfw.Init(); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	if err := glfw.OpenWindow(10,
+		10, 8, 8, 8, 8,
+		24, 8,
+		glfw.Windowed); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	horde3d.Init()
 	engine.InitPhysics()
+
 	var scene *engine.Scene
 	var collision *newton.Collision
 
@@ -39,9 +59,16 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	err = scene.Load()
+	data, err := loadData(nodeName)
+
 	if err != nil {
 		fmt.Println(err.Error())
+		return
+	}
+
+	good := scene.H3DRes.Load(data)
+	if !good {
+		fmt.Println("Horde3D was unable to load the resource " + nodeName + ".")
 		return
 	}
 
@@ -82,6 +109,11 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	horde3d.Release()
+	glfw.Terminate()
+	glfw.CloseWindow()
+
 }
 
 func writeToCollisionFile(file interface{}, buffer []byte) {
@@ -114,4 +146,19 @@ func buildCompoundCollision(node *engine.Node) *newton.Collision {
 	collision.CompoundEndAddRemove()
 
 	return collision
+}
+
+func loadData(resourcePath string) ([]byte, error) {
+
+	data, err := ioutil.ReadFile(resourcePath)
+
+	if os.IsNotExist(err) {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
