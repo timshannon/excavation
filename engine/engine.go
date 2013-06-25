@@ -133,7 +133,7 @@ func StartMainLoop() {
 		glfw.SwapBuffers()
 	}
 
-	horde3d.DumpMessages() //remove
+	horde3d.DumpMessages() //TODO: remove
 	ClearAll()
 	phWorld.Destroy()
 	horde3d.Release()

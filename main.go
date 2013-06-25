@@ -56,7 +56,6 @@ func main() {
 
 func loadMenu(input *engine.Input) {
 	if state, ok := input.ButtonState(); ok && state == engine.StateReleased {
-		engine.Pause()
 		loadMainMenu()
 	}
 }
