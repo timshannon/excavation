@@ -66,6 +66,8 @@ func main() {
 		return
 	}
 
+	_ = engine.LoadAllResources()
+
 	good := scene.H3DRes.Load(data)
 	if !good {
 		fmt.Println("Horde3D was unable to load the resource " + nodeName + ".")

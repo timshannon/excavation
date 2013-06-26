@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/tshannon/gohorde/horde3d"
 	"errors"
 	"github.com/jteeuwen/glfw"
+	"runtime"
 )
 
 //Used to hold resize parms between cameras
@@ -36,6 +37,11 @@ func init() {
 }
 
 func Init(name string) error {
+	//Note: LockOSThread seems to be needed since go1.1
+	// Evenually I may make the engine more multithread (tasks hopefully)
+	// but for now one thread is plenty.
+	runtime.LockOSThread()
+
 	appName = name
 	//load settings from config file
 	cfg, err := NewStandardCfg()
