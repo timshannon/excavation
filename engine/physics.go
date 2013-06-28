@@ -163,18 +163,6 @@ func iterateFacesInMesh(iterator hordeMeshFaceIterator, hMesh horde3d.H3DNode, g
 
 	face := make([]float32, 9)
 
-	mat4 := new(vmath.Matrix4)
-	mat3 := new(vmath.Matrix3)
-	transform := new(vmath.Transform3)
-	translate := new(vmath.Vector3)
-
-	hMesh.TransMats(nil, mat4.Array())
-
-	mat4.Upper3x3(mat3)
-	mat4.Translation(translate)
-
-	transform.MakeFromM3V3(mat3, translate)
-
 	var vIndex1, vIndex2, vIndex3 uint32
 
 	for index := 0; index < batchCount; index += 3 {

@@ -13,6 +13,7 @@ import (
 	"github.com/jteeuwen/glfw"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -29,10 +30,11 @@ func init() {
 		"name will be used. <type>.ngd will be added.")
 	flag.Float64Var(&convexTolerance, "tolerance", 0.01, "Tolerance allowed when converting mesh to convex "+
 		"collision. A higher number will simplify the mesh more, and is useful for highly detailed models.")
-	flag.Parse()
 }
 
 func main() {
+	flag.Parse()
+	runtime.LockOSThread()
 	if err := glfw.Init(); err != nil {
 		fmt.Println(err.Error())
 		return
@@ -86,24 +88,34 @@ func main() {
 		outputFile += "." + collisionType + ".ngd"
 
 	}
+
 	switch collisionType {
 	case "scene":
 		//Scene is a concave, static collision model with no overlapping polygons
 		fmt.Println("Processing Scene Collision.")
-		collision = engine.NewtonTreeFromNode(node)
+		collision = engine.NewtonTreeFromNode(engine.Root)
 	case "compound":
 		//Compound is a convex only, dynamic collision which breaks the individual
 		// horde meshes into separate parts of the compound collision
 		fmt.Println("Processing Compound Collision.")
-		collision = buildCompoundCollision(node)
+		collision = buildCompoundCollision(engine.Root)
 	default:
 		fmt.Println("Invalid collision type. Must be scene or compound.")
+		return
+	}
+
+	fmt.Println("Collision: ", collision)
+	if *collision == nil {
+		fmt.Println("Invalid model scene file.  Collision hull could not be created.")
 		return
 	}
 
 	file, err := os.Create(outputFile)
 	if os.IsExist(err) {
 		fmt.Println("File " + outputFile + " already exists and is being overwritting")
+	} else if err != nil {
+		fmt.Println("Error creating file: ", err)
+		return
 	}
 
 	engine.PhysicsWorld().SerializeCollision(collision, writeToCollisionFile, file)
@@ -119,6 +131,7 @@ func main() {
 }
 
 func writeToCollisionFile(file interface{}, buffer []byte) {
+	fmt.Println(len(buffer))
 	_, err := file.(*os.File).Write(buffer)
 	if err != nil {
 		file.(*os.File).Close()
@@ -134,7 +147,6 @@ func buildCompoundCollision(node *engine.Node) *newton.Collision {
 		collision := engine.PhysicsWorld().CreateConvexHullFromMesh(meshes[0], float32(convexTolerance),
 			int(node.H3DNode))
 		return collision
-
 	}
 
 	collision := engine.PhysicsWorld().CreateCompoundCollision(int(node.H3DNode))
