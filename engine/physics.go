@@ -13,7 +13,7 @@ import (
 const (
 	GRAVITY         = -9.8
 	CONVEXTOLERANCE = 0.01
-	PHYSICS_FPS     = 60.0
+	PHYSICS_FPS     = 120.0
 	PHYSICS_DT      = 1 / PHYSICS_FPS
 )
 

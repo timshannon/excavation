@@ -125,6 +125,10 @@ func StartMainLoop() {
 	resetView()
 	startTime = Time()
 	for running {
+
+		//TODO: Run gamecode and physics code at 120 fps fixed rate
+		// use physics fixed loop.
+		// collect and lerp all node updates
 		frames++
 		joyUpdate()
 		if !paused {
