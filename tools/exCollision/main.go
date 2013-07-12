@@ -68,9 +68,8 @@ func main() {
 		return
 	}
 
-	_ = engine.LoadAllResources()
-
 	good := scene.H3DRes.Load(data)
+
 	if !good {
 		fmt.Println("Horde3D was unable to load the resource " + nodeName + ".")
 		return
@@ -81,6 +80,12 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+
+	fmt.Println("ResRoot: ", nodeName)
+
+	//TODO: Get node geom, load it directly from the same directory
+	//	as the root node
+
 	if outputFile == "" {
 		outputFile = node.Name()
 	}
@@ -105,10 +110,6 @@ func main() {
 	}
 
 	fmt.Println("Collision: ", collision)
-	if *collision == nil {
-		fmt.Println("Invalid model scene file.  Collision hull could not be created.")
-		return
-	}
 
 	file, err := os.Create(outputFile)
 	if os.IsExist(err) {
